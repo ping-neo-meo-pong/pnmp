@@ -1,0 +1,55 @@
+version: '3'
+
+services:
+  rproxy:
+    image: nginx:latest
+    container_name: rproxy-nginx
+    restart: unless-stopped
+    volumes:
+      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - 80:80
+    networks:
+      - bridge
+
+  frontend:
+    image: front-nextjs
+    build: ./frontend/
+    container_name: frontend-nextjs
+    volumes:
+      - ./frontend:/app/frontend
+    restart: unless-stopped
+    expose:
+      - 3000
+    networks:
+      - bridge
+
+  backend:
+    image: back-nestjs
+    build: ./backend/
+    container_name: backend-nextjs
+    volumes:
+      - ./backend:/app/backend
+    restart: unless-stopped
+    expose:
+      - 8000
+    networks:
+      - bridge
+
+  db:
+    image: postgres:latest
+    container_name: db-postgres
+    restart: unless-stopped
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=$POSTGRES_DB
+      - POSTGRES_USER=$POSTGRES_USER
+      - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+    expose:
+      - 5432
+    networks:
+      - bridge
+
+networks:
+  bridge:
