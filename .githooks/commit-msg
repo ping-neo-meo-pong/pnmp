@@ -39,7 +39,7 @@ fi
 
 
 # Check the commit message
-MSG_REGEX="^(feat|fix|docs|test|chore):( )([A-Za-z0-9_-]| )+( )(\(\#([1-9][0-9]+|[1-9])\))$"
+MSG_REGEX="^(feat|fix|docs|test|chore):( )([A-Za-z0-9._%+-/]| )+( )(\(\#([1-9][0-9]+|[1-9])\))$"
 if [[ "$COMMIT_MSG" =~ $MSG_REGEX ]]; then
 MATCHED_STRING=${BASH_REMATCH[5]}
 ISSUE_NUMBER=${MATCHED_STRING:1:$((${#MATCHED_STRING}-2))}
