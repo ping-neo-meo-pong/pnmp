@@ -1,5 +1,5 @@
 FROM node:latest
 
-EXPOSE 3000
+EXPOSE $FRONTEND_PORT
 
 CMD ["sh", "/frontend.sh"]

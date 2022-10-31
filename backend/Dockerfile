@@ -1,5 +1,5 @@
 FROM node:latest
 
-EXPOSE 8000
+EXPOSE $BACKEND_PORT
 
 CMD ["sh", "/backend.sh"]
