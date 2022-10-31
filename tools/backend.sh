@@ -2,7 +2,7 @@
 
 if [ ! -d "node_modules" ];then
   npm install
-  npm install @nestjs/cli 
 fi
 
+npm install @nestjs/cli 
 exec npm run start
