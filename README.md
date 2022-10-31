@@ -3,5 +3,5 @@
 
 ```
 mkdir db
-docker-compose up -d --build
+make
 ```

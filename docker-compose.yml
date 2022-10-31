@@ -20,7 +20,7 @@ services:
 
   nginx:
     depends_on:
-      - backend
+      - frontend
     image: nginx:latest
     container_name: nginx
     restart: always
@@ -43,10 +43,14 @@ services:
         - "8000"
     networks:
       - ping-pong
+    working_dir: /backend
+    volumes:
+      - ./backend:/backend
+      - ./tools/backend.sh:/backend.sh
   
   frontend:
     depends_on:
-      - postgres
+      - backend
     build: ./frontend
     image: frontend
     container_name: frontend
@@ -55,6 +59,10 @@ services:
         - "3000"
     networks:
       - ping-pong
+    working_dir: /frontend
+    volumes:
+      - ./frontend:/frontend
+      - ./tools/frontend.sh:/frontend.sh
     environment:
       WDS_SOCKET_PORT: 0
 
