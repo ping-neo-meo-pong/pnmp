@@ -1,5 +1,6 @@
-import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne } from "typeorm";
 import { Base } from "./Base.entity";
+import { Role } from "./Role.entity";
 import { User } from "./User.entity";
 
 @Entity('score')
@@ -19,4 +20,12 @@ export class Score extends Base{
 	)
 	@JoinColumn({ name: 'user_id' })
 	userId: User[];
+
+	@OneToOne(() => Role)
+	@JoinColumn({ name: 'role_id' })
+	roleId: Role;
+
+	@OneToOne(() => MatchingHistory)
+	@JoinColumn({name: 'matching_id'})
+	matchingHistoryId: MatchingHistory;
 }
