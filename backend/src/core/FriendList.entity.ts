@@ -15,7 +15,9 @@ export class FriendList extends Base {
 	})
 	acceptTime : Date;
 
-	@Column()
+	@Column({
+		default: false
+	})
 	crossFriend: boolean;
 
 	@ManyToOne(

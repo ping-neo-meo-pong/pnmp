@@ -33,10 +33,8 @@ export class Channel extends Base{
 
 	@Column({ 
 		type: 'boolean',
-		comment: '공개 비공개 설정 여부' 
+		comment: '공개 비공개 설정 여부',
+		default: false 
 	})
 	isPublic: boolean;
-
-
-
 }
