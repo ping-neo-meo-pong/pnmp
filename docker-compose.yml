@@ -74,6 +74,18 @@ services:
       WDS_SOCKET_PORT: 0
     tty: true
 
+  pgadmin:
+    container_name: pgadmin
+    image: dpage/pgadmin4
+    restart: always
+    networks:
+     - ping-pong
+    ports:
+     - ${PGADMIN_HOST_PORT}:${PGADMIN_CONTAINER_PORT}
+    environment:
+     - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+     - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+
 networks:
   ping-pong:
     driver: bridge
