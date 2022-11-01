@@ -5,7 +5,9 @@ import { User } from "./User.entity";
 @Entity('BanList')
 export class BanList extends Base{
 
-	@Column()
+	@Column({
+		type: 'datetime',
+	})
 	BlockTime: Date;
 
 	@ManyToOne(

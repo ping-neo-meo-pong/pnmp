@@ -6,16 +6,25 @@ import { User } from "./User.entity";
 
 @Entity('ChannelMember')
 export class ChannelMember extends Base {
-	@Column()
+	@Column({
+		type: 'datetime',
+	})
 	MuteEndTime: Date;
 
-	@Column()
+	@Column({
+		type: 'datetime',
+	})
 	BanEndTime: Date;
 
-	@Column()
+	@Column({
+		type: 'datetime',
+		default: () => 'NOW()'
+	})
 	JoinTime: Date;
 
-	@Column()
+	@Column({
+		type: 'datetime',
+	})
 	LeftTime: Date;
 
 	@ManyToOne(
@@ -28,6 +37,7 @@ export class ChannelMember extends Base {
 	@ManyToOne(
 		() => Channel,
 		(channel) => channel.id
+		
 	)
 	@JoinColumn({name : 'channel_id'})
 	channelId: Channel;

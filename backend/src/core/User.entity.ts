@@ -16,22 +16,44 @@ import { Score } from './Score.entity';
 @Unique(['apiId'])
 export class User extends Base {
 
-	@Column({ type: 'varchar', length: 50, comment: '유저 닉네임' })
+	@Column({ 
+		type: 'varchar', 
+		length: 50, 
+		comment: '유저 닉네임' 
+	})
 	nickName: string;
 
-	@Column({ type: 'varchar', length: 50, comment: '유저 이름' })
+	@Column({ 
+		type: 'varchar', 
+		length: 50,
+		comment: '유저 이름' 
+	})
 	userName: string;
 
-	@Column({ type: 'varchar', length: 50, comment: 'api Id' })
+	@Column({ 
+		type: 'varchar',
+		length: 50, 
+		comment: 'api Id' 
+	})
 	apiId: string;
 
-	@Column({ type: 'varchar', length: 50, comment: '프로필 사진' })
+	@Column({ 
+		type: 'varchar', 
+		length: 50, 
+		comment: '프로필 사진' 
+	})
 	profileImage: string;
 
-	@Column({ type: 'boolean', length: 50, comment: '참가 여부' })
+	@Column({ 
+		type: 'boolean', 
+		comment: '참가 여부' 
+	})
 	participate : boolean;
 
-	@Column()
+	@Column({
+		type: 'varchar',
+		length: 50
+	})
 	eMail: string;
 
 	@OneToOne(type => Role, role => role.id)

@@ -6,13 +6,22 @@ import { User } from "./User.entity";
 @Entity('matching_history')
 export class MatchingHistory extends Base{
 	
-	@Column({ type: 'varchar', length: 50, comment: '역할' })
+	@Column({ 
+		type: 'varchar',
+		length: 50,
+		comment: '역할' 
+	})
 	role : string;
 
-    @Column()
+    @Column({
+		type: 'datetime',
+		default: () => 'NOW()'
+	})
     startTime: Date;
 
-	@Column()
+	@Column({
+		type: 'datetime'
+	})
 	finishedTime: Date;
 
 	@OneToOne(() => GameRoom)

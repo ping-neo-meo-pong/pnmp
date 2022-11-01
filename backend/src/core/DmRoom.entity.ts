@@ -4,9 +4,13 @@ import { Base } from "./Base.entity";
 @Entity('DmRoom')
 export class DmRoom extends Base {
 	
-	@Column()
+	@Column({
+		type: 'datetime',
+	})
     user1LeftTime: Date;
 
-	@Column()
+	@Column({
+		type: 'datetime',
+	})
     user2LeftTime: Date;
 }

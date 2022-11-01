@@ -6,7 +6,11 @@ import { User } from "./User.entity";
 @Entity('DmMessage')
 export class DmMessage extends Base {
 
-	@Column({ type: 'varchar', comment: '메세지' })
+	@Column({ 
+		type: 'varchar',
+		length: 255,
+		comment: '메세지' 
+	})
 	message: string;
 
 	@ManyToOne(

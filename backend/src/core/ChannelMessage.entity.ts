@@ -4,7 +4,11 @@ import { Channel } from "./Channel.entity";
 
 @Entity('ChannelMessage')
 export class ChannelMessage extends Base {
-	@Column()
+	@Column({
+		type: 'varchar',
+		length: 255,
+		comment: '메세지' 
+	})
 	message: string;
 
 	@ManyToOne(
