@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne } from "typeorm";
-import { Base } from "./base.entity";
-import { GameRoom } from "./GameRoom.entity";
-import { User } from "./User.entity";
+import { Base } from "../base.entity";
+import { GameRoom } from "../gameroom/GameRoom.entity";
+import { User } from "../user/User.entity";
 
 @Entity('matching_history')
 export class MatchingHistory extends Base{

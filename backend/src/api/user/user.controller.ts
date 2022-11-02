@@ -22,33 +22,28 @@ export class userController {
 
 	}
 
-	@Post('/:id/friend/:friend-id')
-	requestFriend(@Param('id') userId : string, 
-				@Param('friend-id') friendId : string) {
+	@Post('/friend/:friend-id')
+	requestFriend(@Param('friend-id') friendId : string) {
 
 	}
 
-	@Patch('/:id/friend/:friend-id')
-	acceptFriend(@Param('id') userId : string, 
-				@Param('friend-id') friendId : string) {
+	@Patch('/friend/:friend-id')
+	acceptFriend(@Param('friend-id') friendId : string) {
 
 	}
 
-	@Delete('/:id/friend/:friend-id')
-	deleteFriend(@Param('id') userId : string,
-				@Param('frined-id') friendId : string) {
+	@Delete('/friend/:friend-id')
+	deleteFriend(@Param('frined-id') friendId : string) {
 
 	}
 
-	@Post('/:id/block/:block-id')
-	userBlock(@Param('id') userId : string, 
-			@Param('block-id') blockId : string) {
+	@Post('/block/:block-id')
+	userBlock(@Param('block-id') blockId : string) {
 
 	}
 
-	@Patch('/:id/block/:block-id')
-	liftBlockUser(@Param('id') userId : string,
-				@Param('block-id') blockId : string) {
+	@Patch('/block/:block-id')
+	liftBlockUser(@Param('block-id') blockId : string) {
 
 	}
 

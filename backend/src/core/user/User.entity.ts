@@ -8,9 +8,9 @@ import {
 	Unique, 
 	OneToOne
 } from 'typeorm';
-import { Base } from './Base.entity';
-import { Role } from './Role.entity';
-import { Score } from './Score.entity';
+import { Base } from '../Base.entity';
+import { Role } from '../role/Role.entity';
+import { Score } from '../score/Score.entity';
 
 @Entity('user')
 @Unique(['apiId'])
@@ -62,4 +62,6 @@ export class User extends Base {
 
 	// @OneToMany(() => Score, (score) => score.id)
 	// userId: Score[];
+
+	
 }

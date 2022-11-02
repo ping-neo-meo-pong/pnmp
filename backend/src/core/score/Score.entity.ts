@@ -1,8 +1,8 @@
 import { Column, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, OneToOne } from "typeorm";
-import { Base } from "./Base.entity";
-import { MatchingHistory } from "./MathcingHistory.entity";
-import { Role } from "./Role.entity";
-import { User } from "./User.entity";
+import { Base } from "../Base.entity";
+import { MatchingHistory } from "../matchinghistory/MathcingHistory.entity";
+import { Role } from "../role/Role.entity";
+import { User } from "../user/User.entity";
 
 @Entity('score')
 export class Score extends Base{
