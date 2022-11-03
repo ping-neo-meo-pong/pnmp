@@ -1,15 +1,10 @@
-import { Controller, Patch, Post } from "@nestjs/common";
+import { Controller, Patch, Post } from '@nestjs/common';
 
 @Controller('/api/game')
 export class gameController {
+  @Post()
+  makeGame() {}
 
-	@Post()
-	makeGame(){
-
-	}
-
-	@Patch()
-	correctionMatchingHistory(){
-		
-	}
+  @Patch()
+  correctionMatchingHistory() {}
 }

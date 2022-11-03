@@ -1,20 +1,13 @@
-import { Controller, Get, Patch, Post } from "@nestjs/common";
+import { Controller, Get, Patch, Post } from '@nestjs/common';
 
 @Controller('api/direc-message')
 export class messageController {
+  @Get()
+  joinDmRoom() {}
 
-	@Get()
-	joinDmRoom(){
-		
-	}
+  @Post()
+  makeDm() {}
 
-	@Post()
-	makeDm(){
-
-	}
-
-	@Patch()
-	getOUtDm(){
-		
-	}
+  @Patch()
+  getOUtDm() {}
 }
