@@ -20,7 +20,7 @@ export class Channel extends Base {
 
   @Column({
     default: null,
-    type: 'datetime',
+    type: 'timestamp',
   })
   DeletedAt: Date;
 

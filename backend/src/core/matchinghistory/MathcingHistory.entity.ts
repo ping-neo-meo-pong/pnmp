@@ -20,13 +20,13 @@ export class MatchingHistory extends Base {
   role: string;
 
   @Column({
-    type: 'datetime',
+    type: 'timestamp',
     default: () => 'NOW()',
   })
   startTime: Date;
 
   @Column({
-    type: 'datetime',
+    type: 'timestamp',
   })
   finishedTime: Date;
 

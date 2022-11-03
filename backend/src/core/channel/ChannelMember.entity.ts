@@ -7,23 +7,23 @@ import { User } from '../user/User.entity';
 @Entity('ChannelMember')
 export class ChannelMember extends Base {
   @Column({
-    type: 'datetime',
+    type: 'timestamp',
   })
   MuteEndTime: Date;
 
   @Column({
-    type: 'datetime',
+    type: 'timestamp',
   })
   BanEndTime: Date;
 
   @Column({
-    type: 'datetime',
+    type: 'timestamp',
     default: () => 'NOW()',
   })
   JoinTime: Date;
 
   @Column({
-    type: 'datetime',
+    type: 'timestamp',
   })
   LeftTime: Date;
 

@@ -5,7 +5,7 @@ import { User } from '../user/User.entity';
 @Entity('BanList')
 export class BanList extends Base {
   @Column({
-    type: 'datetime',
+    type: 'timestamp',
   })
   BlockTime: Date;
 

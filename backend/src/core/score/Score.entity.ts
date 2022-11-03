@@ -22,13 +22,13 @@ export class Score extends Base {
   win: string;
 
   @Column({
-    type: 'tinyint',
+    type: 'smallint',
     comment: '점수',
   })
   score: number;
 
   @Column({
-    type: 'tinyint',
+    type: 'smallint',
     comment: '래더 점수(총 점수)',
   })
   LadderScore: number;

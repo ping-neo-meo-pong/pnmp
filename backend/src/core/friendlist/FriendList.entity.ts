@@ -5,13 +5,13 @@ import { User } from '../user/User.entity';
 @Entity('FriendList')
 export class FriendList extends Base {
   @Column({
-    type: 'datetime',
+    type: 'timestamp',
     default: () => 'NOW()',
   })
   requestTime: Date;
 
   @Column({
-    type: 'datetime',
+    type: 'timestamp',
   })
   acceptTime: Date;
 
