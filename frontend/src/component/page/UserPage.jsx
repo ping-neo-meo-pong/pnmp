@@ -7,7 +7,7 @@ const UserPage = () => {
 
   const getUsers = async () => {
     await axios
-      .get(`http://localhost/api/users`)
+      .get(`${process.env.REACT_APP_API_URL}/users`)
       .then((response) => {
         console.log(response.data);
         setUsers(response.data);
