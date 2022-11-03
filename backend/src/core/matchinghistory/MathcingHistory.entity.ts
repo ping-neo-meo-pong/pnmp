@@ -6,7 +6,7 @@ import {
   OneToMany,
   OneToOne,
 } from 'typeorm';
-import { Base } from '../base.entity';
+import { Base } from '../Base.entity';
 import { GameRoom } from '../gameroom/GameRoom.entity';
 import { User } from '../user/User.entity';
 

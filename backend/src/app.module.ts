@@ -3,11 +3,10 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { User } from './users/user.entity';
-import { UsersModule } from './users/users.module';
+import { User } from './core/user/User.entity';
 import { Score } from './core/score/Score.entity';
 import { Role } from './core/role/Role.entity';
-import { MatchingHistory } from './core/matchingHistory/MathcingHistory.entity';
+import { MatchingHistory } from './core/matchinghistory/MathcingHistory.entity';
 import { GameRoom } from './core/gameroom/GameRoom.entity';
 import { FriendList } from './core/friendlist/FriendList.entity';
 import { DmRoom } from './core/dm/DmRoom.entity';
@@ -20,7 +19,6 @@ import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
-    UsersModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
