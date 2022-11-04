@@ -10,7 +10,7 @@ import { Base } from '../Base.entity';
 import { GameRoom } from '../gameroom/GameRoom.entity';
 import { User } from '../user/User.entity';
 
-@Entity('matching_history')
+@Entity('MatchingHistory')
 export class MatchingHistory extends Base {
   @Column({
     type: 'varchar',
@@ -31,7 +31,7 @@ export class MatchingHistory extends Base {
   finishedTime: Date;
 
   @OneToOne(() => GameRoom)
-  @JoinColumn({ name: 'game_id' })
+  @JoinColumn({ name: 'game_room_id' })
   gameRoomId: GameRoom;
 
   @ManyToOne(() => User, (user) => user.id)
