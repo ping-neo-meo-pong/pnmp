@@ -9,7 +9,12 @@ export class GameService {
     @InjectRepository(GameRoomRepository)
     private gameRoomRepository: GameRoomRepository,
   ) {}
+
   createGame(): Promise<GameRoom> {
     return this.gameRoomRepository.createGame();
+  }
+
+  getGames(): Promise<GameRoom[]> {
+    return this.gameRoomRepository.getGames();
   }
 }

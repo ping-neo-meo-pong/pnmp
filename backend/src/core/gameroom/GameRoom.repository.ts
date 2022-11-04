@@ -7,12 +7,11 @@ export class GameRoomRepository extends Repository<GameRoom> {
   async createGame(): Promise<GameRoom> {
     const game = this.create({ gameMode: 'hi' });
 
-    console.log(game);
-    const gameList = await this.find();
-    console.log(gameList);
-
-    const saveGame = await this.save(game);
-    console.log(saveGame);
+    await this.save(game);
     return game;
+  }
+
+  async getGames(): Promise<GameRoom[]> {
+    return this.find();
   }
 }
