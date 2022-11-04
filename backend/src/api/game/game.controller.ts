@@ -1,10 +1,16 @@
-import { Controller, Patch, Post } from '@nestjs/common';
+import { Controller, Post, Body } from '@nestjs/common';
+import { GameService } from './game.service';
+import { GameRoom } from '../../core/gameroom/GameRoom.entity';
 
-@Controller('/api/game')
-export class gameController {
+@Controller('game')
+export class GameController {
+  constructor(private gameService: GameService) {}
+
   @Post()
-  makeGame() {}
+  createGame(): Promise<GameRoom> {
+    return this.gameService.createGame();
+  }
 
-  @Patch()
-  correctionMatchingHistory() {}
+  //   @Patch()
+  //   correctionMatchingHistory() {}
 }
