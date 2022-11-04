@@ -4,16 +4,25 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  BaseEntity,
 } from 'typeorm';
 
-export abstract class Base {
-  @PrimaryGeneratedColumn('uuid')
+export abstract class Base extends BaseEntity {
+  @PrimaryGeneratedColumn()
   id: number;
 
-  @CreateDateColumn({ name: 'create_at', comment: '생성일' })
+  @CreateDateColumn({
+    type: 'timestamp',
+    comment: '생성일',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'update_at', comment: '수정일' })
+  @UpdateDateColumn({
+    type: 'timestamp',
+    comment: '수정일, ',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   updatedAt: Date;
 
   @Column({

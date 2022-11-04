@@ -12,7 +12,7 @@ import { Base } from '../Base.entity';
 import { Role } from '../role/Role.entity';
 import { Score } from '../score/Score.entity';
 
-@Entity('user')
+@Entity('User')
 @Unique(['apiId'])
 export class User extends Base {
   @Column({

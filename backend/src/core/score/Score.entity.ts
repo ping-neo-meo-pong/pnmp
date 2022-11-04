@@ -8,11 +8,11 @@ import {
   OneToOne,
 } from 'typeorm';
 import { Base } from '../Base.entity';
-import { MatchingHistory } from '../matchinghistory/MathcingHistory.entity';
+import { MatchingHistory } from '../matchinghistory/MatchingHistory.entity';
 import { Role } from '../role/Role.entity';
 import { User } from '../user/User.entity';
 
-@Entity('score')
+@Entity('Score')
 export class Score extends Base {
   @Column({
     type: 'varchar',

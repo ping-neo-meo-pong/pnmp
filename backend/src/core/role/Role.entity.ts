@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { Base } from '../Base.entity';
 
-@Entity('role')
+@Entity('Role')
 export class Role extends Base {
   @Column({
     type: 'varchar',
