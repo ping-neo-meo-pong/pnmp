@@ -7,7 +7,7 @@ import {
   BaseEntity,
 } from 'typeorm';
 
-export abstract class Base extends BaseEntity {
+export abstract class Base {
   @PrimaryGeneratedColumn()
   id: number;
 

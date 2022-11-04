@@ -35,10 +35,10 @@ export class MatchingHistory extends Base {
   gameRoomId: GameRoom;
 
   @ManyToOne(() => User, (user) => user.id)
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: 'user_id1' })
   userId1: User;
 
   @ManyToOne(() => User, (user) => user.id)
-  @JoinColumn({ name: 'user_id' })
+  @JoinColumn({ name: 'user_id2' })
   userId2: User;
 }
