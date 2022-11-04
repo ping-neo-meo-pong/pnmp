@@ -13,7 +13,8 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - ./db:/var/lib/postgresql/data
+      - db:/var/lib/postgresql/data
+      - ./tools/db.sql:/docker-entrypoint-initdb.d/db.sql
     networks:
       - ping-pong
     tty: true
@@ -80,6 +81,8 @@ services:
     restart: always
     networks:
      - ping-pong
+    volumes:
+      - admin:/var/lib/pgadmin
     ports:
      - ${PGADMIN_HOST_PORT}:${PGADMIN_CONTAINER_PORT}
     environment:
@@ -89,3 +92,7 @@ services:
 networks:
   ping-pong:
     driver: bridge
+
+volumes:
+  db: {}
+  admin: {}

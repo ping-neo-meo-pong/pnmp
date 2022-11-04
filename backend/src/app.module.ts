@@ -6,7 +6,7 @@ import { DataSource } from 'typeorm';
 import { User } from './core/user/User.entity';
 import { Score } from './core/score/Score.entity';
 import { Role } from './core/role/Role.entity';
-import { MatchingHistory } from './core/matchinghistory/MathcingHistory.entity';
+import { MatchingHistory } from './core/matchinghistory/MatchingHistory.entity';
 import { GameRoom } from './core/gameroom/GameRoom.entity';
 import { FriendList } from './core/friendlist/FriendList.entity';
 import { DmRoom } from './core/dm/DmRoom.entity';
@@ -16,9 +16,11 @@ import { ChannelMember } from './core/channel/ChannelMember.entity';
 import { BanList } from './core/banlist/BanList.entity';
 import { Channel } from './core/channel/Channel.entity';
 import { ConfigModule } from '@nestjs/config';
+import { GameRoomModule } from './core/gameroom/gameroom.module';
 
 @Module({
   imports: [
+    GameRoomModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -43,8 +45,9 @@ import { ConfigModule } from '@nestjs/config';
         Channel,
         BanList,
       ],
-      synchronize: true,
+      synchronize: false,
       autoLoadEntities: true,
+      logging: true,
     }),
   ],
   controllers: [AppController],
