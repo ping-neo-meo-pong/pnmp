@@ -3,13 +3,12 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { User } from './users/user.entity';
-import { UsersModule } from './users/users.module';
 import { ConfigModule } from '@nestjs/config';
+import { GameRoomModule } from './core/gameroom/gameroom.module';
 
 @Module({
   imports: [
-    UsersModule,
+    GameRoomModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -20,9 +19,10 @@ import { ConfigModule } from '@nestjs/config';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DATABASE,
-      entities: [User],
+      entities: [__dirname + '/core/**/*.entity.{js,ts}'],
       synchronize: true,
       autoLoadEntities: true,
+      logging: true,
     }),
   ],
   controllers: [AppController],
