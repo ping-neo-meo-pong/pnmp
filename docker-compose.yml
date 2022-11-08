@@ -13,7 +13,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      - db:/var/lib/postgresql/data
+      - data:/var/lib/postgresql/data
     networks:
       - ping-pong
     tty: true
@@ -27,17 +27,17 @@ services:
     ports:
       - ${NGINX_HOST_PORT}:${NGINX_CONTAINER_PORT}
     volumes:
-      - ./proxy/nginx.conf:/etc/nginx/nginx.conf
+      - ./srcs/nginx.conf:/etc/nginx/nginx.conf
     networks:
       - ping-pong
-    env_file:
-      - .env
     tty: true
 
   backend:
     depends_on:
       - postgres
-    build: ./backend
+    build:
+      context: .
+      dockerfile: ./Dockerfile.back
     image: backend
     container_name: backend
     restart: always
@@ -48,7 +48,7 @@ services:
     working_dir: /backend
     volumes:
       - ./backend:/backend
-      - ./tools/backend.sh:/backend.sh
+      - ./srcs/backend.sh:/backend.sh
     env_file:
       - .env
     tty: true
@@ -56,7 +56,9 @@ services:
   frontend:
     depends_on:
       - backend
-    build: ./frontend
+    build:
+      context: .
+      dockerfile: ./Dockerfile.front
     image: frontend
     container_name: frontend
     restart: always
@@ -67,7 +69,7 @@ services:
     working_dir: /frontend
     volumes:
       - ./frontend:/frontend
-      - ./tools/frontend.sh:/frontend.sh
+      - ./srcs/frontend.sh:/frontend.sh
     env_file:
       - .env
     environment:
@@ -93,5 +95,5 @@ networks:
     driver: bridge
 
 volumes:
-  db: {}
+  data: {}
   admin: {}
