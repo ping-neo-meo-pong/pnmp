@@ -1,7 +1,7 @@
 import { Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 
-@Controller('/api/users')
-export class userController {
+@Controller('user')
+export class UserController {
   @Get()
   findAllUser() {}
 

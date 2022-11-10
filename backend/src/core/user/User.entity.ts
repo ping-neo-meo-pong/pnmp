@@ -1,26 +1,17 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-  OneToMany,
-  JoinColumn,
-  Unique,
-  OneToOne,
-} from 'typeorm';
+import { Entity, Column, Unique } from 'typeorm';
 import { Base } from '../Base.entity';
-import { Role } from '../role/Role.entity';
-import { Score } from '../score/Score.entity';
+import { UserRole } from '../../enum/user-role.enum';
 
-@Entity('User')
-@Unique(['apiId'])
+@Entity()
+@Unique(['userName'])
 export class User extends Base {
   @Column({
     type: 'varchar',
     length: 50,
-    comment: '유저 닉네임',
+    comment: '유저 역할',
+    default: UserRole.NORMAL,
   })
-  nickName: string;
+  role: UserRole;
 
   @Column({
     type: 'varchar',
@@ -30,35 +21,24 @@ export class User extends Base {
   userName: string;
 
   @Column({
-    type: 'varchar',
-    length: 50,
-    comment: 'api Id',
+    comment: '2단계 인증 여부',
   })
-  apiId: string;
+  twoFactorAuth: boolean;
 
   @Column({
     type: 'varchar',
-    length: 50,
+    length: 255,
+  })
+  email: string;
+
+  @Column({
+    type: 'text',
     comment: '프로필 사진',
   })
   profileImage: string;
 
   @Column({
-    type: 'boolean',
-    comment: '참가 여부',
+    comment: '유저 상태',
   })
-  participate: boolean;
-
-  @Column({
-    type: 'varchar',
-    length: 50,
-  })
-  eMail: string;
-
-  @OneToOne((type) => Role, (role) => role.id)
-  @JoinColumn({ name: 'role_id' })
-  roleId: Role;
-
-  // @OneToMany(() => Score, (score) => score.id)
-  // userId: Score[];
+  status: boolean;
 }

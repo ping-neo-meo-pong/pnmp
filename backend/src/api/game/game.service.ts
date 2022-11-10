@@ -1,20 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { GameRoom } from '../../core/gameroom/GameRoom.entity';
-import { GameRoomRepository } from '../../core/gameroom/GameRoom.repository';
+import { GameRoom } from '../../core/game/game-room.entity';
+import { GameRoomRepository } from '../../core/game/game-room.repository';
+import { GameHistoryRepository } from '../../core/game/game-history.repository';
 
 @Injectable()
 export class GameService {
   constructor(
     @InjectRepository(GameRoomRepository)
-    private gameRoomRepository: GameRoomRepository,
+    private gameRepository: GameRoomRepository,
+    @InjectRepository(GameHistoryRepository)
+    private gameHistoryRepository: GameHistoryRepository,
   ) {}
 
-  createGame(): Promise<GameRoom> {
-    return this.gameRoomRepository.createGame();
-  }
+  createGame() {}
 
-  getGames(): Promise<GameRoom[]> {
-    return this.gameRoomRepository.getGames();
-  }
+  getGames() {}
 }

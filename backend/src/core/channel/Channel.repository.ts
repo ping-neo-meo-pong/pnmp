@@ -1,5 +1,6 @@
-import { EntityRepository, Repository } from 'typeorm';
-import { Channel } from './Channel.entity';
+import { Repository } from 'typeorm';
+import { Channel } from './channel.entity';
+import { CustomRepository } from '../../typeorm-ex.decorator';
 
-@EntityRepository(Channel)
+@CustomRepository(Channel)
 export class ChannelRepository extends Repository<Channel> {}

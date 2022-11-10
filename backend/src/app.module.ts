@@ -4,11 +4,12 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { GameRoomModule } from './core/gameroom/gameroom.module';
+import { RoleModule } from './api/role/role.module';
+import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 
 @Module({
   imports: [
-    GameRoomModule,
+    RoleModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -23,6 +24,7 @@ import { GameRoomModule } from './core/gameroom/gameroom.module';
       synchronize: true,
       autoLoadEntities: true,
       logging: true,
+      namingStrategy: new SnakeNamingStrategy(),
     }),
   ],
   controllers: [AppController],
