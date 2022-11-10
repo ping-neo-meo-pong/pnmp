@@ -7,7 +7,7 @@ const GamePage = () => {
 
   const getGames = async () => {
     await axios
-      .get(`${process.env.REACT_APP_API_URL}/game`)
+      .get(`${process.env.REACT_APP_API_URL}/test`)
       .then((response) => {
         console.log(response.data);
         setGames(response.data);
@@ -24,7 +24,7 @@ const GamePage = () => {
 
   return (
     <>
-      <h1>Game List</h1>
+      <h1>Role List</h1>
       {games.map((game) => (
         <Game gameInfo={game} key={game.id} />
       ))}
