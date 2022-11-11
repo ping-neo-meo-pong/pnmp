@@ -22,4 +22,4 @@ import { ChannelMessageRepository } from '../../core/channel/channel-message.rep
   controllers: [ChannelController],
   providers: [ChannelService],
 })
-export class DmModule {}
+export class ChannelModule {}
