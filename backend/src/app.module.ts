@@ -6,9 +6,11 @@ import { DataSource } from 'typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { RoleModule } from './api/role/role.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { DmModule } from './api/dm/dm.module';
 
 @Module({
   imports: [
+    DmModule,
     RoleModule,
     ConfigModule.forRoot({
       isGlobal: true,
