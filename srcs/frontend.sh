@@ -4,4 +4,4 @@ if [ ! -d "node_modules" ];then
   npm install
 fi
 
-exec npm start
+exec npm run dev

@@ -4,23 +4,23 @@ import { User } from '../user/user.entity';
 
 @Entity()
 export class DmRoom extends Base {
-  @Column({
-    type: 'timestamp',
-    default: null,
-  })
-  userLeftAt: Date;
+	@Column({
+		type: 'timestamp',
+		default: null,
+	})
+	userLeftAt: Date;
 
-  @Column({
-    type: 'timestamp',
-    default: null,
-  })
-  invitedUserLeftAt: Date;
+	@Column({
+		type: 'timestamp',
+		default: null,
+	})
+	invitedUserLeftAt: Date;
 
-  @ManyToOne(() => User, (user) => user.id)
-  @JoinColumn({ name: 'user_id' })
-  userId: User;
+	@ManyToOne(() => User, (user) => user.id)
+	@JoinColumn({ name: 'user_id' })
+	userId: User;
 
-  @ManyToOne(() => User, (user) => user.id)
-  @JoinColumn({ name: 'invited_user_id' })
-  invitedUserId: User;
+	@ManyToOne(() => User, (user) => user.id)
+	@JoinColumn({ name: 'invited_user_id' })
+	invitedUserId: User;
 }
