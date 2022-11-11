@@ -1,18 +1,19 @@
-import { Controller, Post, Get } from '@nestjs/common';
+import { Controller, Post, Get, Body } from '@nestjs/common';
 import { RoleService } from './role.service';
 import { Role } from '../../core/role/role.entity';
+import { CreateRoleDto } from '../../core/role/dto/create-role.dto';
 
 @Controller('test')
 export class RoleController {
-  constructor(private RoleService: RoleService) {}
+  constructor(private roleService: RoleService) {}
 
   @Get()
   getRoles(): Promise<Role[]> {
-    return this.RoleService.getRoles();
+    return this.roleService.getRoles();
   }
 
   @Post()
-  createRole(): Promise<Role> {
-    return this.RoleService.createRole();
+  createRole(@Body() roleData: CreateRoleDto): Promise<Role> {
+    return this.roleService.createRole(roleData);
   }
 }
