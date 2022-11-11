@@ -12,6 +12,7 @@ services:
       POSTGRES_DATABASE: ${POSTGRES_DATABASE}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: Asia/Seoul
     volumes:
       - data:/var/lib/postgresql/data
     networks:
@@ -30,6 +31,8 @@ services:
       - ./srcs/nginx.conf:/etc/nginx/nginx.conf
     networks:
       - ping-pong
+    environment:
+      TZ: Asia/Seoul
     tty: true
 
   backend:
@@ -51,6 +54,8 @@ services:
       - ./srcs/backend.sh:/backend.sh
     env_file:
       - .env
+    environment:
+      TZ: Asia/Seoul
     tty: true
   
   frontend:
@@ -74,6 +79,7 @@ services:
       - .env
     environment:
       WDS_SOCKET_PORT: 0
+      TZ: Asia/Seoul
     tty: true
 
   pgadmin:
@@ -89,6 +95,7 @@ services:
     environment:
      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+     - TZ=Asia/Seoul
 
 networks:
   ping-pong:
