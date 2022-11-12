@@ -11,8 +11,12 @@ export class DmRoomRepository extends Repository<DmRoom> {
     return dmRoom;
   }
 
-  async getDmRooms(): Promise<DmRoom[]> {
-    return this.find();
+  async getDmRooms(userId: string): Promise<DmRoom[]> {
+    const [dmRooms, count] = await this.findAndCount({
+      relations: ['userId', 'invitedUserId'],
+      where: [{ userId: { id: userId } }, { invitedUserId: { id: userId } }],
+    });
+    return dmRooms;
   }
 
   async findAndCountByParticipants(

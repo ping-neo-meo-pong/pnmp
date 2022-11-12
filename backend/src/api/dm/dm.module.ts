@@ -7,13 +7,22 @@ import { DmController } from './dm.controller';
 import { DmService } from './dm.service';
 import { TypeOrmExModule } from '../../typeorm-ex.module';
 import { DmRoomRepository } from '../../core/dm/dm-room.repository';
+import { PassportModule } from '@nestjs/passport';
+import { JwtModule } from '@nestjs/jwt';
+import { jwtConstants } from '../auth/auth.constants';
+import { JwtStrategy } from '../auth/auth.strategy';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Dm, DmRoom]),
     TypeOrmExModule.forCustomRepository([DmRepository, DmRoomRepository]),
+    PassportModule,
+    JwtModule.register({
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: '60s' },
+    }),
   ],
   controllers: [DmController],
-  providers: [DmService],
+  providers: [DmService, JwtStrategy],
 })
 export class DmModule {}

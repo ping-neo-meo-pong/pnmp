@@ -8,9 +8,11 @@ import { RoleModule } from './api/role/role.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { AuthModule } from './api/auth/auth.module';
 import { DmModule } from './api/dm/dm.module';
+import { EventsModule } from './events/events.module';
 
 @Module({
   imports: [
+    EventsModule,
     AuthModule,
     DmModule,
     RoleModule,

@@ -1,30 +1,40 @@
 import Head from 'next/head'
 import Image from 'next/image'
 // import styles from '../styles/Home.module.css'
-import React from 'react';
+import React, { FormEvent, SyntheticEvent } from 'react';
 import { useRouter } from 'next/dist/client/router';
 import { useState } from 'react';
 import Link from "next/link";
 import axios from 'axios';
+import { Socket } from 'socket.io-client';
 
-let my_token;
+let user_data = {
+	_name : "",
+	_pass : "",
+	_socket : "",
+	_token : ""
+}
 
 export default function Login() {
 	const router = useRouter();
 
-	function onSubmitHandler(event) {
+	function onSubmitHandler(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
-		console.log(event.target.username.value);
+		console.log("hi");
+		console.log(event.currentTarget.username.value);
+		// debugger;
 		// console.log(event.target);
 		axios.post('/api/auth/login', {
-			username: event.target.username.value,
-			password: event.target.password.value
+			username: event.currentTarget.username.value,
+			password: event.currentTarget.password.value
 		}).then(function (response) {
-			my_token = response.data.access_token;
-			router.push("/");
-			console.log(my_token);
+			router.push("/clients");
+			user_data._token = response.data.access_token;
+			user_data._name = event.currentTarget.username.value;
+			user_data._pass = event.currentTarget.password.value;
+			console.log(user_data);
 		}).catch(function (error) {
-			alert(error);
+			// alert(error);
 			console.log(error);
 		});
 

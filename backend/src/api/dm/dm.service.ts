@@ -20,23 +20,23 @@ export class DmService {
     const [dmRooms, count] =
       await this.dmRoomRepository.findAndCountByParticipants(dmRoomData);
     // 방을 나간 거라면 다시 입장
-    if (
-      count > 0 &&
-      dmRoomData.userId == dmRooms[0].userId &&
-      dmRooms[0].userLeftAt
-    ) {
-      dmRooms[0].userLeftAt = null;
-      await this.dmRoomRepository.update(dmRooms[0].id, { userLeftAt: null });
-    } else if (
-      count > 0 &&
-      dmRoomData.userId == dmRooms[0].invitedUserId &&
-      dmRooms[0].invitedUserLeftAt
-    ) {
-      dmRooms[0].invitedUserLeftAt = null;
-      await this.dmRoomRepository.update(dmRooms[0].id, {
-        invitedUserLeftAt: null,
-      });
-    }
+    // if (
+    //   count > 0 &&
+    //   dmRoomData.userId == dmRooms[0].userId &&
+    //   dmRooms[0].userLeftAt
+    // ) {
+    //   dmRooms[0].userLeftAt = null;
+    //   await this.dmRoomRepository.update(dmRooms[0].id, { userLeftAt: null });
+    // } else if (
+    //   count > 0 &&
+    //   dmRoomData.userId == dmRooms[0].invitedUserId &&
+    //   dmRooms[0].invitedUserLeftAt
+    // ) {
+    //   dmRooms[0].invitedUserLeftAt = null;
+    //   await this.dmRoomRepository.update(dmRooms[0].id, {
+    //     invitedUserLeftAt: null,
+    //   });
+    // }
     if (count > 0) {
       return dmRooms[0];
     }
@@ -45,7 +45,7 @@ export class DmService {
     return await this.dmRoomRepository.findOneBy({ id: createDmRoom.id });
   }
 
-  getDmRooms(): Promise<DmRoom[]> {
-    return this.dmRoomRepository.getDmRooms();
+  getDmRooms(userId: string): Promise<DmRoom[]> {
+    return this.dmRoomRepository.getDmRooms(userId);
   }
 }
