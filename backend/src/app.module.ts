@@ -6,10 +6,12 @@ import { DataSource } from 'typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { RoleModule } from './api/role/role.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
+import { AuthModule } from './api/auth/auth.module';
 import { DmModule } from './api/dm/dm.module';
 
 @Module({
   imports: [
+    AuthModule,
     DmModule,
     RoleModule,
     ConfigModule.forRoot({
@@ -33,5 +35,5 @@ import { DmModule } from './api/dm/dm.module';
   providers: [AppService],
 })
 export class AppModule {
-  constructor(private dataSource: DataSource) {}
+	constructor(private dataSource: DataSource) { }
 }

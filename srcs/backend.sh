@@ -5,4 +5,4 @@ if [ ! -d "node_modules" ];then
 fi
 
 npm install @nestjs/cli 
-exec npm run start
+exec npm run start:dev
