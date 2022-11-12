@@ -12,16 +12,16 @@ import { JwtStrategy } from './auth.strategy';
 import { LocalStrategy } from './local.strategy';
 
 @Module({
-	imports: [
-		TypeOrmModule.forFeature([User]),
-		TypeOrmExModule.forCustomRepository([UserRepository]),
-		PassportModule,
-		JwtModule.register({
-			secret: jwtConstants.secret,
-			signOptions: { expiresIn: '60s' },
-		}),
-	],
-	controllers: [AuthController],
-	providers: [AuthService, JwtStrategy, LocalStrategy],
+  imports: [
+    TypeOrmModule.forFeature([User]),
+    TypeOrmExModule.forCustomRepository([UserRepository]),
+    PassportModule,
+    JwtModule.register({
+      secret: jwtConstants.secret,
+      signOptions: { expiresIn: '60s' },
+    }),
+  ],
+  controllers: [AuthController],
+  providers: [AuthService, JwtStrategy, LocalStrategy],
 })
-export class AuthModule { }
+export class AuthModule {}

@@ -7,11 +7,11 @@ import { UserService } from './user.service';
 import { TypeOrmExModule } from '../../typeorm-ex.module';
 
 @Module({
-	imports: [
-		TypeOrmModule.forFeature([User]),
-		TypeOrmExModule.forCustomRepository([UserRepository]),
-	],
-	controllers: [UserController],
-	providers: [UserService],
+  imports: [
+    TypeOrmModule.forFeature([User]),
+    TypeOrmExModule.forCustomRepository([UserRepository]),
+  ],
+  controllers: [UserController],
+  providers: [UserService],
 })
-export class GameRoomModule { }
+export class GameRoomModule {}

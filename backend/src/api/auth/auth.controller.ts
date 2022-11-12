@@ -1,24 +1,22 @@
 import { Controller, Get, Post, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
-import { Body } from '@nestjs/common';
 // import { AuthGuard } from 'passport-local';
-
 
 @Controller('auth')
 export class AuthController {
-	constructor(private authService: AuthService) { }
+  constructor(private authService: AuthService) {}
 
-	// @Post('/user') 
-	// userMake() { }
+  // @Post('/user')
+  // userMake() { }
 
-	@UseGuards(AuthGuard('local'))
-	@Post('/login')
-	loginUser(@Request() req) {
-		console.log(req.user_id);
-		return this.authService.login(req.user);
-	}
+  @UseGuards(AuthGuard('local'))
+  @Post('/login')
+  loginUser(@Request() req) {
+    console.log(req.user_id);
+    return this.authService.login(req.user);
+  }
 
-	// @Post('/logout')
-	// logoutUser() { }
+  // @Post('/logout')
+  // logoutUser() { }
 }
