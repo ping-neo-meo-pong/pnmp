@@ -4,17 +4,17 @@ import { User } from '../user/user.entity';
 
 @Entity()
 export class DmRoom extends Base {
-	@Column({
-		type: 'timestamp',
-		default: null,
-	})
-	userLeftAt: Date;
+  @Column({
+    type: 'timestamp',
+    default: null,
+  })
+  userLeftAt: Date;
 
-	@Column({
-		type: 'timestamp',
-		default: null,
-	})
-	invitedUserLeftAt: Date;
+  @Column({
+    type: 'timestamp',
+    default: null,
+  })
+  invitedUserLeftAt: Date;
 
   @ManyToOne(() => User, (user) => user.id, { eager: true })
   @JoinColumn({ name: 'user_id' })

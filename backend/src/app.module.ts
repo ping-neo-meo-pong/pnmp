@@ -35,5 +35,5 @@ import { DmModule } from './api/dm/dm.module';
   providers: [AppService],
 })
 export class AppModule {
-	constructor(private dataSource: DataSource) { }
+  constructor(private dataSource: DataSource) {}
 }
