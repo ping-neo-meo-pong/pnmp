@@ -12,14 +12,20 @@ export class AuthService {
 	) { }
 
 	async validateUser(_username: string, pass: string): Promise<any> {
-		return {
-			username: _username,
-			userId: 1,
+		if (_username === "kingminsik" && pass === "1234") { // login_check
+			console.log(`login Successed!`)
+			return {
+				username: _username,
+				userId: 1,
+			}
+		}
+		else {
+			return null;
 		}
 	}
 
 	async login(user: any) {
-		const payload = { userna: user.username };
+		const payload = { username: user.username, sub: user.userId };
 		return {
 			access_token: this.jwtService.sign(payload),
 		};
