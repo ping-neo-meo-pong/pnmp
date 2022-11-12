@@ -16,11 +16,11 @@ export class DmRoom extends Base {
 	})
 	invitedUserLeftAt: Date;
 
-	@ManyToOne(() => User, (user) => user.id)
-	@JoinColumn({ name: 'user_id' })
-	userId: User;
+  @ManyToOne(() => User, (user) => user.id, { eager: true })
+  @JoinColumn({ name: 'user_id' })
+  userId: User;
 
-	@ManyToOne(() => User, (user) => user.id)
-	@JoinColumn({ name: 'invited_user_id' })
-	invitedUserId: User;
+  @ManyToOne(() => User, (user) => user.id, { eager: true })
+  @JoinColumn({ name: 'invited_user_id' })
+  invitedUserId: User;
 }
