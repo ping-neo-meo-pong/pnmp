@@ -2,17 +2,10 @@ import { IsString, IsOptional } from 'class-validator';
 import { User } from '../../user/user.entity';
 
 export class CreateDmRoomDto {
+  @IsOptional()
   @IsString()
-  readonly userId: User;
+  userId: User;
 
   @IsString()
   readonly invitedUserId: User;
-
-  @IsOptional()
-  @IsString()
-  readonly createdId: string;
-
-  @IsOptional()
-  @IsString()
-  readonly updatedId: string;
 }
