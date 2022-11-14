@@ -11,11 +11,16 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from '../auth/auth.constants';
 import { JwtStrategy } from '../auth/auth.strategy';
+import { UserRepository } from '../../core/user/user.repository';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Dm, DmRoom]),
-    TypeOrmExModule.forCustomRepository([DmRepository, DmRoomRepository]),
+    TypeOrmExModule.forCustomRepository([
+      DmRepository,
+      DmRoomRepository,
+      UserRepository,
+    ]),
     PassportModule,
     JwtModule.register({
       secret: jwtConstants.secret,

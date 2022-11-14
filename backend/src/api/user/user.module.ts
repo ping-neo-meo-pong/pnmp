@@ -14,4 +14,4 @@ import { TypeOrmExModule } from '../../typeorm-ex.module';
   controllers: [UserController],
   providers: [UserService],
 })
-export class GameRoomModule {}
+export class UserModule {}
