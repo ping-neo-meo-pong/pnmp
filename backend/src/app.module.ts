@@ -9,6 +9,7 @@ import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { AuthModule } from './api/auth/auth.module';
 import { DmModule } from './api/dm/dm.module';
 import { EventsModule } from './events/events.module';
+import { UserModule } from './api/user/user.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { EventsModule } from './events/events.module';
     AuthModule,
     DmModule,
     RoleModule,
+    UserModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
