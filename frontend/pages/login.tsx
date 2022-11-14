@@ -8,11 +8,12 @@ import Link from "next/link";
 import axios from "axios";
 import { Socket } from "socket.io-client";
 
-export let user_data = {
+export let user_data: any = {
   _name: "",
   _pass: "",
   _socket: "",
   _token: "",
+  _room: [],
 };
 
 export default function Login() {
