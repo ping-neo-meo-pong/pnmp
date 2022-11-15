@@ -16,9 +16,8 @@ export default function Client() {
 	socket.on('disconnect', () => {
       console.log('disconnected');
 	});
-	socket.emit('send_message', 'hello');
 	socket.emit('authorize', user_data._token);
-    console.log(socket);
+
     axios
       .get("/api/dm", {
         headers: {
@@ -27,8 +26,6 @@ export default function Client() {
       })
       .then(function (response) {
         user_data._room = response.data;
-        // console.log("room:");
-        // console.log(user_data._room);
         for (let i = 0; user_data._room[i]; i++) {
           console.log(i);
           result.push(

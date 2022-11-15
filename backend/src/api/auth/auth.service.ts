@@ -12,23 +12,32 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  /*
   async validateUser(_username: string, pass: string): Promise<any> {
     if (_username === 'kingminsik' && pass === '1234') {
-      // login_check
-      console.log(`login Successed!`);
       return {
         username: _username,
-        userId: '8dc24867-7961-44d6-b75e-c917a96a1c1b', //'cfce047b-24cf-4f68-bea4-565b0413f81b',
+        userId: 'cb9eb1cf-5028-4586-8a25-7a0e151fa8a5',
       };
     } else if (_username === 'jw' && pass === '1234') {
-      console.log(`login Successed!`);
       return {
         username: _username,
-        userId: 'f8d0d022-8bb3-4784-ace0-79a3d7526c31', //'cfce047b-24cf-4f68-bea4-565b0413f81b',
+        userId: '493f6c81-b287-4786-bcab-c20eb906df30',
       };
     } else {
       return null;
     }
+  }
+  */
+  async validateUser(_username: string, pass: string): Promise<any> {
+    const user = await this.userRepository.getUser(_username);
+    if (!user)
+      return null;
+
+	return {
+      username: user.userName,
+      userId: user.id,
+    };
   }
 
   verifyToken(jwt: string): UserTokenDto {
