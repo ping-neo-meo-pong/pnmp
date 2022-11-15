@@ -13,6 +13,11 @@ export default function Client() {
   useEffect(useEffectHandler, []);
   function useEffectHandler() {
     socket = io("http://localhost", { transports: ["websocket"] });
+	socket.on('disconnect', () => {
+      console.log('disconnected');
+	});
+	socket.emit('send_message', 'hello');
+	socket.emit('authorize', user_data._token);
     console.log(socket);
     axios
       .get("/api/dm", {

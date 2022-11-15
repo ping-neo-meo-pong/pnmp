@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from 'src/core/user/user.repository';
 import { JwtService } from '@nestjs/jwt';
+import { UserTokenDto } from '../../core/user/dto/user-token.dto'
 
 @Injectable()
 export class AuthService {
@@ -28,6 +29,14 @@ export class AuthService {
     } else {
       return null;
     }
+  }
+
+  verifyToken(jwt: string): UserTokenDto {
+    const decodedToken =  this.jwtService.verify(jwt);
+    return {
+      username: decodedToken.username,
+      userId: decodedToken.sub,
+    };
   }
 
   async login(user: any) {
