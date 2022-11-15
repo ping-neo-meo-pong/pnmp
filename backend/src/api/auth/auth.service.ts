@@ -17,7 +17,13 @@ export class AuthService {
       console.log(`login Successed!`);
       return {
         username: _username,
-        userId: 'cfce047b-24cf-4f68-bea4-565b0413f81b',
+        userId: '8dc24867-7961-44d6-b75e-c917a96a1c1b', //'cfce047b-24cf-4f68-bea4-565b0413f81b',
+      };
+    } else if (_username === 'jw' && pass === '1234') {
+      console.log(`login Successed!`);
+      return {
+        username: _username,
+        userId: 'f8d0d022-8bb3-4784-ace0-79a3d7526c31', //'cfce047b-24cf-4f68-bea4-565b0413f81b',
       };
     } else {
       return null;

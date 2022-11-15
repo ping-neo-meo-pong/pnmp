@@ -12,8 +12,8 @@ export class AuthController {
   @UseGuards(AuthGuard('local'))
   @Post('/login')
   loginUser(@Request() req) {
-    console.log(`sdfsdf:`);
-    console.log(req.user);
+    console.log(`auth.controller`);
+    // console.log(req.user);
     return this.authService.login(req.user);
   }
 
