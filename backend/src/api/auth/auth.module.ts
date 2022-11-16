@@ -7,8 +7,7 @@ import { UserRepository } from '../../core/user/user.repository';
 import { User } from 'src/core/user/user.entity';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from './auth.constants';
-import { JwtStrategy } from './auth.strategy';
+import { JwtStrategy } from './jwt.strategy';
 import { LocalStrategy } from './local.strategy';
 
 @Module({
@@ -17,8 +16,8 @@ import { LocalStrategy } from './local.strategy';
     TypeOrmExModule.forCustomRepository([UserRepository]),
     PassportModule,
     JwtModule.register({
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: '6000s' },
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: process.env.JWT_EXPIRED },
     }),
   ],
   controllers: [AuthController],

@@ -19,20 +19,21 @@ export let user_data: any = {
 export default function Login() {
   const router = useRouter();
 
-  function onSubmitHandler(event: React.FormEvent<HTMLFormElement>) {
+  async function onSubmitHandler(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     console.log("hi");
     console.log(event.currentTarget.username.value);
-    axios
+    await axios
       .post("/api/auth/login", {
         username: event.currentTarget.username.value,
         password: event.currentTarget.password.value,
       })
       .then(function (response) {
         router.push("/clients");
-        user_data._token = response.data.access_token;
-        user_data._name = event.currentTarget.username.value;
-        user_data._pass = event.currentTarget.password.value;
+        console.log(response);
+        user_data._token = response.data.accessToken;
+        user_data._name = response.data.userName;
+        // user_data._pass = event.currentTarget.password.value;
         console.log(user_data);
       })
       .catch(function (error) {

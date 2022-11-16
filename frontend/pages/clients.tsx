@@ -19,11 +19,7 @@ export default function Client() {
 	socket.emit('authorize', user_data._token);
 
     axios
-      .get("/api/dm", {
-        headers: {
-          Authorization: `Bearer ${user_data._token}`,
-        },
-      })
+      .get("/api/dm")
       .then(function (response) {
         user_data._room = response.data;
         for (let i = 0; user_data._room[i]; i++) {

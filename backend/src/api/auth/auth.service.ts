@@ -12,32 +12,19 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  /*
-  async validateUser(_username: string, pass: string): Promise<any> {
-    if (_username === 'kingminsik' && pass === '1234') {
-      return {
-        username: _username,
-        userId: 'cb9eb1cf-5028-4586-8a25-7a0e151fa8a5',
-      };
-    } else if (_username === 'jw' && pass === '1234') {
-      return {
-        username: _username,
-        userId: '493f6c81-b287-4786-bcab-c20eb906df30',
-      };
-    } else {
-      return null;
-    }
-  }
-  */
-  async validateUser(_username: string, pass: string): Promise<any> {
-    const user = await this.userRepository.getUser(_username);
-    if (!user)
-      return null;
+  async validateUser(username: string): Promise<any> {
+    console.log('validateUser');
+    const existUser = await this.userRepository.findOneBy({
+      userName: username,
+    });
 
-	return {
-      username: user.userName,
-      userId: user.id,
-    };
+    if (existUser) {
+      return { ...existUser, firstLogin: false };
+    }
+
+    const newUser = this.userRepository.create({ userName: username });
+    const saveUser = await this.userRepository.save(newUser);
+    return { ...saveUser, firstLogin: true };
   }
 
   verifyToken(jwt: string): UserTokenDto {
@@ -48,10 +35,10 @@ export class AuthService {
     };
   }
 
-  async login(user: any) {
-    const payload = { username: user.username, sub: user.userId };
+  async getToken(user: any) {
+    const { firstLogin, ...payload } = user;
     return {
-      access_token: this.jwtService.sign(payload),
+      accessToken: this.jwtService.sign(payload),
     };
   }
 }
