@@ -9,80 +9,49 @@ import { user_data } from "./login";
 export let socket: Socket;
 export default function Client() {
   const router = useRouter();
-  let [result, setResult]: any = useState([]);
-  useEffect(useEffectHandler, []);
-  function useEffectHandler() {
+
+  let [dmRoomList, setDmRoomList]: any = useState([]);
+  useEffect(initSocketConnection, []);
+
+  function initSocketConnection() {
     socket = io("http://localhost", { transports: ["websocket"] });
-	socket.on('disconnect', () => {
-      console.log('disconnected');
-	});
-	socket.emit('authorize', user_data._token);
+    socket.on('disconnect', () => {
+        console.log('disconnected');
+    });
+    socket.emit('authorize', user_data._token);
 
     axios
       .get("/api/dm")
       .then(function (response) {
         user_data._room = response.data;
-        for (let i = 0; user_data._room[i]; i++) {
-          console.log(i);
-          result.push(
-            <button
-              key={user_data._room[i].id}
-              onClick={() => {
-                onClickDmRoom(i);
-              }}
-            >
-              room {user_data._room[i].id}
-            </button>
-          );
-        }
-        setResult([...result]);
-        console.log(result);
+        for (let dmRoom of user_data._room)
+          dmRoomList.push(<GoToDmRoom key={dmRoom.id} dmRoom={dmRoom} />)
+        setDmRoomList([...dmRoomList]);
       })
       .catch(() => {
         router.push("/login");
       });
-    function onClickDmRoom(i: number) {
-      router.push(`/dm/${user_data._room[i].id}`);
-    }
   }
 
   return (
     <div>
-      <h1>Socket.io</h1>
-      <GoToDmRoom />
-      {result}
+      <h1>DM room list</h1>
+      {dmRoomList}
     </div>
   );
 }
 
-function GoToDmRoom() {
+function GoToDmRoom({ dmRoom }) {
   let router = useRouter();
   let result: JSX.Element[] = [];
+
   function onClickDmRoom() {
-    router.push("/dm");
+    router.push(`/dm/${dmRoom.id}`);
   }
-  useEffect(() => {
-    // axios
-    //   .get("/api/dm", {
-    //     headers: {
-    //       Authorization: `Bearer ${user_data._token}`,
-    //     },
-    //   })
-    //   .then(function (response) {
-    //     user_data._room = response.data;
-    //     // console.log("room:");
-    //     // console.log(user_data._room);
-    //   })
-    //   .catch(() => {
-    //     router.push("/login");
-    //   });
-  }, []);
-  //   console.log("retult:");
-  //   console.log(result);
 
   return (
     <div>
-      <button onClick={onClickDmRoom}>go to dm room</button>
+      <button onClick={onClickDmRoom}>roomid: {dmRoom.id}</button>
     </div>
   );
 }

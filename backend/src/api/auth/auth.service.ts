@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from 'src/core/user/user.repository';
 import { JwtService } from '@nestjs/jwt';
-import { UserTokenDto } from '../../core/user/dto/user-token.dto'
+// import { UserTokenDto } from '../../core/user/dto/user-token.dto'
 
 @Injectable()
 export class AuthService {
@@ -27,12 +27,8 @@ export class AuthService {
     return { ...saveUser, firstLogin: true };
   }
 
-  verifyToken(jwt: string): UserTokenDto {
-    const decodedToken =  this.jwtService.verify(jwt);
-    return {
-      username: decodedToken.username,
-      userId: decodedToken.sub,
-    };
+  verifyToken(jwt: string): any {
+    return this.jwtService.verify(jwt);
   }
 
   async getToken(user: any) {

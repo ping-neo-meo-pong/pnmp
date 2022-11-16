@@ -70,7 +70,7 @@ export class EventsGateway
   @SubscribeMessage('send_message')
   send_message(@ConnectedSocket() socket: any, @MessageBody() data: any) {
     wsGuard(socket);
-    this.server.in(data[0]).emit('server_message', data[1]);
+    this.server.in(data.roomId).emit(`dmMsgEvent_${data.roomId}`, data.msg);
   }
 
   @SubscribeMessage('id')

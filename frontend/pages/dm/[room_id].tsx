@@ -5,43 +5,25 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 
-let roomId: any;
 export default function Dm() {
   const router = useRouter();
+  const roomId = router.query.room_id;
+
   useEffect(() => {
-    axios
-      .get("/api/dm", {
-        headers: {
-          Authorization: `Bearer ${user_data._token}`,
-        },
-      })
-      .then(function (response) {
-        console.log(`dm:`);
-        console.log(user_data._room);
-        console.log("dm: jwt access");
-        console.log(router.query.room_id);
-        socket.emit("pleaseMakeRoom", router.query.room_id); //user_data._room[i].id);
-        socket.on("roomId", (_roomId) => {
-          roomId = _roomId;
-        });
-        socket.on("server_message", (message) => {
-          console.log(message);
-        });
-      })
-      .catch(() => {
-        console.log(`dm: go to login`);
-        router.push("/login");
-      });
+    socket.on(`dmMsgEvent_${roomId}`, (message) => {
+      console.log(message);
+    });
   }, []);
+
   function onSubmitMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    let data = [];
-    data.push(roomId);
-    data.push(event.currentTarget.message.value);
-    console.log(socket.id);
-    socket.emit("send_message", data);
-    // socket.emit("id", socket.id);
+    const msgData = {
+      roomId: router.query.room_id,
+      msg: event.currentTarget.message.value,
+    };
+    socket.emit("send_message", msgData);
   }
+
   return (
     <div>
       <h1>dm</h1>
