@@ -4,20 +4,20 @@ import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { ConfigModule } from '@nestjs/config';
-import { RoleModule } from './api/role/role.module';
 import { SnakeNamingStrategy } from 'typeorm-naming-strategies';
 import { AuthModule } from './api/auth/auth.module';
 import { DmModule } from './api/dm/dm.module';
 import { EventsModule } from './events/events.module';
 import { UserModule } from './api/user/user.module';
+import { GameModule } from './api/game/game.module';
 
 @Module({
   imports: [
     EventsModule,
     AuthModule,
     DmModule,
-    RoleModule,
     UserModule,
+    GameModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),

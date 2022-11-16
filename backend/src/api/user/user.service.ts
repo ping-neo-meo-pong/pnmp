@@ -7,6 +7,10 @@ import { UserRepository } from '../../core/user/user.repository';
 export class UserService {
   constructor(
     @InjectRepository(UserRepository)
-    private gameRepository: UserRepository,
+    private userRepository: UserRepository,
   ) {}
+
+  async findUsers(): Promise<User[]> {
+    return await this.userRepository.find();
+  }
 }

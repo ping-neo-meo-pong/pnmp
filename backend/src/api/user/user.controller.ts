@@ -1,9 +1,15 @@
 import { Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { UserService } from './user.service';
+import { User } from '../../core/user/user.entity';
 
 @Controller('user')
 export class UserController {
+  constructor(private readonly userService: UserService) {}
+
   @Get()
-  findAllUser() {}
+  findUsers(): Promise<User[]> {
+    return this.userService.findUsers();
+  }
 
   @Get(':id')
   findUser(@Param('id') userId: string) {}
