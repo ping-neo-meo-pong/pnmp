@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DmRoomRepository } from '../../core/dm/dm-room.repository';
 import { CreateDmRoomDto } from '../../core/dm/dto/create-dm-room.dto';
 import { DmRoom } from '../../core/dm/dm-room.entity';
-import { UserTokenDto } from '../../core/user/dto/user-token.dto';
 import { UserRepository } from '../../core/user/user.repository';
 
 @Injectable()
@@ -15,12 +14,9 @@ export class DmService {
     private userRepository: UserRepository,
   ) {}
 
-  async createDmRoom(
-    userToken: UserTokenDto,
-    dmRoomData: CreateDmRoomDto,
-  ): Promise<DmRoom> {
+  async createDmRoom(userToken, dmRoomData: CreateDmRoomDto): Promise<DmRoom> {
     // userId와 invitedUserId가 같으면 예외처리
-    if (userToken.userId === String(dmRoomData.invitedUserId)) {
+    if (userToken.id === String(dmRoomData.invitedUserId)) {
       throw new BadRequestException('userId === invitedUserId');
     }
     // 같은 참여자들이 있는 DM 방이 이미 있으면 예외처리
@@ -40,7 +36,7 @@ export class DmService {
     return await this.dmRoomRepository.findOneBy({ id: createDmRoom.id });
   }
 
-  getDmRooms(userToken: UserTokenDto): Promise<DmRoom[]> {
+  getDmRooms(userToken): Promise<DmRoom[]> {
     return this.dmRoomRepository.getDmRooms(userToken);
   }
 }

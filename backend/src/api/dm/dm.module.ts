@@ -9,8 +9,7 @@ import { TypeOrmExModule } from '../../typeorm-ex.module';
 import { DmRoomRepository } from '../../core/dm/dm-room.repository';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from '../auth/auth.constants';
-import { JwtStrategy } from '../auth/auth.strategy';
+import { JwtStrategy } from '../auth/jwt.strategy';
 import { UserRepository } from '../../core/user/user.repository';
 
 @Module({
@@ -23,8 +22,8 @@ import { UserRepository } from '../../core/user/user.repository';
     ]),
     PassportModule,
     JwtModule.register({
-      secret: jwtConstants.secret,
-      signOptions: { expiresIn: '60s' },
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: process.env.JWT_EXPIRED },
     }),
   ],
   controllers: [DmController],

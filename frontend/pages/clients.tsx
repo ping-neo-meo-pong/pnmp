@@ -15,11 +15,7 @@ export default function Client() {
     socket = io("http://localhost", { transports: ["websocket"] });
     console.log(socket);
     axios
-      .get("/api/dm", {
-        headers: {
-          Authorization: `Bearer ${user_data._token}`,
-        },
-      })
+      .get("/api/dm")
       .then(function (response) {
         user_data._room = response.data;
         // console.log("room:");
