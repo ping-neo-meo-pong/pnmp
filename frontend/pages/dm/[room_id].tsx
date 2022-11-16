@@ -13,6 +13,9 @@ export default function Dm() {
     socket.on(`dmMsgEvent_${roomId}`, (message) => {
       console.log(message);
     });
+    router.events.on('routeChangeStart', () => {
+      socket.off(`dmMsgEvent_${roomId}`);
+    });
   }, []);
 
   function onSubmitMessage(event: React.FormEvent<HTMLFormElement>) {
