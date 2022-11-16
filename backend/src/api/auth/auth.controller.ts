@@ -37,8 +37,6 @@ export class AuthController {
   @Post('/logout')
   logout(@Res({ passthrough: true }) res) {
     res.cookie('jwt', '', { httpOnly: true, maxAge: 0 });
-    return res.send({
-      message: 'success',
-    });
+    return { message: 'success' };
   }
 }
