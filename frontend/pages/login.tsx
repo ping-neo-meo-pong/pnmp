@@ -23,8 +23,6 @@ export default function Login() {
     event.preventDefault();
     console.log("hi");
     console.log(event.currentTarget.username.value);
-    // debugger;
-    // console.log(event.target);
     axios
       .post("/api/auth/login", {
         username: event.currentTarget.username.value,
@@ -38,24 +36,16 @@ export default function Login() {
         console.log(user_data);
       })
       .catch(function (error) {
-        // alert(error);
         console.log(error);
       });
   }
   return (
     <div>
-      <form
-        id="username"
-        action="/api/auth/login"
-        method="post"
-        onSubmit={onSubmitHandler}
-      >
-        <input type="text" id="username" name="username" />
-        <br />
-        <input type="text" id="password" name="password" />
+      <form onSubmit={onSubmitHandler}>
+        <input type="text" id="username" name="username" /><br />
+        <input type="text" id="password" name="password" /><br />
         <button type="submit">Login</button>
       </form>
-      {/* <button onClick={onClickHandler}>로그인</button> */}
     </div>
   );
 }
