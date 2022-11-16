@@ -1,32 +1,23 @@
-// import { Socket } from "socket.io-client";
 import Router, { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { io, Socket } from "socket.io-client";
 import axios from "axios";
+import { user_data, socket } from "./login";
 
-import { user_data } from "./login";
-
-export let socket: Socket;
 export default function Client() {
   const router = useRouter();
 
   let [dmRoomList, setDmRoomList]: any = useState([]);
-  useEffect(initSocketConnection, []);
+  useEffect(getDmRooms, []);
 
-  function initSocketConnection() {
-    socket = io("http://localhost", { transports: ["websocket"] });
-    socket.on('disconnect', () => {
-        console.log('disconnected');
-    });
-    socket.emit('authorize', user_data._token);
-
+  function getDmRooms() {
     axios
       .get("/api/dm")
       .then(function (response) {
         user_data._room = response.data;
+        let newDmRoomList = [];
         for (let dmRoom of user_data._room)
-          dmRoomList.push(<GoToDmRoom key={dmRoom.id} dmRoom={dmRoom} />)
-        setDmRoomList([...dmRoomList]);
+          newDmRoomList.push(<GoToDmRoom key={dmRoom.id} dmRoom={dmRoom} />)
+        setDmRoomList(newDmRoomList);
       })
       .catch(() => {
         router.push("/login");
@@ -51,7 +42,7 @@ function GoToDmRoom({ dmRoom }) {
 
   return (
     <div>
-      <button onClick={onClickDmRoom}>roomid: {dmRoom.id}</button>
+      <button onClick={onClickDmRoom}>DM with {dmRoom.otherUser}</button>
     </div>
   );
 }

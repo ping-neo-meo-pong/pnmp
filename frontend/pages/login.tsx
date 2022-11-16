@@ -6,7 +6,7 @@ import { useRouter } from "next/dist/client/router";
 import { useState } from "react";
 import Link from "next/link";
 import axios from "axios";
-import { Socket } from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 
 export let user_data: any = {
   _name: "",
@@ -16,12 +16,21 @@ export let user_data: any = {
   _room: [],
 };
 
+export let socket: Socket;
+
+function initSocketConnection() {
+  socket = io("http://localhost", { transports: ["websocket"] });
+  socket.on('disconnect', () => {
+      console.log('disconnected');
+  });
+  socket.emit('authorize', user_data._token);
+}
+
 export default function Login() {
   const router = useRouter();
 
   async function onSubmitHandler(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    console.log("hi");
     console.log(event.currentTarget.username.value);
     await axios
       .post("/api/auth/login", {
@@ -29,17 +38,17 @@ export default function Login() {
         password: event.currentTarget.password.value,
       })
       .then(function (response) {
-        router.push("/clients");
-        console.log(response);
         user_data._token = response.data.accessToken;
         user_data._name = response.data.userName;
         // user_data._pass = event.currentTarget.password.value;
-        console.log(user_data);
+        initSocketConnection();
+        router.push("/clients");
       })
       .catch(function (error) {
         console.log(error);
       });
   }
+
   return (
     <div>
       <form onSubmit={onSubmitHandler}>

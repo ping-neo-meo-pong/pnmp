@@ -1,17 +1,19 @@
 // import { Socket } from "socket.io-client";
-import { socket } from "../clients";
-import { user_data } from "../login";
+import { user_data, socket } from "../login";
 import axios from "axios";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Dm() {
   const router = useRouter();
   const roomId = router.query.room_id;
 
+  const [msgList, setMsgList] = useState([]);
+
   useEffect(() => {
     socket.on(`dmMsgEvent_${roomId}`, (message) => {
-      console.log(message);
+      msgList.push(<h3>{message}</h3>);
+      setMsgList([...msgList]);
     });
     router.events.on('routeChangeStart', () => {
       socket.off(`dmMsgEvent_${roomId}`);
@@ -34,6 +36,7 @@ export default function Dm() {
         <input type="text" id="message" name="message" />
         <button type="submit">send_message</button>
       </form>
+      {msgList}
     </div>
   );
 }
