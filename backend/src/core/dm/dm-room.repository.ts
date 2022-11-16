@@ -2,7 +2,6 @@ import { Repository } from 'typeorm';
 import { DmRoom } from './dm-room.entity';
 import { CustomRepository } from '../../typeorm-ex.decorator';
 import { CreateDmRoomDto } from './dto/create-dm-room.dto';
-import { UserTokenDto } from '../user/dto/user-token.dto';
 
 @CustomRepository(DmRoom)
 export class DmRoomRepository extends Repository<DmRoom> {
@@ -12,31 +11,32 @@ export class DmRoomRepository extends Repository<DmRoom> {
     return dmRoom;
   }
 
-  async getDmRooms(userToken: UserTokenDto): Promise<DmRoom[]> {
+  async getDmRooms(userToken): Promise<DmRoom[]> {
+    console.log(userToken);
     const [dmRooms, count] = await this.findAndCount({
       relations: ['userId', 'invitedUserId'],
       where: [
-        { userId: { id: userToken.userId } },
-        { invitedUserId: { id: userToken.userId } },
+        { userId: { id: userToken.id } },
+        { invitedUserId: { id: userToken.id } },
       ],
     });
     return dmRooms;
   }
 
   async findAndCountByParticipants(
-    userToken: UserTokenDto,
+    userToken,
     dmRoomData: CreateDmRoomDto,
   ): Promise<[DmRoom[], number]> {
     const [dmRooms, count] = await this.findAndCount({
       relations: ['userId', 'invitedUserId'],
       where: [
         {
-          userId: { id: String(userToken.userId) },
+          userId: { id: String(userToken.id) },
           invitedUserId: { id: String(dmRoomData.invitedUserId) },
         },
         {
           userId: { id: String(dmRoomData.invitedUserId) },
-          invitedUserId: { id: String(userToken.userId) },
+          invitedUserId: { id: String(userToken.id) },
         },
       ],
     });
