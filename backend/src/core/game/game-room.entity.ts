@@ -9,6 +9,7 @@ export class GameRoom extends Base {
     type: 'varchar',
     length: 50,
     comment: '게임 모드',
+    default: GameMode.NORMAL,
   })
   gameMode: GameMode;
 
