@@ -11,13 +11,29 @@ export default function Dm() {
   const [msgList, setMsgList] = useState([]);
 
   useEffect(() => {
-    socket.on(`dmMsgEvent_${roomId}`, (message) => {
-      msgList.push(<h3>{message}</h3>);
-      setMsgList([...msgList]);
-    });
-    router.events.on('routeChangeStart', () => {
-      socket.off(`dmMsgEvent_${roomId}`);
-    });
+    axios
+      .get(`/api/dm/msg?roomId=${roomId}`)
+      .then(function (response) {
+        const dmList = response.data;
+        let newDmList = [];
+        for (let dm of dmList)
+          newDmList.push(<h3>{dm.message}</h3>);
+        setMsgList(newDmList);
+
+        socket.on(`dmMsgEvent_${roomId}`, (message) => {
+          setMsgList((current) => {
+            current.push(<h3>{message}</h3>);
+            return [...current];
+          });
+        });
+
+        router.events.on('routeChangeStart', () => {
+          socket.off(`dmMsgEvent_${roomId}`);
+        });
+      })
+      .catch(() => {
+        router.push("/login");
+      });
   }, []);
 
   function onSubmitMessage(event: React.FormEvent<HTMLFormElement>) {

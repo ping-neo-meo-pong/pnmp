@@ -28,5 +28,6 @@ import { UserRepository } from '../../core/user/user.repository';
   ],
   controllers: [DmController],
   providers: [DmService, JwtStrategy],
+  exports: [DmService],
 })
 export class DmModule {}

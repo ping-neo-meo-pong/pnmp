@@ -17,6 +17,7 @@ import { Server, Socket } from 'socket.io';
 import { emit } from 'process';
 import { AuthService } from '../api/auth/auth.service';
 import { DmRoomRepository } from '../core/dm/dm-room.repository';
+import { DmService } from '../api/dm/dm.service';
 
 function wsGuard(socket: any) {
   if (!socket.hasOwnProperty('user')) {
@@ -36,6 +37,7 @@ export class EventsGateway
   constructor(
     private authService: AuthService,
     private dmRoomRepository: DmRoomRepository,
+    private dmService: DmService,
   ) {}
 
   handleConnection(client: Socket) {
@@ -70,6 +72,11 @@ export class EventsGateway
   @SubscribeMessage('send_message')
   send_message(@ConnectedSocket() socket: any, @MessageBody() data: any) {
     wsGuard(socket);
+    this.dmService.createDm({
+      message: data.msg,
+      dmRoomId: data.roomId,
+      sendUserId: socket.user.id,
+    });
     this.server.in(data.roomId).emit(`dmMsgEvent_${data.roomId}`, data.msg);
   }
 

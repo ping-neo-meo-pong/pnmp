@@ -5,6 +5,7 @@ import { DmRepository } from '../../core/dm/dm.repository';
 import { CreateDmRoomDto } from '../../core/dm/dto/create-dm-room.dto';
 import { CreateDmDto } from '../../core/dm/dto/create-dm.dto';
 import { DmRoom } from '../../core/dm/dm-room.entity';
+import { Dm } from '../../core/dm/dm.entity';
 import { UserRepository } from '../../core/user/user.repository';
 
 @Injectable()
@@ -34,7 +35,7 @@ export class DmService {
     }
     // 예외에 걸리지 걸리지 않으면 생성하고, 참여자가 join 된 결과를 반환
     dmRoomData.userId = await this.userRepository.findOneBy({
-      id: userToken.userId,
+      id: userToken.id,
     });
     const createDmRoom = await this.dmRoomRepository.createDmRoom(dmRoomData);
     return await this.dmRoomRepository.findOneBy({ id: createDmRoom.id });
@@ -53,7 +54,17 @@ export class DmService {
     return result;
   }
 
-  async createDm(dmData: CreateDmDto) {
-    const dm = await this.dmRepository.createDm(dmData);
+  async createDm(dmData: any) {
+    this.dmRepository.save(dmData);
+  }
+
+  async getDms(roomId: any): Promise<Dm[]> {
+    return await this.dmRepository.find({
+      where: {
+        dmRoomId: {
+          id: roomId,
+        }
+      },
+    });
   }
 }
