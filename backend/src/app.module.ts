@@ -31,7 +31,7 @@ import { GameModule } from './api/game/game.module';
       entities: [__dirname + '/core/**/*.entity.{js,ts}'],
       synchronize: true,
       autoLoadEntities: true,
-      logging: true,
+      // logging: true,
       namingStrategy: new SnakeNamingStrategy(),
     }),
   ],
