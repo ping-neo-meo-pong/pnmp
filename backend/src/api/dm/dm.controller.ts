@@ -13,7 +13,7 @@ import { Dm } from '../../core/dm/dm.entity';
 import { CreateDmRoomDto } from '../../core/dm/dto/create-dm-room.dto';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('api/dm')
+@Controller('dm')
 export class DmController {
   constructor(private readonly dmService: DmService) {}
 
