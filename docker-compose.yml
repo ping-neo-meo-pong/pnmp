@@ -43,8 +43,8 @@ services:
     image: backend
     container_name: backend
     restart: always
-    expose:
-      - ${BACKEND_PORT}
+    ports:
+      - ${BACKEND_PORT}:${BACKEND_PORT}
     networks:
       - ping-pong
     working_dir: /backend
