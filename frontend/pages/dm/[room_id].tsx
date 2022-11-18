@@ -12,7 +12,7 @@ export default function Dm() {
 
   useEffect(() => {
     axios
-      .get(`/api/dm/msg?roomId=${roomId}`)
+      .get(`http://localhost:8000/api/dm/msg?roomId=${roomId}`, { withCredentials: true })
       .then(function (response) {
         const dmList = response.data;
         let newDmList = [];

@@ -11,7 +11,7 @@ export default function Client() {
 
   function getDmRooms() {
     axios
-      .get("/api/dm")
+      .get("http://localhost:8000/api/dm", { withCredentials: true })
       .then(function (response) {
         user_data._room = response.data;
         let newDmRoomList = [];

@@ -16,16 +16,11 @@ async function bootstrap() {
     },
   };
 
-  // cors 및 cookie 설정
-  //   app.enableCors({
-  //     origin: [
-  //       'http://localhost',
-  //       'http://localhost:3000',
-  //       'http://frontend',
-  //       'http://frontend:3000',
-  //     ],
-  //     credentials: true,
-  //   });
+  //   cors 및 cookie 설정
+  app.enableCors({
+    origin: ['http://localhost'],
+    credentials: true,
+  });
   app.use(cookieParser());
 
   // swagger

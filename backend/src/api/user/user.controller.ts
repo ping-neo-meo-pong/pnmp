@@ -1,8 +1,10 @@
 import { Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from '../../core/user/user.entity';
+import { ApiTags } from '@nestjs/swagger';
 
-@Controller('user')
+@Controller('api/user')
+@ApiTags('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
@@ -11,6 +13,7 @@ export class UserController {
     return this.userService.findUsers();
   }
 
+  /*
   @Get(':id')
   findUser(@Param('id') userId: string) {}
 
@@ -34,4 +37,5 @@ export class UserController {
 
   @Patch('/block/:block-id')
   liftBlockUser(@Param('block-id') blockId: string) {}
+  */
 }

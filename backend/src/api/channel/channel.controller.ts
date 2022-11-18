@@ -1,7 +1,10 @@
 import { Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
-@Controller('channel')
+@Controller('api/channel')
+@ApiTags('channel')
 export class ChannelController {
+  /*
   @Get()
   allChannel() {}
 
@@ -49,4 +52,5 @@ export class ChannelController {
     @Param('channel-id') channelId: string,
     @Param('user-id') userId: string,
   ) {}
+  */
 }
