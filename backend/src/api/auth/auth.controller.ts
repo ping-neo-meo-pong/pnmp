@@ -5,7 +5,6 @@ import {
   UseGuards,
   Request,
   Res,
-  Body,
   Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -35,6 +34,9 @@ export class AuthController {
     return req.user;
   }
 
-  // @Post('/logout')
-  // logoutUser() { }
+  @Post('/logout')
+  logout(@Res({ passthrough: true }) res) {
+    res.cookie('jwt', '', { httpOnly: true, maxAge: 0 });
+    return { message: 'success' };
+  }
 }

@@ -12,7 +12,7 @@ export class DmRoomRepository extends Repository<DmRoom> {
   }
 
   async getDmRooms(userToken): Promise<DmRoom[]> {
-    const [dmRooms, count] = await this.findAndCount({
+    const dmRooms = await this.find({
       relations: ['userId', 'invitedUserId'],
       where: [
         { userId: { id: userToken.id } },
