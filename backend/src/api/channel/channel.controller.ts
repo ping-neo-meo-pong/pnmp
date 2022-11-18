@@ -1,6 +1,6 @@
 import { Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 
-@Controller('channel')
+@Controller('api/channel')
 export class ChannelController {
   @Get()
   allChannel() {}
