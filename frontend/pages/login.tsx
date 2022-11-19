@@ -33,10 +33,14 @@ export default function Login() {
     event.preventDefault();
     console.log(event.currentTarget.username.value);
     await axios
-      .post("/api/auth/login", {
-        username: event.currentTarget.username.value,
-        password: event.currentTarget.password.value,
-      })
+      .post(
+        "http://localhost:8000/api/auth/login",
+        {
+          username: event.currentTarget.username.value,
+          password: event.currentTarget.password.value,
+        },
+        { withCredentials: true }
+      )
       .then(function (response) {
         user_data._token = response.data.accessToken;
         user_data._name = response.data.userName;

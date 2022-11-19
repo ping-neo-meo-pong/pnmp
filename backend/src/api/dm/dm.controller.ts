@@ -12,8 +12,10 @@ import { DmRoom } from '../../core/dm/dm-room.entity';
 import { Dm } from '../../core/dm/dm.entity';
 import { CreateDmRoomDto } from '../../core/dm/dto/create-dm-room.dto';
 import { AuthGuard } from '@nestjs/passport';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('api/dm')
+@ApiTags('dm')
 export class DmController {
   constructor(private readonly dmService: DmService) {}
 

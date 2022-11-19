@@ -11,7 +11,7 @@ export default function Client() {
 
   function getDmRooms() {
     axios
-      .get("/api/dm")
+      .get("http://localhost:8000/api/dm", { withCredentials: true })
       .then(function (response) {
         user_data._room = response.data;
         let newDmRoomList = [];
@@ -27,8 +27,10 @@ export default function Client() {
   function onSubmitMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     axios
-      .post("/api/dm", {
+      .post("http://localhost:8000/api/dm", {
         invitedUserName: event.currentTarget.invitedUserName.value,
+      }, {
+        withCredentials: true,
       })
       .then(function (response) {
         const dmRoom = response.data;

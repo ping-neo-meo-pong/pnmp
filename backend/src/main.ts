@@ -9,13 +9,19 @@ import {
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.use(cookieParser());
 
   const swaggerCustomOptions: SwaggerCustomOptions = {
     swaggerOptions: {
       persistAuthorization: true,
     },
   };
+
+  //   cors 및 cookie 설정
+  app.enableCors({
+    origin: ['http://localhost'],
+    credentials: true,
+  });
+  app.use(cookieParser());
 
   // swagger
   const swaggerConfig = new DocumentBuilder()
@@ -39,8 +45,7 @@ async function bootstrap() {
 
   // Swagger UI에 대한 path를 연결함
   // .setup('swagger ui endpoint', app, swagger_document)
-  SwaggerModule.setup('api/swagger', app, swaggerDocument, swaggerCustomOptions);
-
+  SwaggerModule.setup('swagger', app, swaggerDocument, swaggerCustomOptions);
   await app.listen(parseInt(process.env.BACKEND_PORT, 10) || 8000);
 }
 bootstrap();
