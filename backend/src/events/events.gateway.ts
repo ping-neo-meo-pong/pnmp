@@ -18,12 +18,12 @@ import { emit } from 'process';
 import { AuthService } from '../api/auth/auth.service';
 import { DmRoomRepository } from '../core/dm/dm-room.repository';
 import { DmService } from '../api/dm/dm.service';
+import { UserService } from '../api/user/user.service';
 
 function wsGuard(socket: any) {
   if (!socket.hasOwnProperty('user')) {
     socket.disconnect();
     throw new WsException('Not authorized');
-	console.log('never');
   }
 }
 
@@ -38,20 +38,24 @@ export class EventsGateway
     private authService: AuthService,
     private dmRoomRepository: DmRoomRepository,
     private dmService: DmService,
+    private userService: UserService,
   ) {}
 
-  handleConnection(client: Socket) {
+  handleConnection(socket: Socket) {
     console.log('connected');
   }
 
-  handleDisconnect(client: Socket) {
+  handleDisconnect(socket: any) {
     console.log('disconnected');
+    if (socket.hasOwnProperty('user'))
+      this.userService.deleteSocket(socket.user.id);
   }
 
   @SubscribeMessage('authorize')
   async authorize(@ConnectedSocket() socket: any, @MessageBody() jwt: string) {
     try {
       socket.user = this.authService.verifyToken(jwt);
+      this.userService.setSocket(socket.user.id, socket);
       const dmRooms = await this.dmRoomRepository.getDmRooms(socket.user);
       for (let dmRoom of dmRooms)
         socket.join(dmRoom.id);
@@ -60,17 +64,8 @@ export class EventsGateway
     }
   }
 
-  /*
-  @SubscribeMessage('pleaseMakeRoom')
-  makeRoom(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
-    client.join(roomId);
-    client.emit('roomId', roomId);
-    console.log(roomId);
-  }
-  */
-
-  @SubscribeMessage('send_message')
-  send_message(@ConnectedSocket() socket: any, @MessageBody() data: any) {
+  @SubscribeMessage('dmMessage')
+  onDmMessage(@ConnectedSocket() socket: any, @MessageBody() data: any) {
     wsGuard(socket);
     this.dmService.createDm({
       message: data.msg,
@@ -78,10 +73,5 @@ export class EventsGateway
       sendUserId: socket.user.id,
     });
     this.server.in(data.roomId).emit(`dmMsgEvent_${data.roomId}`, data.msg);
-  }
-
-  @SubscribeMessage('id')
-  id_print(@MessageBody('id') data: number) {
-    console.log(data);
   }
 }

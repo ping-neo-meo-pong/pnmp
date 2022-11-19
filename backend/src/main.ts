@@ -39,7 +39,7 @@ async function bootstrap() {
 
   // Swagger UI에 대한 path를 연결함
   // .setup('swagger ui endpoint', app, swagger_document)
-  SwaggerModule.setup('swagger', app, swaggerDocument, swaggerCustomOptions);
+  SwaggerModule.setup('api/swagger', app, swaggerDocument, swaggerCustomOptions);
 
   await app.listen(parseInt(process.env.BACKEND_PORT, 10) || 8000);
 }

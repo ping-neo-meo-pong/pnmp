@@ -24,9 +24,31 @@ export default function Client() {
       });
   }
 
+  function onSubmitMessage(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    axios
+      .post("/api/dm", {
+        invitedUserName: event.currentTarget.invitedUserName.value,
+      })
+      .then(function (response) {
+        const dmRoom = response.data;
+        setDmRoomList((current) => {
+          current.push(<GoToDmRoom key={dmRoom.id} dmRoom={dmRoom} />);
+          return [...current];
+        });
+      })
+      .catch((error) => {
+        alert(error.response.data.message);
+      });
+  }
+
   return (
     <div>
       <h1>DM room list</h1>
+      <form onSubmit={onSubmitMessage}>
+        <button type="submit">create new DM room with </button>
+        <input type="text" name="invitedUserName" />
+      </form>
       {dmRoomList}
     </div>
   );

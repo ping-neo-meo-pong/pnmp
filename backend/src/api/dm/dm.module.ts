@@ -11,6 +11,7 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from '../auth/jwt.strategy';
 import { UserRepository } from '../../core/user/user.repository';
+import { UserModule } from '../../api/user/user.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { UserRepository } from '../../core/user/user.repository';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.JWT_EXPIRED },
     }),
+    UserModule,
   ],
   controllers: [DmController],
   providers: [DmService, JwtStrategy],

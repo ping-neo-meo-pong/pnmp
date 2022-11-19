@@ -13,5 +13,6 @@ import { TypeOrmExModule } from '../../typeorm-ex.module';
   ],
   controllers: [UserController],
   providers: [UserService],
+  exports: [UserService],
 })
 export class UserModule {}
