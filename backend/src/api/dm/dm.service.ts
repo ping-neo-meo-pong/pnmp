@@ -49,8 +49,8 @@ export class DmService {
         id: dmRoom.id,
         otherUser:
           dmRoom.userId.id === userToken.id
-            ? dmRoom.invitedUserId.userName
-            : dmRoom.userId.userName,
+            ? dmRoom.invitedUserId.username
+            : dmRoom.userId.username,
       });
     }
     return result;
