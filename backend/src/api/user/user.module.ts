@@ -5,11 +5,12 @@ import { User } from '../../core/user/user.entity';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { TypeOrmExModule } from '../../typeorm-ex.module';
+import { FriendRespository } from '../../core/friend/friend.repository';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
-    TypeOrmExModule.forCustomRepository([UserRepository]),
+    TypeOrmExModule.forCustomRepository([UserRepository, FriendRespository]),
   ],
   controllers: [UserController],
   providers: [UserService],

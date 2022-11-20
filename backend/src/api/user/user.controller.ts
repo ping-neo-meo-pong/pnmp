@@ -24,6 +24,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { isUUID } from 'class-validator';
 import { BadRequestException } from '@nestjs/common';
 import { DuplicateUserDto } from '../../core/user/dto/duplicate-user.dto copy';
+import { Friend } from '../../core/friend/friend.entity';
 
 @Controller('api/user')
 @ApiTags('user')
@@ -51,6 +52,68 @@ export class UserController {
     return this.userService.findUserByUserName(duplicateUserData.username);
   }
 
+  @Patch()
+  @ApiOperation({ summary: '로그인한 유저의 정보 수정' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  modifyUser(@Req() req, @Body() updateUserData: UpdateUserDto): Promise<User> {
+    const userToken = req.user;
+    return this.userService.updateUserById(userToken, updateUserData);
+  }
+
+  @Get('/friend')
+  @ApiOperation({ summary: '로그인한 유저의 친구 목록' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  findFriends(@Req() req): Promise<Friend[]> {
+    const userToken = req.user;
+    return this.userService.findFriends(userToken);
+  }
+
+  @Post('/friend/:friendId')
+  @ApiOperation({ summary: '로그인한 유저가 friendId에게 친구 신청' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  requestFriend(@Req() req, @Param('friendId') friendId: string) {
+    if (!isUUID(friendId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
+    const userToken = req.user;
+    return this.userService.requestFriend(userToken, friendId);
+  }
+
+  @Patch('/friend/:friendId')
+  @ApiOperation({ summary: '로그인한 유저가 friendId의 친구 신청 수락' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  acceptFriend(@Req() req, @Param('friendId') friendId: string) {
+    if (!isUUID(friendId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
+    const userToken = req.user;
+    return this.userService.acceptFriend(userToken, friendId);
+  }
+
+  /*
+  @Delete('/friend/:friend-id')
+  deleteFriend(@Param('frined-id') friendId: string) {}
+
+  @Post('/block/:block-id')
+  userBlock(@Param('block-id') blockId: string) {}
+
+  @Patch('/block/:block-id')
+  liftBlockUser(@Param('block-id') blockId: string) {}
+
+  @Get()
+  @ApiOperation({ summary: '로그인한 유저가 참여한 채널 정보' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  findChannels(@Req() req) {
+    const userToken = req.uer;
+    return this.userService.findChannelByParticipant(userToken);
+  }
+  */
+
   @Get(':id')
   @ApiOperation({ summary: '특정 유저 프로필 조회' })
   @ApiParam({
@@ -63,33 +126,4 @@ export class UserController {
     }
     return this.userService.findUserById(userId);
   }
-
-  @Patch()
-  @ApiOperation({ summary: '로그인한 유저의 정보 수정' })
-  @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
-  modifyUser(@Req() req, @Body() updateUserData: UpdateUserDto) {
-    const userToken = req.user;
-    return this.userService.updateUserById(userToken, updateUserData);
-  }
-
-  /*
-  @Get('/friend')
-  findFriend(@Param('id') userId: string) {}
-
-  @Post('/friend/:friend-id')
-  requestFriend(@Param('friend-id') friendId: string) {}
-
-  @Patch('/friend/:friend-id')
-  acceptFriend(@Param('friend-id') friendId: string) {}
-
-  @Delete('/friend/:friend-id')
-  deleteFriend(@Param('frined-id') friendId: string) {}
-
-  @Post('/block/:block-id')
-  userBlock(@Param('block-id') blockId: string) {}
-
-  @Patch('/block/:block-id')
-  liftBlockUser(@Param('block-id') blockId: string) {}
-  */
 }
