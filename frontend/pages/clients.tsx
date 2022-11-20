@@ -24,7 +24,7 @@ export default function Client() {
       });
   }
   function onClickGameRoom() {
-    router.push(`/game/${user_data._name}`);
+    router.push(`/game/test`); //${user_data._name}`);
   }
 
   return (
@@ -38,7 +38,7 @@ export default function Client() {
   );
 }
 
-function GoToDmRoom({ dmRoom }) {
+function GoToDmRoom({ dmRoom }: any) {
   let router = useRouter();
   let result: JSX.Element[] = [];
 

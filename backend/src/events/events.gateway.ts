@@ -21,16 +21,16 @@ import { DmService } from '../api/dm/dm.service';
 
 const data = {
   game: {
-    W: 400,
-    H: 700,
-    bar_d: 50,
+    W: 700,
+    H: 400,
     UD_d: 20,
+    bar_d: 50,
   },
   ball: {
-    x: 0,
-    y: 0,
-    v_x: 0,
-    v_y: 0,
+    x: 200,
+    y: 200,
+    v_x: 3,
+    v_y: 3,
   },
   p1: {
     mouse_y: 0,
@@ -42,7 +42,7 @@ const data = {
   },
 };
 let loop: NodeJS.Timer;
-let champ: 0;
+let champ = 0;
 
 function wsGuard(socket: any) {
   if (!socket.hasOwnProperty('user')) {
@@ -76,7 +76,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       socket.user = this.authService.verifyToken(jwt);
       const dmRooms = await this.dmRoomRepository.getDmRooms(socket.user);
-      for (let dmRoom of dmRooms) socket.join(dmRoom.id);
+      for (const dmRoom of dmRooms) socket.join(dmRoom.id);
     } catch (err) {
       socket.disconnect();
     }
@@ -107,6 +107,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(data);
   }
 
+  /////////////    game    //////////////
+
   @SubscribeMessage('im_gamer')
   im_gamer(@ConnectedSocket() client: Socket) {
     wsGuard(client);
@@ -124,8 +126,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       clearInterval(loop);
       loop = setInterval(() => {
         this.server.emit('game_data', data);
-        console.log(data);
-        console.log(champ);
+        // console.log(data);
+        // console.log(champ);
         // for (let i=0; i < 100; i++)
         // 	console.log(client);
 
