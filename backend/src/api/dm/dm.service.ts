@@ -43,12 +43,14 @@ export class DmService {
 
   async getDmRooms(userToken): Promise<any[]> {
     const dmRooms = await this.dmRoomRepository.getDmRooms(userToken);
-    let result = [];
-    for (let dmRoom of dmRooms) {
+    const result = [];
+    for (const dmRoom of dmRooms) {
       result.push({
         id: dmRoom.id,
-        otherUser: dmRoom.userId.id === userToken.id ?
-          dmRoom.invitedUserId.userName : dmRoom.userId.userName,
+        otherUser:
+          dmRoom.userId.id === userToken.id
+            ? dmRoom.invitedUserId.userName
+            : dmRoom.userId.userName,
       });
     }
     return result;
@@ -63,7 +65,7 @@ export class DmService {
       where: {
         dmRoomId: {
           id: roomId,
-        }
+        },
       },
     });
   }

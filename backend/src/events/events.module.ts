@@ -12,9 +12,7 @@ import { DmRoom } from '../core/dm/dm-room.entity';
     AuthModule,
     DmModule,
     TypeOrmModule.forFeature([DmRoom]),
-    TypeOrmExModule.forCustomRepository([
-      DmRoomRepository,
-    ]),
+    TypeOrmExModule.forCustomRepository([DmRoomRepository]),
   ],
   providers: [EventsGateway],
 })
