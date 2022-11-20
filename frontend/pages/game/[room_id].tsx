@@ -60,34 +60,17 @@ export default function GameRoom() {
     //     })
     //     .catch(() => {
     //     });
-    socket.emit("im_gamer");
     socket.on("LR", (_champ) => {
       champ = _champ;
       console.log(`im ${champ}`);
     });
+    socket.emit("im_gamer");
     router.events.on("routeChangeStart", () => {
       socket.emit(`gameOut`);
     });
     socket.on("game_data", (_data) => {
       data = { ..._data };
-      // data.p1.mouse_y = _data.p1.mouse_y;
-      // data.p2.mouse_y = _data.p2.mouse_y;
-      // data.ball.x = _data.ball.x;
-      // data.ball.y = _data.ball.y;
-      // data.p1.score = _data.p1.score;
-      // data.p2.score = _data.p2.score;
     });
-    // clearInterval(bar_loop);
-    // bar_loop = setInterval(() => {
-    //   if (champ == 1) {
-    //     console.log(`im ${champ}`);
-    //     socket.emit("p1", data.p1.mouse_y);
-    //   }
-    //   else if (champ == 2) {
-    //     console.log(`im ${champ}`);
-    //     socket.emit("p2", data.p2.mouse_y);
-    //   }
-    // }, 1000 / 30);
   }, []);
 
   let champ: number;
