@@ -34,7 +34,7 @@ export default function Login() {
     console.log(event.currentTarget.username.value);
     await axios
       .post(
-        "http://localhost:8000/api/auth/login",
+        "http://localhost/server/api/auth/login",
         {
           username: event.currentTarget.username.value,
           password: event.currentTarget.password.value,

@@ -46,7 +46,7 @@ export class DmService {
 
   async createDmRoom(userId: string, invitedUserName: string): Promise<any> {
     const invitedUser = await this.userRepository.findOneBy({
-      userName: invitedUserName
+      username: invitedUserName
     });
     if (!invitedUser)
       throw new BadRequestException('invited user does not exist');
@@ -83,8 +83,8 @@ export class DmService {
       return {
         id: createdDmRoom.id,
         otherUser: createdDmRoom.userId.id === userId ?
-          createdDmRoom.invitedUserId.userName :
-          createdDmRoom.userId.userName,
+          createdDmRoom.invitedUserId.username :
+          createdDmRoom.userId.username,
       };
     }
   }

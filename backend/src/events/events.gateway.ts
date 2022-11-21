@@ -15,11 +15,11 @@ import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Server, Socket } from 'socket.io';
 import { emit } from 'process';
-import { AuthService } from '../api/auth/auth.service';
-import { DmRoomRepository } from '../core/dm/dm-room.repository';
-import { DmService } from '../api/dm/dm.service';
-import { SocketRepository } from '../core/socket/socket.repository';
 import { UserSocket } from '../core/socket/dto/user-socket.dto';
+import { SocketRepository } from '../core/socket/socket.repository';
+import { JwtService } from '@nestjs/jwt';
+import { DmRoomRepository } from '../core/dm/dm-room.repository';
+import { DmRepository } from '../core/dm/dm.repository';
 
 function wsGuard(socket: UserSocket) {
   if (!socket.hasOwnProperty('user')) {
@@ -36,10 +36,10 @@ export class EventsGateway
   server: Server;
 
   constructor(
-    private authService: AuthService,
-    private dmRoomRepository: DmRoomRepository,
-    private dmService: DmService,
     private socketRepository: SocketRepository,
+    private jwtService: JwtService,
+    private dmRoomRepository: DmRoomRepository,
+    private dmRepository: DmRepository,
   ) {}
 
   handleConnection(socket: Socket) {
@@ -58,7 +58,7 @@ export class EventsGateway
     @MessageBody() jwt: string,
   ) {
     try {
-      socket.user = this.authService.verifyToken(jwt);
+      socket.user = this.jwtService.verify(jwt);
       this.socketRepository.save(socket.user.id, socket);
       const dmRooms = await this.dmRoomRepository.getDmRooms(socket.user);
       for (let dmRoom of dmRooms)
@@ -71,7 +71,7 @@ export class EventsGateway
   @SubscribeMessage('dmMessage')
   onDmMessage(@ConnectedSocket() socket: UserSocket, @MessageBody() data: any) {
     wsGuard(socket);
-    this.dmService.createDm({
+    this.dmRepository.save({
       message: data.msg,
       dmRoomId: data.roomId,
       sendUserId: socket.user.id,

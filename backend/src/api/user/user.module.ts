@@ -19,6 +19,5 @@ import { BlockRepository } from '../../core/block/block.repository';
   ],
   controllers: [UserController],
   providers: [UserService],
-  exports: [UserService],
 })
 export class UserModule {}
