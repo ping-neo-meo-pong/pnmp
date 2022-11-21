@@ -5,8 +5,8 @@ services:
     image: postgres:latest
     container_name: postgres
     restart: always
-    ports:
-      - ${POSTGRES_HOST_PORT}:${POSTGRES_CONTAINER_PORT}
+    expose:
+      - ${POSTGRES_CONTAINER_PORT}
     environment:
       POSTGRES_DATABASE: ${POSTGRES_DATABASE}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -43,8 +43,8 @@ services:
     image: backend
     container_name: backend
     restart: always
-    ports:
-      - ${BACKEND_PORT}:${BACKEND_PORT}
+    expose:
+      - ${BACKEND_PORT}
     networks:
       - ping-pong
     working_dir: /backend
@@ -92,9 +92,9 @@ services:
     ports:
       - ${PGADMIN_HOST_PORT}:${PGADMIN_CONTAINER_PORT}
     environment:
-      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
-      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
-      - TZ=Asia/Seoul
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      TZ: Asia/Seoul
 
 networks:
   ping-pong:

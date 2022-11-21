@@ -3,7 +3,7 @@ import { GameService } from './game.service';
 import { GameRoom } from '../../core/game/game-room.entity';
 import { ApiTags } from '@nestjs/swagger';
 
-@Controller('api/game')
+@Controller('game')
 @ApiTags('game')
 export class GameController {
   constructor(private gameService: GameService) {}
