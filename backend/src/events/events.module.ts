@@ -7,12 +7,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TypeOrmExModule } from '../typeorm-ex.module';
 import { DmRoomRepository } from '../core/dm/dm-room.repository';
 import { DmRoom } from '../core/dm/dm-room.entity';
+import { SocketModule } from '../core/socket/socket.module';
 
 @Module({
   imports: [
     AuthModule,
     DmModule,
     UserModule,
+    SocketModule,
     TypeOrmModule.forFeature([DmRoom]),
     TypeOrmExModule.forCustomRepository([
       DmRoomRepository,

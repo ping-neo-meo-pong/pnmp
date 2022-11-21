@@ -6,7 +6,7 @@ import { CreateDmRoomDto } from '../../core/dm/dto/create-dm-room.dto';
 import { DmRoom } from '../../core/dm/dm-room.entity';
 import { Dm } from '../../core/dm/dm.entity';
 import { UserRepository } from '../../core/user/user.repository';
-import { UserService } from '../../api/user/user.service';
+import { SocketRepository } from '../../core/socket/socket.repository';
 
 @Injectable()
 export class DmService {
@@ -17,7 +17,7 @@ export class DmService {
     private dmRepository: DmRepository,
     @InjectRepository(UserRepository)
     private userRepository: UserRepository,
-    private userService: UserService,
+    private socketRepository: SocketRepository,
   ) {}
 
   /*
@@ -78,8 +78,8 @@ export class DmService {
         userId: { id: userId },
         invitedUserId: { id: invitedUser.id },
       });
-      this.userService.getSocket(userId)?.join(createdDmRoom.id);
-      this.userService.getSocket(invitedUser.id)?.join(createdDmRoom.id);
+      this.socketRepository.find(userId)?.join(createdDmRoom.id);
+      this.socketRepository.find(invitedUser.id)?.join(createdDmRoom.id);
       return {
         id: createdDmRoom.id,
         otherUser: createdDmRoom.userId.id === userId ?

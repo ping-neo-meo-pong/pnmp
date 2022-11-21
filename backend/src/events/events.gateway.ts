@@ -18,9 +18,10 @@ import { emit } from 'process';
 import { AuthService } from '../api/auth/auth.service';
 import { DmRoomRepository } from '../core/dm/dm-room.repository';
 import { DmService } from '../api/dm/dm.service';
-import { UserService } from '../api/user/user.service';
+import { SocketRepository } from '../core/socket/socket.repository';
+import { UserSocket } from '../core/socket/dto/user-socket.dto';
 
-function wsGuard(socket: any) {
+function wsGuard(socket: UserSocket) {
   if (!socket.hasOwnProperty('user')) {
     socket.disconnect();
     throw new WsException('Not authorized');
@@ -38,24 +39,27 @@ export class EventsGateway
     private authService: AuthService,
     private dmRoomRepository: DmRoomRepository,
     private dmService: DmService,
-    private userService: UserService,
+    private socketRepository: SocketRepository,
   ) {}
 
   handleConnection(socket: Socket) {
     console.log('connected');
   }
 
-  handleDisconnect(socket: any) {
+  handleDisconnect(socket: UserSocket) {
     console.log('disconnected');
     if (socket.hasOwnProperty('user'))
-      this.userService.deleteSocket(socket.user.id);
+      this.socketRepository.delete(socket.user.id);
   }
 
   @SubscribeMessage('authorize')
-  async authorize(@ConnectedSocket() socket: any, @MessageBody() jwt: string) {
+  async authorize(
+    @ConnectedSocket() socket: UserSocket,
+    @MessageBody() jwt: string,
+  ) {
     try {
       socket.user = this.authService.verifyToken(jwt);
-      this.userService.setSocket(socket.user.id, socket);
+      this.socketRepository.save(socket.user.id, socket);
       const dmRooms = await this.dmRoomRepository.getDmRooms(socket.user);
       for (let dmRoom of dmRooms)
         socket.join(dmRoom.id);
@@ -65,7 +69,7 @@ export class EventsGateway
   }
 
   @SubscribeMessage('dmMessage')
-  onDmMessage(@ConnectedSocket() socket: any, @MessageBody() data: any) {
+  onDmMessage(@ConnectedSocket() socket: UserSocket, @MessageBody() data: any) {
     wsGuard(socket);
     this.dmService.createDm({
       message: data.msg,

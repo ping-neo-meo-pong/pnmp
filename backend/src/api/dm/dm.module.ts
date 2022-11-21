@@ -12,9 +12,11 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from '../auth/jwt.strategy';
 import { UserRepository } from '../../core/user/user.repository';
 import { UserModule } from '../../api/user/user.module';
+import { SocketModule } from '../../core/socket/socket.module';
 
 @Module({
   imports: [
+    SocketModule,
     TypeOrmModule.forFeature([Dm, DmRoom]),
     TypeOrmExModule.forCustomRepository([
       DmRepository,
@@ -26,7 +28,6 @@ import { UserModule } from '../../api/user/user.module';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.JWT_EXPIRED },
     }),
-    UserModule,
   ],
   controllers: [DmController],
   providers: [DmService, JwtStrategy],
