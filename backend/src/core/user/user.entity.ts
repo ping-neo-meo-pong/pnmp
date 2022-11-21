@@ -4,7 +4,7 @@ import { UserRole } from '../../enum/user-role.enum';
 import { UserStatus } from '../../enum/user-status';
 
 @Entity()
-@Unique(['userName'])
+@Unique(['username'])
 export class User extends Base {
   @Column({
     type: 'varchar',
@@ -19,7 +19,7 @@ export class User extends Base {
     length: 50,
     comment: '유저 이름',
   })
-  userName: string;
+  username: string;
 
   @Column({
     comment: '2단계 인증 여부',

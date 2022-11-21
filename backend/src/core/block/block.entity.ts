@@ -7,6 +7,7 @@ export class Block extends Base {
   @Column({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
+    nullable: true,
   })
   blockAt: Date;
 

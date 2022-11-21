@@ -15,14 +15,14 @@ export class AuthService {
   async validateUser(username: string): Promise<any> {
     console.log('validateUser');
     const existUser = await this.userRepository.findOneBy({
-      userName: username,
+      username: username,
     });
 
     if (existUser) {
       return { ...existUser, firstLogin: false };
     }
 
-    const newUser = this.userRepository.create({ userName: username });
+    const newUser = this.userRepository.create({ username: username });
     const saveUser = await this.userRepository.save(newUser);
     return { ...saveUser, firstLogin: true };
   }

@@ -43,7 +43,7 @@ export default function Login() {
       )
       .then(function (response) {
         user_data._token = response.data.accessToken;
-        user_data._name = response.data.userName;
+        user_data._name = response.data.username;
         // user_data._pass = event.currentTarget.password.value;
         initSocketConnection();
         router.push("/clients");

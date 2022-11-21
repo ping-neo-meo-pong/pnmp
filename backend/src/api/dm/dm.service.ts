@@ -47,8 +47,10 @@ export class DmService {
     for (let dmRoom of dmRooms) {
       result.push({
         id: dmRoom.id,
-        otherUser: dmRoom.userId.id === userToken.id ?
-          dmRoom.invitedUserId.userName : dmRoom.userId.userName,
+        otherUser:
+          dmRoom.userId.id === userToken.id
+            ? dmRoom.invitedUserId.username
+            : dmRoom.userId.username,
       });
     }
     return result;
@@ -63,7 +65,7 @@ export class DmService {
       where: {
         dmRoomId: {
           id: roomId,
-        }
+        },
       },
     });
   }
