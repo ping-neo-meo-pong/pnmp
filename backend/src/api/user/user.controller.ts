@@ -26,7 +26,7 @@ import { BadRequestException } from '@nestjs/common';
 import { DuplicateUserDto } from '../../core/user/dto/duplicate-user.dto';
 import { Friend } from '../../core/friend/friend.entity';
 
-@Controller('api/user')
+@Controller('user')
 @ApiTags('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
