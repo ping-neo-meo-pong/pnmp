@@ -23,7 +23,7 @@ import { UpdateUserDto } from '../../core/user/dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { isUUID } from 'class-validator';
 import { BadRequestException } from '@nestjs/common';
-import { DuplicateUserDto } from '../../core/user/dto/duplicate-user.dto copy';
+import { DuplicateUserDto } from '../../core/user/dto/duplicate-user.dto';
 import { Friend } from '../../core/friend/friend.entity';
 
 @Controller('api/user')
@@ -74,7 +74,10 @@ export class UserController {
   @ApiOperation({ summary: '로그인한 유저가 friendId에게 친구 신청' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  requestFriend(@Req() req, @Param('friendId') friendId: string) {
+  requestFriend(
+    @Req() req,
+    @Param('friendId') friendId: string,
+  ): Promise<Friend> {
     if (!isUUID(friendId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
@@ -86,7 +89,10 @@ export class UserController {
   @ApiOperation({ summary: '로그인한 유저가 friendId의 친구 신청 수락' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  acceptFriend(@Req() req, @Param('friendId') friendId: string) {
+  acceptFriend(
+    @Req() req,
+    @Param('friendId') friendId: string,
+  ): Promise<Friend> {
     if (!isUUID(friendId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
@@ -94,15 +100,33 @@ export class UserController {
     return this.userService.acceptFriend(userToken, friendId);
   }
 
+  @Post('/block/:blockId')
+  @ApiOperation({ summary: '로그인한 유저가 blockId를 차단' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  blockUser(@Req() req, @Param('blockId') blockId: string) {
+    if (!isUUID(blockId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
+    const userToken = req.user;
+    return this.userService.blockUser(userToken, blockId);
+  }
+
+  @Patch('/block/:blockId')
+  @ApiOperation({ summary: '로그인한 유저가 blockId를 차단' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  unblockUser(@Req() req, @Param('blockId') blockId: string) {
+    if (!isUUID(blockId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
+    const userToken = req.user;
+    return this.userService.unblockUser(userToken, blockId);
+  }
+
   /*
   @Delete('/friend/:friend-id')
   deleteFriend(@Param('frined-id') friendId: string) {}
-
-  @Post('/block/:block-id')
-  userBlock(@Param('block-id') blockId: string) {}
-
-  @Patch('/block/:block-id')
-  liftBlockUser(@Param('block-id') blockId: string) {}
 
   @Get()
   @ApiOperation({ summary: '로그인한 유저가 참여한 채널 정보' })

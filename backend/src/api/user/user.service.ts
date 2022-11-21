@@ -7,6 +7,7 @@ import { UpdateUserDto } from '../../core/user/dto/update-user.dto';
 import { Like } from 'typeorm';
 import { FriendRespository } from '../../core/friend/friend.repository';
 import { Friend } from '../../core/friend/friend.entity';
+import { BlockRepository } from '../../core/block/block.repository';
 
 @Injectable()
 export class UserService {
@@ -15,6 +16,8 @@ export class UserService {
     private userRepository: UserRepository,
     @InjectRepository(FriendRespository)
     private friendRespository: FriendRespository,
+    @InjectRepository(BlockRepository)
+    private blockRepository: BlockRepository,
   ) {}
 
   async findUsers(): Promise<User[]> {
@@ -82,26 +85,22 @@ export class UserService {
     console.log(friendship);
     console.log(friendship?.acceptAt);
     if (friendship?.acceptAt) {
-      console.log('이미 친구 입니다');
       throw new BadRequestException('이미 친구 입니다');
     } else if (
       !friendship?.acceptAt &&
       friendship?.userId.id === userToken.id
     ) {
-      console.log('이미 친구 신청이 되어있습니다');
       throw new BadRequestException('이미 친구 신청이 되어있습니다');
     } else if (
       !friendship?.acceptAt &&
       friendship?.userFriendId.id === userToken.id
     ) {
-      console.log('친구 수락');
       await this.friendRespository.update(friendship.id, {
         acceptAt: () => 'CURRENT_TIMESTAMP',
       });
       return friendship;
     }
 
-    console.log('친구 요청 생성');
     const user = await this.findUserById(userToken.id);
     return this.friendRespository.createFriend({
       userId: user,
@@ -124,5 +123,59 @@ export class UserService {
       acceptAt: () => 'CURRENT_TIMESTAMP',
     });
     return friendship;
+  }
+
+  async blockUser(userToken, blockId: string) {
+    if (userToken.id === blockId) {
+      throw new BadRequestException('userId === blockId');
+    }
+    const blockUSer = await this.findUserById(blockId);
+    if (!blockUSer) {
+      throw new BadRequestException('존재하지 않는 유저');
+    }
+    const block = await this.blockRepository.findOne({
+      relations: ['userId', 'blockedUserId'],
+      where: { userId: { id: userToken.id }, blockedUserId: { id: blockId } },
+    });
+    if (block?.blockAt) {
+      throw new BadRequestException('이미 차단했습니다');
+    }
+    if (block && !block?.blockAt) {
+      await this.blockRepository.update(block?.id, {
+        blockAt: () => 'CURRENT_TIMESTAMP',
+      });
+      return block;
+    }
+
+    const user = await this.findUserById(userToken.id);
+    return this.blockRepository.createBlock({
+      userId: user,
+      blockedUserId: blockUSer,
+    });
+  }
+
+  async unblockUser(userToken, blockId: string) {
+    if (userToken.id === blockId) {
+      throw new BadRequestException('userId === blockId');
+    }
+    const blockUSer = await this.findUserById(blockId);
+    if (!blockUSer) {
+      throw new BadRequestException('존재하지 않는 유저');
+    }
+    const block = await this.blockRepository.findOne({
+      relations: ['userId', 'blockedUserId'],
+      where: { userId: { id: userToken.id }, blockedUserId: { id: blockId } },
+    });
+    if (!block) {
+      throw new BadRequestException('차단한 적이 없습니다.');
+    }
+    if (!block.blockAt) {
+      throw new BadRequestException('이미 차단을 해제하였습니다.');
+      return block;
+    }
+
+    await this.blockRepository.update(block?.id, {
+      blockAt: null,
+    });
   }
 }
