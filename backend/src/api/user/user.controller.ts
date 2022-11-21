@@ -113,7 +113,7 @@ export class UserController {
   }
 
   @Patch('/block/:blockId')
-  @ApiOperation({ summary: '로그인한 유저가 blockId를 차단' })
+  @ApiOperation({ summary: '로그인한 유저가 blockId를 차단 해제' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   unblockUser(@Req() req, @Param('blockId') blockId: string) {

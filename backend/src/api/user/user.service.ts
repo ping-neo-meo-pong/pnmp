@@ -171,11 +171,11 @@ export class UserService {
     }
     if (!block.blockAt) {
       throw new BadRequestException('이미 차단을 해제하였습니다.');
-      return block;
     }
 
     await this.blockRepository.update(block?.id, {
       blockAt: null,
     });
+    return { success: true };
   }
 }
