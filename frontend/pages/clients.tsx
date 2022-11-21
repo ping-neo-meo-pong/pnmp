@@ -13,7 +13,7 @@ export default function Client() {
 
   function getDmRooms() {
     axios
-      .get("http://localhost:8000/api/dm", { withCredentials: true })
+      .get("http://localhost/server/api/dm", { withCredentials: true })
       .then(function (response) {
         user_data._room = response.data;
         let newDmRoomList = [];
@@ -27,7 +27,7 @@ export default function Client() {
   }
   function getGameRooms() {
     axios
-      .get("http://localhost:8000/api/game", { withCredentials: true })
+      .get("http://localhost/server/api/game", { withCredentials: true })
       .then(function (response) {
         user_data.game_room = response.data;
         let newGameRoomList = [];

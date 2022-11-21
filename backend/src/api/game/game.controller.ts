@@ -7,7 +7,7 @@ import { GameRoom } from '../../core/game/game-room.entity';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthGuard } from '@nestjs/passport';
 
-@Controller('api/game')
+@Controller('game')
 @ApiTags('game')
 export class GameController {
   constructor(private readonly gameService: GameService) {}

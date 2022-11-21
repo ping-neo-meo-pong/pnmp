@@ -26,8 +26,8 @@ export class GameService {
         id: gameRoom.id,
         otherUser:
           gameRoom.leftUserId.id === userToken.id
-          ? gameRoom.rightUserId.userName
-          : gameRoom.leftUserId.userName,
+          ? gameRoom.rightUserId.username
+          : gameRoom.leftUserId.username,
       });
     }
     return result;

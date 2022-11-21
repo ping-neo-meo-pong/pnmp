@@ -4,31 +4,30 @@ import * as cookieParser from 'cookie-parser';
 import {
   DocumentBuilder,
   SwaggerCustomOptions,
+  SwaggerDocumentOptions,
   SwaggerModule,
 } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  const swaggerCustomOptions: SwaggerCustomOptions = {
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
-  };
-
   //   cors 및 cookie 설정
-  app.enableCors({
-    origin: ['http://localhost'],
-    credentials: true,
-  });
+  //   app.enableCors({
+  //     origin: ['http://localhost'],
+  //     credentials: true,
+  //   });
+
+  // cookie 설정
   app.use(cookieParser());
 
   // swagger
+  app.setGlobalPrefix('api');
+
   const swaggerConfig = new DocumentBuilder()
     .setTitle('pmmp')
     .setDescription('ft_transcandence')
     .setVersion('1.0.0')
-    //JWT 토큰 설정
+    .addServer('api')
     .addBearerAuth(
       {
         type: 'http',
@@ -40,12 +39,24 @@ async function bootstrap() {
     )
     .build();
 
-  // config를 바탕으로 swagger document 생성
-  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+  const swaggerCustomOptions: SwaggerCustomOptions = {
+    swaggerOptions: {
+      persistAuthorization: true,
+    },
+  };
 
-  // Swagger UI에 대한 path를 연결함
-  // .setup('swagger ui endpoint', app, swagger_document)
+  const swaggerDocumentOptions: SwaggerDocumentOptions = {
+    ignoreGlobalPrefix: true,
+  };
+
+  const swaggerDocument = SwaggerModule.createDocument(
+    app,
+    swaggerConfig,
+    swaggerDocumentOptions,
+  );
+
   SwaggerModule.setup('swagger', app, swaggerDocument, swaggerCustomOptions);
+
   await app.listen(parseInt(process.env.BACKEND_PORT, 10) || 8000);
 }
 bootstrap();
