@@ -3,7 +3,9 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { GameRoom } from '../../core/game/game-room.entity';
 import { GameRoomRepository } from '../../core/game/game-room.repository';
 import { GameHistoryRepository } from '../../core/game/game-history.repository';
+import { CreateGameRoomDto } from 'src/core/game/dto/create-game-room.dto';
 import { IsNull } from 'typeorm';
+import { DmRoom } from 'src/core/dm/dm-room.entity';
 
 @Injectable()
 export class GameService {
@@ -16,10 +18,22 @@ export class GameService {
 
   //   createGame() {}
 
-  async getGames(): Promise<GameRoom[]> {
-    return await this.gameRoomRepository.find({
-      relations: ['leftUserId', 'rightUserId'],
-      where: { endAt: IsNull() },
-    });
+  async getGames(userToken): Promise<GameRoom[]> {
+    const gameRooms = await this.gameRoomRepository.getGameRooms(userToken);
+    const result = [];
+    for (const gameRoom of gameRooms) {
+      result.push({
+        id: gameRoom.id,
+        otherUser:
+          gameRoom.leftUserId.id === userToken.id
+          ? gameRoom.rightUserId.userName
+          : gameRoom.leftUserId.userName,
+      });
+    }
+    return result;
+    // return await this.gameRoomRepository.find({
+    //   relations: ['leftUserId', 'rightUserId'],
+    //   where: { endAt: IsNull() },
+    // });
   }
 }

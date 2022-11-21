@@ -8,6 +8,8 @@ export default function Client() {
 
   let [dmRoomList, setDmRoomList]: any = useState([]);
   useEffect(getDmRooms, []);
+  let [gameRoomList, setGameRoomList]: any = useState([]);
+  useEffect(getGameRooms, []);
 
   function getDmRooms() {
     axios
@@ -23,17 +25,30 @@ export default function Client() {
         router.push("/login");
       });
   }
+  function getGameRooms() {
+    axios
+      .get("http://localhost:8000/api/game", { withCredentials: true })
+      .then(function (response) {
+        user_data.game_room = response.data;
+        let newGameRoomList = [];
+        for (let gameRoom of user_data.game_room)
+          newGameRoomList.push(<GoToGameRoom key={gameRoom.id} gameRoom={gameRoom}/>)
+        setGameRoomList(newGameRoomList);
+      })
+  }
   function onClickGameRoom() {
     router.push(`/game/test`); //${user_data._name}`);
   }
 
   return (
     <div>
+      <h1>HI {user_data._name}</h1>
       <h1>DM room list</h1>
       {dmRoomList}
-      <button onClick={onClickGameRoom}>
+      {gameRoomList}
+      {/* <button onClick={onClickGameRoom}>
         <h2>Game</h2>
-      </button>
+      </button> */}
     </div>
   );
 }
@@ -45,16 +60,28 @@ function GoToDmRoom({ dmRoom }: any) {
   function onClickDmRoom() {
     router.push(`/dm/${dmRoom.id}`);
   }
-  function onClickGameRoom() {
-    router.push(`/game/${dmRoom.id}`);
-  }
+  // function onClickGameRoom() {
+  //   router.push(`/game/${dmRoom.id}`);
+  // }
 
   return (
     <div>
       <button onClick={onClickDmRoom}>DM with {dmRoom.otherUser}</button>
-      <button onClick={onClickGameRoom}>
-        <h2>Game</h2>
-      </button>
+    </div>
+  );
+}
+
+function GoToGameRoom({ gameRoom }: any) {
+  let router = useRouter();
+  let result: JSX.Element[] = [];
+
+  function onClickGameRoom() {
+    router.push(`/game/${gameRoom.id}`);
+  }
+
+  return (
+    <div>
+      <button onClick={onClickGameRoom}>GAME with {gameRoom.otherUser}</button>
     </div>
   );
 }

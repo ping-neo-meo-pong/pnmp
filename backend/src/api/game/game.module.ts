@@ -18,5 +18,6 @@ import { GameHistoryRepository } from '../../core/game/game-history.repository';
   ],
   controllers: [GameController],
   providers: [GameService],
+  exports: [GameService],
 })
 export class GameModule {}

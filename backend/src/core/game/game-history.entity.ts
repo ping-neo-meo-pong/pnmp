@@ -34,7 +34,7 @@ export class GameHistory extends Base {
 
   @ManyToOne(() => User, (user) => user.id)
   @JoinColumn({ name: 'user_id' })
-  userId: User;
+  leftUserId: User;
 
   @ManyToOne(() => GameRoom, (gameRoom) => gameRoom.id)
   @JoinColumn({ name: 'game_room_id' })

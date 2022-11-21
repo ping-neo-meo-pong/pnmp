@@ -41,7 +41,7 @@ export class DmService {
     return await this.dmRoomRepository.findOneBy({ id: createDmRoom.id });
   }
 
-  async getDmRooms(userToken): Promise<any[]> {
+  async getDmRooms(userToken): Promise<DmRoom[]> {
     const dmRooms = await this.dmRoomRepository.getDmRooms(userToken);
     const result = [];
     for (const dmRoom of dmRooms) {

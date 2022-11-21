@@ -114,7 +114,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     wsGuard(client);
     client.on('disconnect', () => {
       clearInterval(loop);
-      if (champ > 0) champ--;
+      // if (champ > 0) champ--;
       console.log(`disconnected: ${client.id}`);
     });
     if (champ < 2) {
@@ -126,10 +126,6 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       clearInterval(loop);
       loop = setInterval(() => {
         this.server.emit('game_data', data);
-        // console.log(data);
-        // console.log(champ);
-        // for (let i=0; i < 100; i++)
-        // 	console.log(client);
 
         if (champ >= 2) {
           ball_engine();
@@ -140,20 +136,19 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('p1')
   p1(@ConnectedSocket() client: Socket, @MessageBody() m_y: number) {
     wsGuard(client);
-    // data.mouse_x = m_x;
     data.p1.mouse_y = m_y;
   }
   @SubscribeMessage('p2')
   p2(@ConnectedSocket() client: Socket, @MessageBody() m_y: number) {
     wsGuard(client);
-    // data.mouse_x = m_x;
     data.p2.mouse_y = m_y;
   }
   @SubscribeMessage('gameOut')
   gameOut(@ConnectedSocket() client: Socket) {
     wsGuard(client);
     clearInterval(loop);
-    if (champ > 0) champ--;
+    // if (champ == 2) champ = 1;
+    // else if (champ == 1) champ = 0;
     console.log(`game out : ${champ}`);
   }
 }
