@@ -29,8 +29,8 @@ const data = {
   ball: {
     x: 200,
     y: 200,
-    v_x: 3,
-    v_y: 3,
+    v_x: 9,
+    v_y: 8,
   },
   p1: {
     mouse_y: 0,

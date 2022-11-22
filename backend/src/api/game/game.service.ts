@@ -20,6 +20,7 @@ export class GameService {
 
   async getGames(userToken): Promise<GameRoom[]> {
     const gameRooms = await this.gameRoomRepository.getGameRooms(userToken);
+    console.log(gameRooms);
     const result = [];
     for (const gameRoom of gameRooms) {
       result.push({

@@ -13,11 +13,7 @@ export class GameRoomRepository extends Repository<GameRoom> {
 
   async getGameRooms(userToken): Promise<GameRoom[]> {
     const gameRooms = await this.find({
-      relations: ['leftUserId', 'rightUserId'],
-      where: [
-        {leftUserId: {id: userToken.id}},
-        {rightUserId: {id: userToken.id}},
-      ],
+      relations: ['leftUserId', 'rightUserId']
     });
     return gameRooms;
   }
