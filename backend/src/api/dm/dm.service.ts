@@ -3,10 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DmRoomRepository } from '../../core/dm/dm-room.repository';
 import { DmRepository } from '../../core/dm/dm.repository';
 import { CreateDmRoomDto } from '../../core/dm/dto/create-dm-room.dto';
-import { CreateDmDto } from '../../core/dm/dto/create-dm.dto';
 import { DmRoom } from '../../core/dm/dm-room.entity';
 import { Dm } from '../../core/dm/dm.entity';
 import { UserRepository } from '../../core/user/user.repository';
+import { SocketRepository } from '../../core/socket/socket.repository';
 
 @Injectable()
 export class DmService {
@@ -17,8 +17,10 @@ export class DmService {
     private dmRepository: DmRepository,
     @InjectRepository(UserRepository)
     private userRepository: UserRepository,
+    private socketRepository: SocketRepository,
   ) {}
 
+  /*
   async createDmRoom(userToken, dmRoomData: CreateDmRoomDto): Promise<DmRoom> {
     // userId와 invitedUserId가 같으면 예외처리
     if (userToken.id === String(dmRoomData.invitedUserId)) {
@@ -39,6 +41,52 @@ export class DmService {
     });
     const createDmRoom = await this.dmRoomRepository.createDmRoom(dmRoomData);
     return await this.dmRoomRepository.findOneBy({ id: createDmRoom.id });
+  }
+  */
+
+  async createDmRoom(userId: string, invitedUserName: string): Promise<any> {
+    const invitedUser = await this.userRepository.findOneBy({
+      username: invitedUserName
+    });
+    if (!invitedUser)
+      throw new BadRequestException('invited user does not exist');
+    if (userId === invitedUser.id) {
+      throw new BadRequestException('cannot create DM room with yourself');
+    }
+    const dmRoom = await this.dmRoomRepository.findOne({
+      relations: ['userId', 'invitedUserId'],
+      where: [
+        {
+          userId: { id: userId },
+          invitedUserId: { id: invitedUser.id },
+        },
+        {
+          userId: { id: invitedUser.id },
+          invitedUserId: { id: userId },
+        },
+      ],
+    });
+
+    if (dmRoom) {
+      throw new BadRequestException('DM room already exists');
+    } else {
+      await this.dmRoomRepository.save({
+        userId: userId,
+        invitedUserId: invitedUser.id,
+      } as any);
+      const createdDmRoom = await this.dmRoomRepository.findOneBy({
+        userId: { id: userId },
+        invitedUserId: { id: invitedUser.id },
+      });
+      this.socketRepository.find(userId)?.join(createdDmRoom.id);
+      this.socketRepository.find(invitedUser.id)?.join(createdDmRoom.id);
+      return {
+        id: createdDmRoom.id,
+        otherUser: createdDmRoom.userId.id === userId ?
+          createdDmRoom.invitedUserId.username :
+          createdDmRoom.userId.username,
+      };
+    }
   }
 
   async getDmRooms(userToken): Promise<DmRoom[]> {

@@ -13,7 +13,7 @@ export default function Client() {
 
   function getDmRooms() {
     axios
-      .get("http://localhost/server/api/dm", { withCredentials: true })
+      .get("http://localhost/server/api/dm")
       .then(function (response) {
         user_data._room = response.data;
         let newDmRoomList = [];
@@ -40,10 +40,32 @@ export default function Client() {
     router.push(`/game/test`); //${user_data._name}`);
   }
 
+  function onSubmitMessage(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    axios
+      .post("http://localhost/server/api/dm", {
+        invitedUserName: event.currentTarget.invitedUserName.value,
+      })
+      .then(function (response) {
+        const dmRoom = response.data;
+        setDmRoomList((current : JSX.Element[]) => {
+          current.push(<GoToDmRoom key={dmRoom.id} dmRoom={dmRoom} />);
+          return [...current];
+        });
+      })
+      .catch((error) => {
+        alert(error.response.data.message);
+      });
+  }
+
   return (
     <div>
       <h1>HI {user_data._name}</h1>
       <h1>DM room list</h1>
+      <form onSubmit={onSubmitMessage}>
+        <button type="submit">create new DM room with </button>
+        <input type="text" name="invitedUserName" />
+      </form>
       {dmRoomList}
       {gameRoomList}
       {/* <button onClick={onClickGameRoom}>

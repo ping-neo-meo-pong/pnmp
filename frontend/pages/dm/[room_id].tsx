@@ -42,7 +42,7 @@ export default function Dm() {
       roomId: router.query.room_id,
       msg: event.currentTarget.message.value,
     };
-    socket.emit("send_message", msgData);
+    socket.emit("dmMessage", msgData);
   }
 
   return (

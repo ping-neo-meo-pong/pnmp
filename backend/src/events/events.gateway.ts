@@ -15,9 +15,11 @@ import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Server, Socket } from 'socket.io';
 import { emit } from 'process';
-import { AuthService } from '../api/auth/auth.service';
+import { UserSocket } from '../core/socket/dto/user-socket.dto';
+import { SocketRepository } from '../core/socket/socket.repository';
+import { JwtService } from '@nestjs/jwt';
 import { DmRoomRepository } from '../core/dm/dm-room.repository';
-import { DmService } from '../api/dm/dm.service';
+import { DmRepository } from '../core/dm/dm.repository';
 
 const data = {
   game: {
@@ -44,11 +46,10 @@ const data = {
 let loop: NodeJS.Timer;
 let champ = 0;
 
-function wsGuard(socket: any) {
+function wsGuard(socket: UserSocket) {
   if (!socket.hasOwnProperty('user')) {
     socket.disconnect();
     throw new WsException('Not authorized');
-    console.log('never');
   }
 }
 
@@ -58,23 +59,30 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
 
   constructor(
-    private authService: AuthService,
+    private socketRepository: SocketRepository,
+    private jwtService: JwtService,
     private dmRoomRepository: DmRoomRepository,
-    private dmService: DmService,
-  ) {}
+    private dmRepository: DmRepository,
+  ) { }
 
-  handleConnection(client: Socket) {
+  handleConnection(socket: Socket) {
     console.log('connected');
   }
 
-  handleDisconnect(client: Socket) {
+  handleDisconnect(socket: UserSocket) {
     console.log('disconnected');
+    if (socket.hasOwnProperty('user'))
+      this.socketRepository.delete(socket.user.id);
   }
 
   @SubscribeMessage('authorize')
-  async authorize(@ConnectedSocket() socket: any, @MessageBody() jwt: string) {
+  async authorize(
+    @ConnectedSocket() socket: UserSocket,
+    @MessageBody() jwt: string,
+  ) {
     try {
-      socket.user = this.authService.verifyToken(jwt);
+      socket.user = this.jwtService.verify(jwt);
+      this.socketRepository.save(socket.user.id, socket);
       const dmRooms = await this.dmRoomRepository.getDmRooms(socket.user);
       for (const dmRoom of dmRooms) socket.join(dmRoom.id);
     } catch (err) {
@@ -82,19 +90,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  /*
-  @SubscribeMessage('pleaseMakeRoom')
-  makeRoom(@ConnectedSocket() client: Socket, @MessageBody() roomId: string) {
-    client.join(roomId);
-    client.emit('roomId', roomId);
-    console.log(roomId);
-  }
-  */
-
-  @SubscribeMessage('send_message')
-  send_message(@ConnectedSocket() socket: any, @MessageBody() data: any) {
+  @SubscribeMessage('dmMessage')
+  onDmMessage(@ConnectedSocket() socket: UserSocket, @MessageBody() data: any) {
     wsGuard(socket);
-    this.dmService.createDm({
+    this.dmRepository.save({
       message: data.msg,
       dmRoomId: data.roomId,
       sendUserId: socket.user.id,
@@ -110,7 +109,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   /////////////    game    //////////////
 
   @SubscribeMessage('im_gamer')
-  im_gamer(@ConnectedSocket() client: Socket) {
+  im_gamer(@ConnectedSocket() client: UserSocket) {
     wsGuard(client);
     client.on('disconnect', () => {
       clearInterval(loop);
@@ -134,17 +133,17 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
   @SubscribeMessage('p1')
-  p1(@ConnectedSocket() client: Socket, @MessageBody() m_y: number) {
+  p1(@ConnectedSocket() client: UserSocket, @MessageBody() m_y: number) {
     wsGuard(client);
     data.p1.mouse_y = m_y;
   }
   @SubscribeMessage('p2')
-  p2(@ConnectedSocket() client: Socket, @MessageBody() m_y: number) {
+  p2(@ConnectedSocket() client: UserSocket, @MessageBody() m_y: number) {
     wsGuard(client);
     data.p2.mouse_y = m_y;
   }
   @SubscribeMessage('gameOut')
-  gameOut(@ConnectedSocket() client: Socket) {
+  gameOut(@ConnectedSocket() client: UserSocket) {
     wsGuard(client);
     clearInterval(loop);
     // if (champ == 2) champ = 1;
