@@ -7,13 +7,17 @@ import { GameService } from './game.service';
 import { TypeOrmExModule } from '../../typeorm-ex.module';
 import { GameHistory } from '../../core/game/game-history.entity';
 import { GameHistoryRepository } from '../../core/game/game-history.repository';
+import { UserRepository } from 'src/core/user/user.repository';
+import { SocketModule } from 'src/core/socket/socket.module';
 
 @Module({
   imports: [
+    SocketModule,
     TypeOrmModule.forFeature([GameRoom, GameHistory]),
     TypeOrmExModule.forCustomRepository([
       GameRoomRepository,
       GameHistoryRepository,
+      UserRepository,
     ]),
   ],
   controllers: [GameController],

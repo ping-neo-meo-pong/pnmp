@@ -20,8 +20,11 @@ import { SocketRepository } from '../core/socket/socket.repository';
 import { JwtService } from '@nestjs/jwt';
 import { DmRoomRepository } from '../core/dm/dm-room.repository';
 import { DmRepository } from '../core/dm/dm.repository';
+import { GameRoomRepository } from 'src/core/game/game-room.repository';
 
-const data = {
+let index = 0;
+
+let send_data = {
   game: {
     W: 700,
     H: 400,
@@ -42,7 +45,14 @@ const data = {
     mouse_y: 0,
     score: 0,
   },
+}
+
+const data = {
+  roomId: {
+    send_data,
+  }
 };
+
 let loop: NodeJS.Timer;
 let champ = 0;
 
@@ -63,6 +73,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private jwtService: JwtService,
     private dmRoomRepository: DmRoomRepository,
     private dmRepository: DmRepository,
+    private gameRoomRepository: GameRoomRepository,
   ) { }
 
   handleConnection(socket: Socket) {
@@ -107,40 +118,53 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   /////////////    game    //////////////
-
-  @SubscribeMessage('im_gamer')
-  im_gamer(@ConnectedSocket() client: UserSocket) {
+  @SubscribeMessage('comeInGameRoom')
+  async comeCome(@ConnectedSocket() client: UserSocket, @MessageBody() _data: any) {
     wsGuard(client);
-    client.on('disconnect', () => {
-      clearInterval(loop);
-      // if (champ > 0) champ--;
-      console.log(`disconnected: ${client.id}`);
-    });
-    if (champ < 2) {
-      champ++;
-    }
-    console.log('send LR!');
-    client.emit('LR', champ);
-    if (champ >= 2) {
+
+    data[_data.roomId] = send_data;
+    
+    // console.log("data[roomId]:");
+    console.log(data[_data.roomId]);
+
+    client.join(_data.roomId); // join
+
+    client.emit('LR', 1);
+    const TYPE = 1;
+    // await this.gameRoomRepository.findOne({
+    //   relations: ['leftUserId', 'rightUserId'],
+    //   where: [
+    //     {
+    //       leftUserId: { id: client.id },
+    //     },
+    //     {
+    //       rightUserId: { id: client.id },
+    //     },
+    //   ],
+    // }); // find LR & send
+
+    if (TYPE) {
       clearInterval(loop);
       loop = setInterval(() => {
-        this.server.emit('game_data', data);
+        // this.server.emit('game_data', data);
+        this.server.in(_data.roomId).emit(`game[${_data.roomId}]`, data[_data.roomId]);
 
-        if (champ >= 2) {
-          ball_engine();
-        }
+        ball_engine(_data.roomId);
       }, 1000 / 30);
     }
   }
   @SubscribeMessage('p1')
-  p1(@ConnectedSocket() client: UserSocket, @MessageBody() m_y: number) {
+  p1(@ConnectedSocket() client: UserSocket, @MessageBody() _data) {
     wsGuard(client);
-    data.p1.mouse_y = m_y;
+    console.log("p1 _data:");
+    console.log(_data);
+    console.log(data[_data.roomId]);
+    data[_data.roomId].p1.mouse_y.set(_data.m_y);// = _data.m_y;
   }
   @SubscribeMessage('p2')
-  p2(@ConnectedSocket() client: UserSocket, @MessageBody() m_y: number) {
+  p2(@ConnectedSocket() client: UserSocket, @MessageBody() _data) {
     wsGuard(client);
-    data.p2.mouse_y = m_y;
+    data[_data.roomId].p2.mouse_y = _data.m_y;
   }
   @SubscribeMessage('gameOut')
   gameOut(@ConnectedSocket() client: UserSocket) {
@@ -152,47 +176,45 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 }
 
-function ball_engine() {
-  check_wall();
-  check_bar();
+function ball_engine(roomId: string) {
+  check_wall(roomId);
+  check_bar(roomId);
 
-  // data.ball.old_x = data.ball.x;
-  // data.ball.old_y = data.ball.y;
-  data.ball.x += data.ball.v_x;
-  data.ball.y += data.ball.v_y;
+  data[roomId].ball.x += data[roomId].ball.v_x;
+  data[roomId].ball.y += data[roomId].ball.v_y;
 }
 
-function check_wall() {
-  if (data.ball.x + data.ball.v_x > data.game.W - 20) {
+function check_wall(roomId: string) {
+  if (data[roomId].ball.x + data[roomId].ball.v_x > data[roomId].game.W - 20) {
     // right
-    data.ball.v_x *= -1;
-    data.p1.score += 1;
-  } else if (data.ball.x + data.ball.v_x < 0) {
+    data[roomId].ball.v_x *= -1;
+    data[roomId].p1.score += 1;
+  } else if (data[roomId].ball.x + data[roomId].ball.v_x < 0) {
     // left
-    data.ball.v_x *= -1;
-    data.p2.score += 1;
+    data[roomId].ball.v_x *= -1;
+    data[roomId].p2.score += 1;
   }
-  if (data.ball.y + data.ball.v_y > data.game.H - data.game.UD_d - 20) {
+  if (data[roomId].ball.y + data[roomId].ball.v_y > data[roomId].game.H - data[roomId].game.UD_d - 20) {
     // down
-    data.ball.v_y *= -1;
-  } else if (data.ball.y + data.ball.v_y < data.game.UD_d) {
+    data[roomId].ball.v_y *= -1;
+  } else if (data[roomId].ball.y + data[roomId].ball.v_y < data[roomId].game.UD_d) {
     // up
-    data.ball.v_y *= -1;
+    data[roomId].ball.v_y *= -1;
   }
 }
 
-function check_bar() {
+function check_bar(roomId: string) {
   if (
-    data.ball.x + data.ball.v_x > data.game.bar_d &&
-    data.ball.x + data.ball.v_x < data.game.bar_d + 20 &&
-    Math.abs(data.ball.y + data.ball.v_y - data.p1.mouse_y) < 40
+    data[roomId].ball.x + data[roomId].ball.v_x > data[roomId].game.bar_d &&
+    data[roomId].ball.x + data[roomId].ball.v_x < data[roomId].game.bar_d + 20 &&
+    Math.abs(data[roomId].ball.y + data[roomId].ball.v_y - data[roomId].p1.mouse_y) < 40
   ) {
-    data.ball.v_x = Math.abs(data.ball.v_x);
+    data[roomId].ball.v_x = Math.abs(data[roomId].ball.v_x);
   } else if (
-    data.ball.x + data.ball.v_x < data.game.W - data.game.bar_d - 20 &&
-    data.ball.x + data.ball.v_x > data.game.W - data.game.bar_d - 40 &&
-    Math.abs(data.ball.y + data.ball.v_y - data.p2.mouse_y) < 40
+    data[roomId].ball.x + data[roomId].ball.v_x < data[roomId].game.W - data[roomId].game.bar_d - 20 &&
+    data[roomId].ball.x + data[roomId].ball.v_x > data[roomId].game.W - data[roomId].game.bar_d - 40 &&
+    Math.abs(data[roomId].ball.y + data[roomId].ball.v_y - data[roomId].p2.mouse_y) < 40
   ) {
-    if (data.ball.v_x > 0) data.ball.v_x *= -1;
+    if (data[roomId].ball.v_x > 0) data[roomId].ball.v_x *= -1;
   }
 }

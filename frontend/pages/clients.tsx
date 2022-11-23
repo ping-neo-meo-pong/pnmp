@@ -58,6 +58,24 @@ export default function Client() {
       });
   }
 
+  function onSubmitGameInvite(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    axios
+      .post(`http://localhost/server/api/game`, {
+        invitedUserName: event.currentTarget.invitedUserName.value,
+      })
+      .then(function (response) {
+        const dmRoom = response.data;
+        setDmRoomList((current : JSX.Element[]) => {
+          current.push(<GoToDmRoom key={dmRoom.id} dmRoom={dmRoom} />);
+          return [...current];
+        });
+      })
+      .catch((error) => {
+        alert(error.response.data.message);
+      });
+  }
+
   return (
     <div>
       <h1>HI {user_data._name}</h1>
@@ -67,6 +85,11 @@ export default function Client() {
         <input type="text" name="invitedUserName" />
       </form>
       {dmRoomList}
+      <h1>Game room list</h1>
+      <form onSubmit={onSubmitGameInvite}>
+        <button type="submit">create new DM room with </button>
+        <input type="text" name="invitedUserName" />
+      </form>
       {gameRoomList}
       {/* <button onClick={onClickGameRoom}>
         <h2>Game</h2>

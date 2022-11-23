@@ -15,6 +15,7 @@ import {
 } from "./sketch.js";
 
 let data = {
+  roomId: 0,
   game: {
     H: 400,
     W: 700,
@@ -42,6 +43,7 @@ let bar_loop: NodeJS.Timer;
 
 export default function GameRoom() {
   const router = useRouter();
+  const roomId = router.query.room_id;
 
   const setup = (p5: p5Types, canvasParentRef: Element) => {
     // use parent to render the canvas in this ref
@@ -49,27 +51,18 @@ export default function GameRoom() {
     p5.createCanvas(data.game.W, data.game.H).parent(canvasParentRef);
   };
   useEffect(() => {
-    //   axios
-    //     .get("/api/gameroom", { // make gameRoom
-    //     })
-    //     .then(function (response) {
-    //       socket.emit("pleaseMakeGameRoom", user_data._token);
-    //       socket.on("roomId", (_roomId) => {
-    //         gameRoomId = _roomId;
-    //       });
-    //     })
-    //     .catch(() => {
-    //     });
     socket.on("LR", (_champ) => {
       champ = _champ;
       console.log(`im ${champ}`);
     });
-    socket.emit("im_gamer");
+    socket.emit("comeInGameRoom", roomId);
     router.events.on("routeChangeStart", () => {
       socket.emit(`gameOut`);
     });
-    socket.on("game_data", (_data) => {
+    socket.on(`game[${roomId}]`, (_data) => {
       data = { ..._data };
+      // data.ball.x = _data.ball.x;
+      // data.ball.y = _data.ball.y;
     });
   }, []);
 
@@ -92,11 +85,15 @@ export default function GameRoom() {
     if (champ == 1) {
       console.log(`im ${champ}`);
       // data.p1.mouse_y = p5.mouseY;
-      socket.emit("p1", p5.mouseY);
+      let send = {
+        roomId : roomId,
+        m_y : p5.mouseY,
+      }
+      socket.emit("p1", send);
     } else if (champ == 2) {
       console.log(`im ${champ}`);
       // data.p2.mouse_y = p5.mouseY;
-      socket.emit("p2", p5.mouseY);
+      socket.emit("p2", roomId, p5.mouseY);
     }
 
     if (data.ball.x != 0) draw_ball(p5, data);

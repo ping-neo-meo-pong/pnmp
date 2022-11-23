@@ -17,4 +17,20 @@ export class GameRoomRepository extends Repository<GameRoom> {
     });
     return gameRooms;
   }
+
+  async getGameRoomOne(userId): Promise<GameRoom> {
+    console.log(userId);
+    const gameRoom_left = await this.findOneBy({
+      leftUserId: { id: userId },
+    });
+    console.log(`hi~2`);
+    if (gameRoom_left)
+      return gameRoom_left;
+    console.log(`hi~3`);
+
+    const gameRoom_right = await this.findOneBy({
+      rightUserId: { id: userId },
+    });
+    return gameRoom_right;
+  }
 }
