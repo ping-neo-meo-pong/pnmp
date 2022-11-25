@@ -9,6 +9,7 @@ import { FriendRespository } from '../../core/friend/friend.repository';
 import { BlockRepository } from '../../core/block/block.repository';
 import { ChannelRepository } from '../../core/channel/channel.repository';
 import { ChannelMemberRepository } from '../../core/channel/channel-member.repository';
+import { GameHistoryRepository } from '../../core/game/game-history.repository';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ChannelMemberRepository } from '../../core/channel/channel-member.repos
       BlockRepository,
       ChannelRepository,
       ChannelMemberRepository,
+      GameHistoryRepository,
     ]),
   ],
   controllers: [UserController],

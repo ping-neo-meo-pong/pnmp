@@ -150,6 +150,6 @@ export class UserController {
     if (!isUUID(userId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
-    return this.userService.findUserById(userId);
+    return this.userService.findUserProfile(userId);
   }
 }

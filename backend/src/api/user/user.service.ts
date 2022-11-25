@@ -8,7 +8,7 @@ import { User } from '../../core/user/user.entity';
 import { UserRepository } from '../../core/user/user.repository';
 import { FindUserDto } from './dto/find-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Like, IsNull } from 'typeorm';
+import { Like, IsNull, In, Not } from 'typeorm';
 import { FriendRespository } from '../../core/friend/friend.repository';
 import { Friend } from '../../core/friend/friend.entity';
 import { BlockRepository } from '../../core/block/block.repository';
@@ -16,6 +16,7 @@ import { UserRole } from '../../enum/user-role.enum';
 import { ChannelRepository } from '../../core/channel/channel.repository';
 import { ChannelMemberRepository } from '../../core/channel/channel-member.repository';
 import { GameHistoryRepository } from '../../core/game/game-history.repository';
+import { GameHistory } from '../../core/game/game-history.entity';
 
 @Injectable()
 export class UserService {
@@ -227,22 +228,57 @@ export class UserService {
     return channels;
   }
 
-  //   async findUserProfile(userId: string) {
-  //     // const user = await this.findUserById(userId);
-  //     const gameHistory = await this.gameHistoryRepository.find({
-  //       relations: ['userId', 'gameRoomId'],
-  //       where: { userId: { id: userId } },
-  //     });
-  //     const gameRooms = gameHistory.map((gameRoom) => gameRoom.gameRoomId.id);
-  //     const matchHistory = await this.gameHistoryRepository
-  //       .createQueryBuilder('match_history')
-  //       .where(
-  //         'game_history.id IN (:...gameRooms) and game_history.user_id != :userId',
-  //         {
-  //           gameRooms: gameRooms,
-  //           userId: userId,
-  //         },
-  //       )
-  //       .getMany();
-  //   }
+  async findUserProfile(userId: string) {
+    const user = await this.findUserById(userId);
+    const userGameHistory = await this.gameHistoryRepository.find({
+      relations: ['userId', 'gameRoomId'],
+      where: { userId: { id: userId } },
+    });
+    const gameRooms = userGameHistory.map(
+      (gameRoom) => gameRoom?.gameRoomId?.id,
+    );
+    let otherGameHistory = [];
+    if (gameRooms.length > 0) {
+      otherGameHistory = await this.gameHistoryRepository.find({
+        relations: ['userId', 'gameRoomId'],
+        where: {
+          gameRoomId: { id: In(gameRooms) },
+          userId: { id: Not(userId) },
+        },
+      });
+    }
+    const gameHistory = new Map();
+    userGameHistory.forEach((item: GameHistory) =>
+      gameHistory.set(item.gameRoomId.id, {
+        profile: {
+          id: item.userId.id,
+          username: item.userId.username,
+          profileImage: item.userId.profileImage,
+        },
+        win: item.win,
+        side: item.side,
+        score: item.score,
+        ladder: item.ladder,
+      }),
+    );
+    otherGameHistory.forEach((item: GameHistory) =>
+      gameHistory.set(item.gameRoomId.id, {
+        gameRoom: item.gameRoomId,
+        user: gameHistory.get(item.gameRoomId.id),
+        other: {
+          profile: {
+            id: item.userId.id,
+            username: item.userId.username,
+            profileImage: item.userId.profileImage,
+          },
+          win: item.win,
+          side: item.side,
+          score: item.score,
+          ladder: item.ladder,
+        },
+      }),
+    );
+    const gameHistories = Array.from(gameHistory.values());
+    return { ...user, matchHistory: gameHistories };
+  }
 }
