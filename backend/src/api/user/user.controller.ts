@@ -78,11 +78,8 @@ export class UserController {
     @Req() req,
     @Param('friendId') friendId: string,
   ): Promise<Friend> {
-    if (!isUUID(friendId)) {
-      throw new BadRequestException('id가 uuid가 아님');
-    }
-    const userToken = req.user;
-    return this.userService.requestFriend(userToken, friendId);
+    const userId: User = req.user.id;
+    return this.userService.requestFriend(userId, friendId);
   }
 
   @Patch('/friend/:friendId')
@@ -124,18 +121,30 @@ export class UserController {
     return this.userService.unblockUser(userToken, blockId);
   }
 
-  /*
-  @Delete('/friend/:friend-id')
-  deleteFriend(@Param('frined-id') friendId: string) {}
-
-  @Get()
+  @Get('channel')
   @ApiOperation({ summary: '로그인한 유저가 참여한 채널 정보' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   findChannels(@Req() req) {
-    const userToken = req.uer;
+    const userToken = req.user;
     return this.userService.findChannelByParticipant(userToken);
   }
+
+  @Get('/:banId/ban')
+  @ApiOperation({ summary: '어드민 권한을 가진 유저가 일반 사용자를 차단' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  blockUserFromService(@Req() req, @Param('banId') banId: string) {
+    if (!isUUID(banId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
+    const userToken = req.user;
+    return this.userService.blockUserFromService(userToken, banId);
+  }
+
+  /*
+  @Delete('/friend/:friend-id')
+  deleteFriend(@Param('frined-id') friendId: string) {}
   */
 
   @Get(':id')
