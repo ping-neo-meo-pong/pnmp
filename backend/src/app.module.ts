@@ -10,6 +10,7 @@ import { DmModule } from './api/dm/dm.module';
 import { EventsModule } from './events/events.module';
 import { UserModule } from './api/user/user.module';
 import { GameModule } from './api/game/game.module';
+import { ChannelModule } from './api/channel/channel.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { GameModule } from './api/game/game.module';
     DmModule,
     UserModule,
     GameModule,
+    ChannelModule,
     ConfigModule.forRoot({
       isGlobal: true,
     }),
