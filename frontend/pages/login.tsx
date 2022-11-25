@@ -20,10 +20,10 @@ export let socket: Socket;
 
 function initSocketConnection() {
   socket = io("http://localhost", { transports: ["websocket"] });
-  socket.on('disconnect', () => {
-      console.log('disconnected');
+  socket.on("disconnect", () => {
+    console.log("disconnected");
   });
-  socket.emit('authorize', user_data._token);
+  socket.emit("authorize", user_data._token);
 }
 
 export default function Login() {
@@ -34,7 +34,7 @@ export default function Login() {
     console.log(event.currentTarget.username.value);
     await axios
       .post(
-        "http://localhost:8000/api/auth/login",
+        "http://localhost/server/api/auth/login",
         {
           username: event.currentTarget.username.value,
           password: event.currentTarget.password.value,
@@ -56,8 +56,10 @@ export default function Login() {
   return (
     <div>
       <form onSubmit={onSubmitHandler}>
-        <input type="text" id="username" name="username" /><br />
-        <input type="text" id="password" name="password" /><br />
+        <input type="text" id="username" name="username" />
+        <br />
+        <input type="text" id="password" name="password" />
+        <br />
         <button type="submit">Login</button>
       </form>
     </div>

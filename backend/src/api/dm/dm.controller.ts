@@ -40,12 +40,11 @@ export class DmController {
   @ApiBody({ type: CreateDmRoomDto })
   createDmRoom(
     @Request() request,
-    @Body() dmRoomData: CreateDmRoomDto,
+    @Body() dmRoomData: any,
   ): Promise<DmRoom> {
-    console.log('DmController.createDmRoom()');
-    console.log(dmRoomData);
-    const userToken = request.user;
-    return this.dmService.createDmRoom(userToken, dmRoomData);
+    const userId = request.user.id;
+    const invitedUserName = dmRoomData.invitedUserName;
+    return this.dmService.createDmRoom(userId, invitedUserName);
   }
 
   //   @Patch()

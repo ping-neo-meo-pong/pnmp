@@ -12,7 +12,7 @@ export default function Dm() {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:8000/api/dm/msg?roomId=${roomId}`, { withCredentials: true })
+      .get(`http://localhost/server/api/dm/msg?roomId=${roomId}`)
       .then(function (response) {
         const dmList = response.data;
         let newDmList = [];
@@ -42,7 +42,7 @@ export default function Dm() {
       roomId: router.query.room_id,
       msg: event.currentTarget.message.value,
     };
-    socket.emit("send_message", msgData);
+    socket.emit("dmMessage", msgData);
   }
 
   return (
