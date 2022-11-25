@@ -76,8 +76,6 @@ export class DmService {
         userId: { id: userId },
         invitedUserId: { id: invitedUser.id },
       });
-      console.log(`dmRoom:`);
-      console.log(createdDmRoom);
       this.socketRepository.find(userId)?.join(createdDmRoom.id);
       this.socketRepository.find(invitedUser.id)?.join(createdDmRoom.id);
       return {

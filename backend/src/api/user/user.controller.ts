@@ -1,7 +1,7 @@
 import {
   Body,
   Controller,
-  Delete,
+  // Delete,
   Get,
   Param,
   Patch,
@@ -18,12 +18,11 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { SearchUserDto } from './dto/search-user.dto';
+import { FindUserDto } from './dto/find-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { isUUID } from 'class-validator';
 import { BadRequestException } from '@nestjs/common';
-import { DuplicateUserDto } from './dto/duplicate-user.dto';
 import { Friend } from '../../core/friend/friend.entity';
 
 @Controller('user')
@@ -32,24 +31,18 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
-  @ApiOperation({ summary: '전체유저 조회' })
-  findUsers(): Promise<User[]> {
-    return this.userService.findUsers();
-  }
-
-  @Get('search')
   @ApiOperation({
     summary:
       'username으로 유저를 검색, query에 username이 없으면 전체 유저를 반환',
   })
-  searchUsers(@Query() searchUserData: SearchUserDto): Promise<User[]> {
-    return this.userService.searchUsers(searchUserData);
+  findUsers(@Query() findUserData: FindUserDto): Promise<User[]> {
+    return this.userService.findUsers(findUserData);
   }
 
-  @Get('duplication')
+  @Get('search/:username')
   @ApiOperation({ summary: '회원정보 수정할 때 중복 username 확인용' })
-  findUserByUserName(@Query() duplicateUserData: DuplicateUserDto) {
-    return this.userService.findUserByUserName(duplicateUserData.username);
+  searchUsers(@Param('username') username: string) {
+    return this.userService.findUserByUserName(username);
   }
 
   @Patch()
@@ -97,6 +90,11 @@ export class UserController {
     return this.userService.acceptFriend(userId, friendId);
   }
 
+  /*
+  @Delete('/friend/:friend-id')
+  deleteFriend(@Param('frined-id') friendId: string) {}
+  */
+
   @Post('/block/:blockId')
   @ApiOperation({ summary: '로그인한 유저가 blockId를 차단' })
   @UseGuards(AuthGuard('jwt'))
@@ -142,18 +140,13 @@ export class UserController {
     return this.userService.blockUserFromService(userId, banId);
   }
 
-  /*
-  @Delete('/friend/:friend-id')
-  deleteFriend(@Param('frined-id') friendId: string) {}
-  */
-
   @Get(':id')
   @ApiOperation({ summary: '특정 유저 프로필 조회' })
   @ApiParam({
     name: 'id',
     type: 'string',
   })
-  findUserById(@Param('id') userId: string): Promise<User> {
+  findUserProfile(@Param('id') userId: string) {
     if (!isUUID(userId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }

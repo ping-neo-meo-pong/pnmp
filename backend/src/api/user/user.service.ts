@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../core/user/user.entity';
 import { UserRepository } from '../../core/user/user.repository';
-import { SearchUserDto } from './dto/search-user.dto';
+import { FindUserDto } from './dto/find-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Like, IsNull } from 'typeorm';
 import { FriendRespository } from '../../core/friend/friend.repository';
@@ -15,6 +15,7 @@ import { BlockRepository } from '../../core/block/block.repository';
 import { UserRole } from '../../enum/user-role.enum';
 import { ChannelRepository } from '../../core/channel/channel.repository';
 import { ChannelMemberRepository } from '../../core/channel/channel-member.repository';
+import { GameHistoryRepository } from '../../core/game/game-history.repository';
 
 @Injectable()
 export class UserService {
@@ -29,14 +30,21 @@ export class UserService {
     private channelRepository: ChannelRepository,
     @InjectRepository(ChannelMemberRepository)
     private channelMemberRepository: ChannelMemberRepository,
+    @InjectRepository(GameHistoryRepository)
+    private gameHistoryRepository: GameHistoryRepository,
   ) {}
-
-  async findUsers(): Promise<User[]> {
-    return await this.userRepository.find();
-  }
 
   async findUserById(userId: string): Promise<User> {
     return await this.userRepository.findOneBy({ id: userId });
+  }
+
+  async findUsers(findUserData: FindUserDto): Promise<User[]> {
+    if (!findUserData.username) {
+      return await this.userRepository.find();
+    }
+    return await this.userRepository.find({
+      where: { username: Like(`%${findUserData.username}%`) },
+    });
   }
 
   async findUserByUserName(username: string) {
@@ -45,15 +53,6 @@ export class UserService {
       return { isExistUser: true };
     }
     return { isExistUser: false };
-  }
-
-  async searchUsers(userSearchData: SearchUserDto): Promise<User[]> {
-    if (!userSearchData.username) {
-      return await this.userRepository.find();
-    }
-    return await this.userRepository.find({
-      where: { username: Like(`%${userSearchData.username}%`) },
-    });
   }
 
   async updateUserById(
@@ -194,7 +193,6 @@ export class UserService {
       throw new BadRequestException('존재하지 않는 유저');
     }
     if (banUser.role === UserRole.OWNER) {
-      console.log(banUser.role);
       throw new ForbiddenException('권한이 없습니다');
     } else if (banUser.role === UserRole.BAN) {
       throw new BadRequestException('이미 정지된 유저입니다');
@@ -226,7 +224,25 @@ export class UserService {
         userMute: channel.muteEndAt < new Date() ? false : true,
       };
     });
-    console.log(channels);
     return channels;
   }
+
+  //   async findUserProfile(userId: string) {
+  //     // const user = await this.findUserById(userId);
+  //     const gameHistory = await this.gameHistoryRepository.find({
+  //       relations: ['userId', 'gameRoomId'],
+  //       where: { userId: { id: userId } },
+  //     });
+  //     const gameRooms = gameHistory.map((gameRoom) => gameRoom.gameRoomId.id);
+  //     const matchHistory = await this.gameHistoryRepository
+  //       .createQueryBuilder('match_history')
+  //       .where(
+  //         'game_history.id IN (:...gameRooms) and game_history.user_id != :userId',
+  //         {
+  //           gameRooms: gameRooms,
+  //           userId: userId,
+  //         },
+  //       )
+  //       .getMany();
+  //   }
 }
