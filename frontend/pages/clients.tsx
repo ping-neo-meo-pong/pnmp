@@ -43,9 +43,7 @@ export default function Client() {
   function onSubmitMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     axios
-      .post("http://localhost/server/api/dm", {
-        invitedUserName: event.currentTarget.invitedUserName.value,
-      })
+      .post(`http://localhost/server/api/dm/${event.currentTarget.invitedUserName.value}`)
       .then(function (response) {
         const dmRoom = response.data;
         setDmRoomList((current : JSX.Element[]) => {
