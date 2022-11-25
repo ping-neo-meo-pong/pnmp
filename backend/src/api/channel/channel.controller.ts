@@ -42,6 +42,7 @@ export class ChannelController {
   }
 
   @Delete(':channelId')
+  @ApiOperation({ summary: '특정 채널 삭제' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   deleteChannel(
