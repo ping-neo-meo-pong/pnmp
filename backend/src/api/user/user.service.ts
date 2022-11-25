@@ -6,8 +6,8 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../core/user/user.entity';
 import { UserRepository } from '../../core/user/user.repository';
-import { SearchUserDto } from '../../core/user/dto/search-user.dto';
-import { UpdateUserDto } from '../../core/user/dto/update-user.dto';
+import { SearchUserDto } from './dto/search-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { Like, IsNull } from 'typeorm';
 import { FriendRespository } from '../../core/friend/friend.repository';
 import { Friend } from '../../core/friend/friend.entity';

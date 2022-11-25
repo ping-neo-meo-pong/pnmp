@@ -18,12 +18,12 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
-import { SearchUserDto } from '../../core/user/dto/search-user.dto';
-import { UpdateUserDto } from '../../core/user/dto/update-user.dto';
+import { SearchUserDto } from './dto/search-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { isUUID } from 'class-validator';
 import { BadRequestException } from '@nestjs/common';
-import { DuplicateUserDto } from '../../core/user/dto/duplicate-user.dto';
+import { DuplicateUserDto } from './dto/duplicate-user.dto';
 import { Friend } from '../../core/friend/friend.entity';
 
 @Controller('user')

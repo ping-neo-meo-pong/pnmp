@@ -11,7 +11,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { request } from 'http';
 import { Any } from 'typeorm';
-import { CreateGameRoomDto } from 'src/core/game/dto/create-game-room.dto';
+import { CreateGameRoomDto } from 'src/api/game/dto/create-game-room.dto';
 
 @Controller('game')
 @ApiTags('game')

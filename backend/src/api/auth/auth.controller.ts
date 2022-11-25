@@ -10,7 +10,7 @@ import {
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { LoginReqDto } from 'src/core/user/dto/login-req.dto';
+import { LoginReqDto } from 'src/api/user/dto/login-req.dto';
 
 @Controller('auth')
 @ApiTags('auth')
