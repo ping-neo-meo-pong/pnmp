@@ -90,14 +90,14 @@ export class DmService {
     }
   }
 
-  async getDmRooms(userToken): Promise<DmRoom[]> {
-    const dmRooms = await this.dmRoomRepository.getDmRooms(userToken);
+  async getDmRooms(userId: string): Promise<DmRoom[]> {
+    const dmRooms = await this.dmRoomRepository.getDmRooms(userId);
     const result = [];
     for (const dmRoom of dmRooms) {
       result.push({
         id: dmRoom.id,
         otherUser:
-          dmRoom.userId.id === userToken.id
+          dmRoom.userId.id === userId
             ? dmRoom.invitedUserId.username
             : dmRoom.userId.username,
       });

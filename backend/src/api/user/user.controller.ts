@@ -57,8 +57,8 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   modifyUser(@Req() req, @Body() updateUserData: UpdateUserDto): Promise<User> {
-    const userToken = req.user;
-    return this.userService.updateUserById(userToken, updateUserData);
+    const userId = req.user.id;
+    return this.userService.updateUserById(userId, updateUserData);
   }
 
   @Get('/friend')
@@ -66,8 +66,8 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   findFriends(@Req() req): Promise<Friend[]> {
-    const userToken = req.user;
-    return this.userService.findFriends(userToken);
+    const userId = req.user.id;
+    return this.userService.findFriends(userId);
   }
 
   @Post('/friend/:friendId')
@@ -78,7 +78,7 @@ export class UserController {
     @Req() req,
     @Param('friendId') friendId: string,
   ): Promise<Friend> {
-    const userId: User = req.user.id;
+    const userId = req.user.id;
     return this.userService.requestFriend(userId, friendId);
   }
 
@@ -93,8 +93,8 @@ export class UserController {
     if (!isUUID(friendId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
-    const userToken = req.user;
-    return this.userService.acceptFriend(userToken, friendId);
+    const userId = req.user.id;
+    return this.userService.acceptFriend(userId, friendId);
   }
 
   @Post('/block/:blockId')
@@ -105,8 +105,8 @@ export class UserController {
     if (!isUUID(blockId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
-    const userToken = req.user;
-    return this.userService.blockUser(userToken, blockId);
+    const userId = req.user.id;
+    return this.userService.blockUser(userId, blockId);
   }
 
   @Patch('/block/:blockId')
@@ -117,8 +117,8 @@ export class UserController {
     if (!isUUID(blockId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
-    const userToken = req.user;
-    return this.userService.unblockUser(userToken, blockId);
+    const userId = req.user.id;
+    return this.userService.unblockUser(userId, blockId);
   }
 
   @Get('channel')
@@ -126,8 +126,8 @@ export class UserController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   findChannels(@Req() req) {
-    const userToken = req.user;
-    return this.userService.findChannelByParticipant(userToken);
+    const userId = req.user.id;
+    return this.userService.findChannelByParticipant(userId);
   }
 
   @Get('/:banId/ban')
@@ -138,8 +138,8 @@ export class UserController {
     if (!isUUID(banId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
-    const userToken = req.user;
-    return this.userService.blockUserFromService(userToken, banId);
+    const userId = req.user.id;
+    return this.userService.blockUserFromService(userId, banId);
   }
 
   /*

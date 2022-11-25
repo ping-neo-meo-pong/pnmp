@@ -57,61 +57,53 @@ export class UserService {
   }
 
   async updateUserById(
-    userToken,
+    userId: string,
     updateUserData: UpdateUserDto,
   ): Promise<User> {
+    const user = await this.findUserById(userId);
     if (updateUserData.username) {
-      if (updateUserData.username == userToken.username) {
+      if (updateUserData.username === user.username) {
         throw new BadRequestException('같은 username으로 변경할 수 없습니다.');
       }
-      const user = await this.findUserByUserName(updateUserData.username);
-      console.log(user);
-      if (user.isExistUser) {
+      const isExistUser = await this.userRepository.findOneBy({
+        username: updateUserData.username,
+      });
+      if (isExistUser) {
         throw new BadRequestException('이미 존재하는 username');
       }
     }
-    await this.userRepository.update(userToken.id, updateUserData);
-    return this.findUserById(userToken.id);
+    await this.userRepository.update(userId, updateUserData);
+    return user;
   }
 
-  async findFriends(userToken): Promise<Friend[]> {
+  async findFriends(userId: string): Promise<Friend[]> {
     return await this.friendRespository.find({
       relations: ['userId', 'userFriendId'],
-      where: [
-        { userId: { id: userToken.id } },
-        { userFriendId: { id: userToken.id } },
-      ],
+      where: [{ userId: { id: userId } }, { userFriendId: { id: userId } }],
     });
   }
 
-  async requestFriend(userId: User, friendId: string): Promise<Friend> {
-    const user = await this.findUserById(String(userId));
-    if (!user) {
+  async requestFriend(userId: string, friendId: string): Promise<Friend> {
+    const user = await this.findUserById(userId);
+    const friend = await this.findUserById(friendId);
+    if (!user || !friend) {
       throw new BadRequestException('존재하지 않는 유저');
     }
-    const friend = await this.findUserById(String(friendId));
-    if (!user || !friend) {
-      throw new BadRequestException('존재하지 않는 친구');
-    }
-    if (String(userId) === String(friendId)) {
+    if (userId === friendId) {
       throw new BadRequestException('userId === friendId');
     }
 
     const friendship = await this.friendRespository.findFriendByUsers(
-      String(userId),
-      String(friendId),
+      userId,
+      friendId,
     );
-
     if (friendship?.acceptAt) {
       throw new BadRequestException('이미 친구 입니다');
-    } else if (
-      !friendship?.acceptAt &&
-      friendship?.userId.id === String(userId)
-    ) {
+    } else if (!friendship?.acceptAt && friendship?.userId.id === userId) {
       throw new BadRequestException('이미 친구 신청이 되어있습니다');
     } else if (
       !friendship?.acceptAt &&
-      friendship?.userFriendId.id === String(userId)
+      friendship?.userFriendId.id === userId
     ) {
       await this.friendRespository.update(friendship.id, {
         acceptAt: () => 'CURRENT_TIMESTAMP',
@@ -121,10 +113,10 @@ export class UserService {
     return this.friendRespository.createFriend(user, friend);
   }
 
-  async acceptFriend(userToken, friendId: string): Promise<Friend> {
+  async acceptFriend(userId: string, friendId: string): Promise<Friend> {
     const friendship = await this.friendRespository.findOne({
       relations: ['userId', 'userFriendId'],
-      where: { userId: { id: friendId }, userFriendId: { id: userToken.id } },
+      where: { userId: { id: friendId }, userFriendId: { id: userId } },
     });
     if (!friendship) {
       throw new BadRequestException('수락할 요청이 없습니다.');
@@ -138,8 +130,8 @@ export class UserService {
     return friendship;
   }
 
-  async blockUser(userToken, blockId: string) {
-    if (userToken.id === blockId) {
+  async blockUser(userId: string, blockId: string) {
+    if (userId === blockId) {
       throw new BadRequestException('userId === blockId');
     }
     const blockUser = await this.findUserById(blockId);
@@ -148,7 +140,7 @@ export class UserService {
     }
     const block = await this.blockRepository.findOne({
       relations: ['userId', 'blockedUserId'],
-      where: { userId: { id: userToken.id }, blockedUserId: { id: blockId } },
+      where: { userId: { id: userId }, blockedUserId: { id: blockId } },
     });
     if (block?.blockAt) {
       throw new BadRequestException('이미 차단했습니다');
@@ -160,12 +152,12 @@ export class UserService {
       return block;
     }
 
-    const user = await this.findUserById(userToken.id);
+    const user = await this.findUserById(userId);
     return this.blockRepository.createBlock(user, blockUser);
   }
 
-  async unblockUser(userToken, blockId: string) {
-    if (userToken.id === blockId) {
+  async unblockUser(userId: string, blockId: string) {
+    if (userId === blockId) {
       throw new BadRequestException('userId === blockId');
     }
     const blockUser = await this.findUserById(blockId);
@@ -174,7 +166,7 @@ export class UserService {
     }
     const block = await this.blockRepository.findOne({
       relations: ['userId', 'blockedUserId'],
-      where: { userId: { id: userToken.id }, blockedUserId: { id: blockId } },
+      where: { userId: { id: userId }, blockedUserId: { id: blockId } },
     });
     if (!block) {
       throw new BadRequestException('차단한 적이 없습니다.');
@@ -189,12 +181,12 @@ export class UserService {
     return { success: true };
   }
 
-  async blockUserFromService(userToken, banId: string) {
-    const user = await this.findUserById(userToken.id);
+  async blockUserFromService(userId: string, banId: string) {
+    const user = await this.findUserById(userId);
     if (!(user.role === UserRole.OWNER || user.role === UserRole.MODERATOR)) {
       throw new ForbiddenException('권한이 없습니다');
     }
-    if (userToken.id === banId) {
+    if (userId === banId) {
       throw new BadRequestException('userId === blockId');
     }
     const banUser = await this.findUserById(banId);
@@ -213,15 +205,15 @@ export class UserService {
     return { success: true };
   }
 
-  async findChannelByParticipant(userToken) {
-    const user = await this.findUserById(userToken.id);
+  async findChannelByParticipant(userId: string) {
+    const user = await this.findUserById(userId);
     if (user.role === UserRole.OWNER || user.role === UserRole.MODERATOR) {
       return this.channelRepository.find();
     }
     const joinChannels = await this.channelMemberRepository.find({
       relations: ['userId', 'channelId'],
       where: {
-        userId: { id: userToken.id },
+        userId: { id: userId },
         leftAt: IsNull(),
         channelId: { deletedAt: IsNull() },
       },
