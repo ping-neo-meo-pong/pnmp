@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from 'src/core/user/user.repository';
 import { JwtService } from '@nestjs/jwt';
-// import { UserTokenDto } from '../../core/user/dto/user-token.dto'
 
 @Injectable()
 export class AuthService {
@@ -19,12 +18,12 @@ export class AuthService {
     });
 
     if (existUser) {
-      return { ...existUser, firstLogin: false };
+      return { id: existUser.id, firstLogin: false };
     }
 
     const newUser = this.userRepository.create({ username: username });
     const saveUser = await this.userRepository.save(newUser);
-    return { ...saveUser, firstLogin: true };
+    return { id: saveUser.id, firstLogin: true };
   }
 
   verifyToken(jwt: string): any {

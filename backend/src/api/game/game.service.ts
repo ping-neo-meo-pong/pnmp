@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { GameRoom } from '../../core/game/game-room.entity';
 import { GameRoomRepository } from '../../core/game/game-room.repository';
 import { GameHistoryRepository } from '../../core/game/game-history.repository';
-import { CreateGameRoomDto } from 'src/core/game/dto/create-game-room.dto';
+import { CreateGameRoomDto } from 'src/api/game/dto/create-game-room.dto';
 import { IsNull } from 'typeorm';
 import { DmRoom } from 'src/core/dm/dm-room.entity';
 import { UserRepository } from 'src/core/user/user.repository';

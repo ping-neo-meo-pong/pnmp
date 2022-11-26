@@ -6,45 +6,52 @@ import {
   Post,
   UseGuards,
   Query,
+  Param,
 } from '@nestjs/common';
 import { DmService } from './dm.service';
 import { DmRoom } from '../../core/dm/dm-room.entity';
 import { Dm } from '../../core/dm/dm.entity';
-import { CreateDmRoomDto } from '../../core/dm/dto/create-dm-room.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 
 @Controller('dm')
 @ApiTags('dm')
 export class DmController {
   constructor(private readonly dmService: DmService) {}
 
+  @Get()
+  @ApiOperation({ summary: '로그인 한 유저가 참여한 dm 목록' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  @Get()
   getDmRooms(@Request() request): Promise<DmRoom[]> {
-    const userToken = request.user;
-    return this.dmService.getDmRooms(userToken);
+    const userId = request.user.id;
+    return this.dmService.getDmRooms(userId);
   }
 
+  @Get('msg')
+  @ApiOperation({ summary: '특정 dm방의 메세지 목록' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  @Get('msg')
   getDms(@Query('roomId') roomId: any): Promise<Dm[]> {
     return this.dmService.getDms(roomId);
   }
 
+  @Post(':invitedUserId')
+  @ApiOperation({ summary: '로그인 한 유저가 invitedUserId와 dm 방 생성' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  @Post()
-  @ApiBody({ type: CreateDmRoomDto })
+  @ApiParam({ name: 'invitedUserId', type: 'string' })
   createDmRoom(
     @Request() request,
-    @Body() dmRoomData: any,
+    @Param('invitedUserId') invitedUserId: string,
   ): Promise<DmRoom> {
     const userId = request.user.id;
-    const invitedUserName = dmRoomData.invitedUserName;
-    return this.dmService.createDmRoom(userId, invitedUserName);
+    return this.dmService.createDmRoom(userId, invitedUserId);
   }
 
   //   @Patch()

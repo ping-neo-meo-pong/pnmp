@@ -32,11 +32,11 @@ export class GameHistory extends Base {
   })
   ladder: number;
 
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User, (user) => user.id, { eager: true })
   @JoinColumn({ name: 'user_id' })
-  leftUserId: User;
+  userId: User;
 
-  @ManyToOne(() => GameRoom, (gameRoom) => gameRoom.id)
+  @ManyToOne(() => GameRoom, (gameRoom) => gameRoom.id, { eager: true })
   @JoinColumn({ name: 'game_room_id' })
   gameRoomId: GameRoom;
 }

@@ -1,12 +1,12 @@
 import { Repository } from 'typeorm';
 import { Friend } from './friend.entity';
 import { CustomRepository } from '../../typeorm-ex.decorator';
-import { CreateFriendDto } from './dto/create-friend.dto';
+import { User } from '../user/user.entity';
 
 @CustomRepository(Friend)
 export class FriendRespository extends Repository<Friend> {
-  async createFriend(createFriendData: CreateFriendDto): Promise<Friend> {
-    const friend = this.create(createFriendData);
+  async createFriend(user: User, userFriend: User): Promise<Friend> {
+    const friend = this.create({ userId: user, userFriendId: userFriend });
     await this.save(friend);
     return friend;
   }

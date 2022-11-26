@@ -94,7 +94,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       socket.user = this.jwtService.verify(jwt);
       this.socketRepository.save(socket.user.id, socket);
-      const dmRooms = await this.dmRoomRepository.getDmRooms(socket.user);
+      const dmRooms = await this.dmRoomRepository.getDmRooms(socket.user.id);
       for (const dmRoom of dmRooms) socket.join(dmRoom.id);
     } catch (err) {
       socket.disconnect();

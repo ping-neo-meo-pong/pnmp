@@ -7,6 +7,9 @@ import { UserService } from './user.service';
 import { TypeOrmExModule } from '../../typeorm-ex.module';
 import { FriendRespository } from '../../core/friend/friend.repository';
 import { BlockRepository } from '../../core/block/block.repository';
+import { ChannelRepository } from '../../core/channel/channel.repository';
+import { ChannelMemberRepository } from '../../core/channel/channel-member.repository';
+import { GameHistoryRepository } from '../../core/game/game-history.repository';
 
 @Module({
   imports: [
@@ -15,6 +18,9 @@ import { BlockRepository } from '../../core/block/block.repository';
       UserRepository,
       FriendRespository,
       BlockRepository,
+      ChannelRepository,
+      ChannelMemberRepository,
+      GameHistoryRepository,
     ]),
   ],
   controllers: [UserController],

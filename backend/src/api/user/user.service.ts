@@ -1,13 +1,22 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../core/user/user.entity';
 import { UserRepository } from '../../core/user/user.repository';
-import { SearchUserDto } from '../../core/user/dto/search-user.dto';
-import { UpdateUserDto } from '../../core/user/dto/update-user.dto';
-import { Like } from 'typeorm';
+import { FindUserDto } from './dto/find-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { Like, IsNull, In, Not } from 'typeorm';
 import { FriendRespository } from '../../core/friend/friend.repository';
 import { Friend } from '../../core/friend/friend.entity';
 import { BlockRepository } from '../../core/block/block.repository';
+import { UserRole } from '../../enum/user-role.enum';
+import { ChannelRepository } from '../../core/channel/channel.repository';
+import { ChannelMemberRepository } from '../../core/channel/channel-member.repository';
+import { GameHistoryRepository } from '../../core/game/game-history.repository';
+import { GameHistory } from '../../core/game/game-history.entity';
 
 @Injectable()
 export class UserService {
@@ -18,14 +27,25 @@ export class UserService {
     private friendRespository: FriendRespository,
     @InjectRepository(BlockRepository)
     private blockRepository: BlockRepository,
+    @InjectRepository(ChannelRepository)
+    private channelRepository: ChannelRepository,
+    @InjectRepository(ChannelMemberRepository)
+    private channelMemberRepository: ChannelMemberRepository,
+    @InjectRepository(GameHistoryRepository)
+    private gameHistoryRepository: GameHistoryRepository,
   ) {}
-
-  async findUsers(): Promise<User[]> {
-    return await this.userRepository.find();
-  }
 
   async findUserById(userId: string): Promise<User> {
     return await this.userRepository.findOneBy({ id: userId });
+  }
+
+  async findUsers(findUserData: FindUserDto): Promise<User[]> {
+    if (!findUserData.username) {
+      return await this.userRepository.find();
+    }
+    return await this.userRepository.find({
+      where: { username: Like(`%${findUserData.username}%`) },
+    });
   }
 
   async findUserByUserName(username: string) {
@@ -36,82 +56,67 @@ export class UserService {
     return { isExistUser: false };
   }
 
-  async searchUsers(userSearchData: SearchUserDto): Promise<User[]> {
-    if (!userSearchData.username) {
-      return await this.userRepository.find();
-    }
-    return await this.userRepository.find({
-      where: { username: Like(`%${userSearchData.username}%`) },
-    });
-  }
-
   async updateUserById(
     userId: string,
     updateUserData: UpdateUserDto,
   ): Promise<User> {
-    if (
-      updateUserData.username &&
-      (await this.findUserByUserName(updateUserData.username)).isExistUser
-    ) {
-      new BadRequestException('이미 존재하는 username');
+    const user = await this.findUserById(userId);
+    if (updateUserData.username) {
+      if (updateUserData.username === user.username) {
+        throw new BadRequestException('같은 username으로 변경할 수 없습니다.');
+      }
+      const isExistUser = await this.userRepository.findOneBy({
+        username: updateUserData.username,
+      });
+      if (isExistUser) {
+        throw new BadRequestException('이미 존재하는 username');
+      }
     }
     await this.userRepository.update(userId, updateUserData);
-    return this.findUserById(userId);
+    return user;
   }
 
-  async findFriends(userToken): Promise<Friend[]> {
+  async findFriends(userId: string): Promise<Friend[]> {
     return await this.friendRespository.find({
       relations: ['userId', 'userFriendId'],
-      where: [
-        { userId: { id: userToken.id } },
-        { userFriendId: { id: userToken.id } },
-      ],
+      where: [{ userId: { id: userId } }, { userFriendId: { id: userId } }],
     });
   }
 
-  async requestFriend(userToken, friendId: string): Promise<Friend> {
-    if (userToken.id === friendId) {
-      throw new BadRequestException('userId === friendId');
-    }
+  async requestFriend(userId: string, friendId: string): Promise<Friend> {
+    const user = await this.findUserById(userId);
     const friend = await this.findUserById(friendId);
-    if (!friend) {
+    if (!user || !friend) {
       throw new BadRequestException('존재하지 않는 유저');
+    }
+    if (userId === friendId) {
+      throw new BadRequestException('userId === friendId');
     }
 
     const friendship = await this.friendRespository.findFriendByUsers(
-      userToken.id,
+      userId,
       friendId,
     );
-    console.log(friendship);
-    console.log(friendship?.acceptAt);
     if (friendship?.acceptAt) {
       throw new BadRequestException('이미 친구 입니다');
-    } else if (
-      !friendship?.acceptAt &&
-      friendship?.userId.id === userToken.id
-    ) {
+    } else if (!friendship?.acceptAt && friendship?.userId.id === userId) {
       throw new BadRequestException('이미 친구 신청이 되어있습니다');
     } else if (
       !friendship?.acceptAt &&
-      friendship?.userFriendId.id === userToken.id
+      friendship?.userFriendId.id === userId
     ) {
       await this.friendRespository.update(friendship.id, {
         acceptAt: () => 'CURRENT_TIMESTAMP',
       });
       return friendship;
     }
-
-    const user = await this.findUserById(userToken.id);
-    return this.friendRespository.createFriend({
-      userId: user,
-      userFriendId: friend,
-    });
+    return this.friendRespository.createFriend(user, friend);
   }
 
-  async acceptFriend(userToken, friendId: string): Promise<Friend> {
+  async acceptFriend(userId: string, friendId: string): Promise<Friend> {
     const friendship = await this.friendRespository.findOne({
       relations: ['userId', 'userFriendId'],
-      where: { userId: { id: friendId }, userFriendId: { id: userToken.id } },
+      where: { userId: { id: friendId }, userFriendId: { id: userId } },
     });
     if (!friendship) {
       throw new BadRequestException('수락할 요청이 없습니다.');
@@ -125,17 +130,17 @@ export class UserService {
     return friendship;
   }
 
-  async blockUser(userToken, blockId: string) {
-    if (userToken.id === blockId) {
+  async blockUser(userId: string, blockId: string) {
+    if (userId === blockId) {
       throw new BadRequestException('userId === blockId');
     }
-    const blockUSer = await this.findUserById(blockId);
-    if (!blockUSer) {
+    const blockUser = await this.findUserById(blockId);
+    if (!blockUser) {
       throw new BadRequestException('존재하지 않는 유저');
     }
     const block = await this.blockRepository.findOne({
       relations: ['userId', 'blockedUserId'],
-      where: { userId: { id: userToken.id }, blockedUserId: { id: blockId } },
+      where: { userId: { id: userId }, blockedUserId: { id: blockId } },
     });
     if (block?.blockAt) {
       throw new BadRequestException('이미 차단했습니다');
@@ -147,24 +152,21 @@ export class UserService {
       return block;
     }
 
-    const user = await this.findUserById(userToken.id);
-    return this.blockRepository.createBlock({
-      userId: user,
-      blockedUserId: blockUSer,
-    });
+    const user = await this.findUserById(userId);
+    return this.blockRepository.createBlock(user, blockUser);
   }
 
-  async unblockUser(userToken, blockId: string) {
-    if (userToken.id === blockId) {
+  async unblockUser(userId: string, blockId: string) {
+    if (userId === blockId) {
       throw new BadRequestException('userId === blockId');
     }
-    const blockUSer = await this.findUserById(blockId);
-    if (!blockUSer) {
+    const blockUser = await this.findUserById(blockId);
+    if (!blockUser) {
       throw new BadRequestException('존재하지 않는 유저');
     }
     const block = await this.blockRepository.findOne({
       relations: ['userId', 'blockedUserId'],
-      where: { userId: { id: userToken.id }, blockedUserId: { id: blockId } },
+      where: { userId: { id: userId }, blockedUserId: { id: blockId } },
     });
     if (!block) {
       throw new BadRequestException('차단한 적이 없습니다.');
@@ -177,5 +179,106 @@ export class UserService {
       blockAt: null,
     });
     return { success: true };
+  }
+
+  async blockUserFromService(userId: string, banId: string) {
+    const user = await this.findUserById(userId);
+    if (!(user.role === UserRole.OWNER || user.role === UserRole.MODERATOR)) {
+      throw new ForbiddenException('권한이 없습니다');
+    }
+    if (userId === banId) {
+      throw new BadRequestException('userId === blockId');
+    }
+    const banUser = await this.findUserById(banId);
+    if (!banUser) {
+      throw new BadRequestException('존재하지 않는 유저');
+    }
+    if (banUser.role === UserRole.OWNER) {
+      throw new ForbiddenException('권한이 없습니다');
+    } else if (banUser.role === UserRole.BAN) {
+      throw new BadRequestException('이미 정지된 유저입니다');
+    }
+    await this.userRepository.update(banUser.id, {
+      role: UserRole.BAN,
+    });
+    return { success: true };
+  }
+
+  async findChannelByParticipant(userId: string) {
+    const user = await this.findUserById(userId);
+    if (user.role === UserRole.OWNER || user.role === UserRole.MODERATOR) {
+      return this.channelRepository.find();
+    }
+    const joinChannels = await this.channelMemberRepository.find({
+      relations: ['userId', 'channelId'],
+      where: {
+        userId: { id: userId },
+        leftAt: IsNull(),
+        channelId: { deletedAt: IsNull() },
+      },
+    });
+    const channels = joinChannels.map((channel) => {
+      return {
+        ...channel.channelId,
+        userRoleInChannel: channel.roleInChannel,
+        userBan: channel.banEndAt < new Date() ? false : true,
+        userMute: channel.muteEndAt < new Date() ? false : true,
+      };
+    });
+    return channels;
+  }
+
+  async findUserProfile(userId: string) {
+    const user = await this.findUserById(userId);
+    const userGameHistory = await this.gameHistoryRepository.find({
+      relations: ['userId', 'gameRoomId'],
+      where: { userId: { id: userId } },
+    });
+    const gameRooms = userGameHistory.map(
+      (gameRoom) => gameRoom?.gameRoomId?.id,
+    );
+    let otherGameHistory = [];
+    if (gameRooms.length > 0) {
+      otherGameHistory = await this.gameHistoryRepository.find({
+        relations: ['userId', 'gameRoomId'],
+        where: {
+          gameRoomId: { id: In(gameRooms) },
+          userId: { id: Not(userId) },
+        },
+      });
+    }
+    const gameHistory = new Map();
+    userGameHistory.forEach((item: GameHistory) =>
+      gameHistory.set(item.gameRoomId.id, {
+        profile: {
+          id: item.userId.id,
+          username: item.userId.username,
+          profileImage: item.userId.profileImage,
+        },
+        win: item.win,
+        side: item.side,
+        score: item.score,
+        ladder: item.ladder,
+      }),
+    );
+    otherGameHistory.forEach((item: GameHistory) =>
+      gameHistory.set(item.gameRoomId.id, {
+        gameRoom: item.gameRoomId,
+        user: gameHistory.get(item.gameRoomId.id),
+        other: {
+          profile: {
+            id: item.userId.id,
+            username: item.userId.username,
+            profileImage: item.userId.profileImage,
+          },
+          win: item.win,
+          side: item.side,
+          score: item.score,
+          ladder: item.ladder,
+        },
+      }),
+    );
+    const gameHistories = Array.from(gameHistory.values());
+    return { ...user, matchHistory: gameHistories };
   }
 }

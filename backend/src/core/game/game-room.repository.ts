@@ -1,7 +1,7 @@
 import { Repository } from 'typeorm';
 import { GameRoom } from './game-room.entity';
 import { CustomRepository } from '../../typeorm-ex.decorator';
-import { CreateGameRoomDto } from './dto/create-game-room.dto';
+import { CreateGameRoomDto } from '../../api/game/dto/create-game-room.dto';
 
 @CustomRepository(GameRoom)
 export class GameRoomRepository extends Repository<GameRoom> {

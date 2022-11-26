@@ -1,44 +1,44 @@
 import { Repository } from 'typeorm';
 import { DmRoom } from './dm-room.entity';
 import { CustomRepository } from '../../typeorm-ex.decorator';
-import { CreateDmRoomDto } from './dto/create-dm-room.dto';
+import { User } from '../user/user.entity';
 
 @CustomRepository(DmRoom)
 export class DmRoomRepository extends Repository<DmRoom> {
-  async createDmRoom(dmRoomData: CreateDmRoomDto): Promise<DmRoom> {
-    const dmRoom = this.create(dmRoomData);
+  async createDmRoom(user: User, invitedUser: User): Promise<DmRoom> {
+    const dmRoom = this.create({
+      userId: user,
+      invitedUserId: invitedUser,
+    });
     await this.save(dmRoom);
     return dmRoom;
   }
 
-  async getDmRooms(userToken): Promise<DmRoom[]> {
+  async getDmRooms(userId: string): Promise<DmRoom[]> {
     const dmRooms = await this.find({
       relations: ['userId', 'invitedUserId'],
-      where: [
-        { userId: { id: userToken.id } },
-        { invitedUserId: { id: userToken.id } },
-      ],
+      where: [{ userId: { id: userId } }, { invitedUserId: { id: userId } }],
     });
     return dmRooms;
   }
 
   async findAndCountByParticipants(
-    userToken,
-    dmRoomData: CreateDmRoomDto,
-  ): Promise<[DmRoom[], number]> {
-    const [dmRooms, count] = await this.findAndCount({
+    userId: string,
+    invitedUserId: string,
+  ): Promise<DmRoom> {
+    const dmRoom = await this.findOne({
       relations: ['userId', 'invitedUserId'],
       where: [
         {
-          userId: { id: String(userToken.id) },
-          invitedUserId: { id: String(dmRoomData.invitedUserId) },
+          userId: { id: userId },
+          invitedUserId: { id: invitedUserId },
         },
         {
-          userId: { id: String(dmRoomData.invitedUserId) },
-          invitedUserId: { id: String(userToken.id) },
+          userId: { id: invitedUserId },
+          invitedUserId: { id: userId },
         },
       ],
     });
-    return [dmRooms, count];
+    return dmRoom;
   }
 }

@@ -1,56 +1,186 @@
-import { Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ChannelService } from './channel.service';
+import { AuthGuard } from '@nestjs/passport';
+import { CreateChannelDto } from './dto/create-channel.dto';
+import { ChannelPasswordDto } from './dto/channel-password.dto';
+import { RestrictChannelDto } from './dto/restrict-channel.dto';
+import { ChangeRoleInChannelDto } from './dto/change-role-in-channel.dto';
 
 @Controller('channel')
 @ApiTags('channel')
 export class ChannelController {
-  /*
-  @Get()
-  allChannel() {}
+  constructor(private readonly channelService: ChannelService) {}
 
-  @Get('/joined-channel')
-  joinedChannel() {}
+  @Get()
+  @ApiOperation({ summary: '참여 가능한 채널 목록, 참여한 채널의 제외' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  allChannel(@Req() req) {
+    const userId = req.user.id;
+    return this.channelService.getChannels(userId);
+  }
 
   @Post()
-  makeChannel() {}
+  @ApiOperation({ summary: '채널 생성' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  makeChannel(@Req() req, @Body() createChannelData: CreateChannelDto) {
+    const userId = req.user.id;
+    return this.channelService.makeChannel(userId, createChannelData);
+  }
 
-  @Delete(':channel-id')
-  deleteChannel(@Param('channel-id') channelId: string) {}
+  @Delete(':channelId')
+  @ApiOperation({ summary: '특정 채널 삭제' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  deleteChannel(
+    @Req() req,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
+  ) {
+    const userId = req.user.id;
+    return this.channelService.deleteChannel(userId, channelId);
+  }
 
-  @Post(':channel-id')
-  joinChannel(@Param('channel-id') channelId: string) {}
+  @Post(':channelId')
+  @ApiOperation({ summary: '특정 채널에 참여' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  joinChannel(
+    @Req() req,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
+    @Body() channelPassword: ChannelPasswordDto,
+  ) {
+    const userId = req.user.id;
+    return this.channelService.joinChannels(userId, channelId, channelPassword);
+  }
 
-  @Patch(':channel-id')
-  getOutChannel(@Param('channel-id') channelId: string) {}
+  @Patch(':channelId')
+  @ApiOperation({ summary: '특정 채널에서 나가기' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  getOutChannel(
+    @Req() req,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
+  ) {
+    const userId = req.user.id;
+    return this.channelService.getOutChannel(userId, channelId);
+  }
 
-  @Get(':channel-id')
-  findParticipation(@Param('channel-id') channelId: string) {}
+  @Get(':channelId/member')
+  @ApiOperation({ summary: '특정 채널에 참여한 멤버 보기' })
+  findParticipants(@Param('channelId', ParseUUIDPipe) channelId: string) {
+    return this.channelService.findParticipants(channelId);
+  }
 
-  @Patch(':channe-id/password')
-  changePassword(@Param('channel-id') channelId: string) {}
+  @Patch(':channelId/password')
+  @ApiOperation({ summary: '채널 어드민 유저가 채널의 비밀번호는 변경/제거' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiBody({ type: ChannelPasswordDto })
+  changePassword(
+    @Req() req,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
+    @Body() channelPassword: ChannelPasswordDto,
+  ) {
+    const userId = req.user.id;
+    return this.channelService.changePassword(
+      userId,
+      channelId,
+      channelPassword,
+    );
+  }
 
-  @Patch(':channel-id/mute/:user-id')
+  @Patch(':channelId/mute/:targetId')
+  @ApiOperation({
+    summary: '채널 어드민 유저가 특정 유저를 일정시간 동안 음소거',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiBody({ type: RestrictChannelDto })
   muteUser(
-    @Param('channel-id') channelId: string,
-    @Param('user-id') userId: string,
-  ) {}
+    @Req() req,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
+    @Param('targetId', ParseUUIDPipe) targetId: string,
+    @Body() restrictChannelDto: RestrictChannelDto,
+  ) {
+    const userId = req.user.id;
+    return this.channelService.muteUser(
+      userId,
+      channelId,
+      targetId,
+      restrictChannelDto.limitedTime,
+    );
+  }
 
-  @Patch(':channel-id/ban/:user-id')
+  @Patch(':channelId/ban/:targetId')
+  @ApiOperation({
+    summary: '채널 어드민 유저가 특정 유저를 일정시간 동안 정지',
+  })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiBody({ type: RestrictChannelDto })
   banUser(
-    @Param('channel-id') channelId: string,
-    @Param('user-id') userId: string,
-  ) {}
+    @Req() req,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
+    @Param('targetId', ParseUUIDPipe) targetId: string,
+    @Body() restrictChannelDto: RestrictChannelDto,
+  ) {
+    const userId = req.user.id;
+    return this.channelService.banUser(
+      userId,
+      channelId,
+      targetId,
+      restrictChannelDto.limitedTime,
+    );
+  }
 
-  @Patch(':channel-id/block/:user-id')
-  blockUser(
-    @Param('channel-id') channelId: string,
-    @Param('user-id') userId: string,
-  ) {}
+  @Patch(':channelId/block/:targetId')
+  @ApiOperation({ summary: '채널 어드민 유저가 특정 유저를 강퇴' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiBody({ type: RestrictChannelDto })
+  blockUserFromChannel(
+    @Req() req,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
+    @Param('targetId', ParseUUIDPipe) targetId: string,
+  ) {
+    const userId = req.user.id;
+    return this.channelService.blockUserFromChannel(
+      userId,
+      channelId,
+      targetId,
+    );
+  }
 
-  @Patch(':channel-id/role/:user-id')
+  @Patch(':channelId/role/:targetId')
+  @ApiOperation({ summary: '채널/웹 어드민 유저가 특정 유저 권한을 부여/제거' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiBody({ type: ChangeRoleInChannelDto })
   roleUser(
-    @Param('channel-id') channelId: string,
-    @Param('user-id') userId: string,
-  ) {}
-  */
+    @Req() req,
+    @Param('channelId') channelId: string,
+    @Param('targetId') targetId: string,
+    @Body() changeRole: ChangeRoleInChannelDto,
+  ) {
+    const userId = req.user.id;
+    return this.channelService.changeRoleInChannel(
+      userId,
+      channelId,
+      targetId,
+      changeRole,
+    );
+  }
 }
