@@ -39,7 +39,7 @@ fi
 
 
 # Check the commit message
-MSG_REGEX="^(feat|fix|docs|test|chore):( )([A-Za-z0-9._%+-/]| )+( )(\(\#([1-9][0-9]+|[1-9])\))$"
+MSG_REGEX="^(feat|fix|refactor|docs|test|chore):( )([A-Za-z0-9._%+-/]| )+( )(\(\#([1-9][0-9]+|[1-9])\))$"
 if [[ "$COMMIT_MSG" =~ $MSG_REGEX ]]; then
 MATCHED_STRING=${BASH_REMATCH[5]}
 ISSUE_NUMBER=${MATCHED_STRING:1:$((${#MATCHED_STRING}-2))}
@@ -58,9 +58,10 @@ Expected format: $GREEN[COMMIT_TYPE]: [COMMIT_SUMMARY] (#[ISSUE_NUMBER])$RESET
  │  Types of Commits  │
  │$YELLOW 1. feat           $RESET │
  │$YELLOW 2. fix            $RESET │
- │$YELLOW 3. test           $RESET │
- │$YELLOW 4. docs           $RESET │
- │$YELLOW 5. chore          $RESET │
+ │$YELLOW 3. refactor       $RESET │
+ │$YELLOW 4. test           $RESET │
+ │$YELLOW 5. docs           $RESET │
+ │$YELLOW 6. chore          $RESET │
  └────────────────────┘
 -> e.g.$GREEN git commit -m \"feat: implement method A (#3)\"$RESET"
 exit 1
