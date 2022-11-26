@@ -2,7 +2,7 @@
 name: Test
 about: Test features
 title: "[test]"
-labels: test
+labels: ''
 assignees: ''
 
 ---

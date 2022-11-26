@@ -1,8 +1,8 @@
 ---
 name: Setup
 about: Configure project settings
-title: "[docs]"
-labels: documentation
+title: "[setup]"
+labels: setting
 assignees: ''
 
 ---

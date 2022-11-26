@@ -2,7 +2,7 @@
 name: Feature
 about: New features
 title: "[feat]"
-labels: feature
+labels: ''
 assignees: ''
 
 ---
