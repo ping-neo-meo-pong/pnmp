@@ -111,7 +111,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(data);
   }
 
-  /////////////    game    ///////////////
+  /////////////    game    //////////////
 
   @SubscribeMessage('comeInGameRoom')
   async comeCome(
