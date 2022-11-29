@@ -1,7 +1,7 @@
 import { UserSocket } from './dto/user-socket.dto';
 
 export class SocketRepository {
-  private map: Map<string, UserSocket>
+  private map: Map<string, UserSocket>;
 
   constructor() {
     this.map = new Map<string, UserSocket>();

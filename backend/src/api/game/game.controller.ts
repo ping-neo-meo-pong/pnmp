@@ -1,5 +1,8 @@
 import {
-  Controller, Post, Get, Body,
+  Controller,
+  Post,
+  Get,
+  Body,
   Request,
   UseGuards,
   Query,
@@ -16,7 +19,7 @@ import { CreateGameRoomDto } from 'src/api/game/dto/create-game-room.dto';
 @Controller('game')
 @ApiTags('game')
 export class GameController {
-  constructor(private readonly gameService: GameService) { }
+  constructor(private readonly gameService: GameService) {}
 
   @UseGuards(AuthGuard('jwt'))
   @Get()
@@ -34,12 +37,11 @@ export class GameController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @Post()
-  @ApiBody({type: CreateGameRoomDto})
+  @ApiBody({ type: CreateGameRoomDto })
   createGameRoom(
     @Request() request,
     @Body() gameRoomData: any,
-  ) : Promise<GameRoom>
-  {
+  ): Promise<GameRoom> {
     const leftUserId = request.user.id;
     const rightUserId = gameRoomData.invitedUserName;
     return this.gameService.createGameRoom(leftUserId, rightUserId);
