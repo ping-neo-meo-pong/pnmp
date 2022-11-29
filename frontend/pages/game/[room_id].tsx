@@ -16,12 +16,10 @@ import {
 
 let data = {
   roomId: 0,
-  game: {
-    H: 400,
-    W: 700,
-    UD_d: 0,
-    bar_d: 50,
-  },
+  H: 400,
+  W: 700,
+  UD_d: 0,
+  bar_d: 50,
   p1: {
     mouse_y: 0,
     score: 0,
@@ -48,19 +46,21 @@ export default function GameRoom() {
   const setup = (p5: p5Types, canvasParentRef: Element) => {
     // use parent to render the canvas in this ref
     // (without that p5 will render the canvas outside of your component)
-    p5.createCanvas(data.game.W, data.game.H).parent(canvasParentRef);
+    p5.createCanvas(data.W, data.H).parent(canvasParentRef);
   };
   useEffect(() => {
+    socket.emit("comeInGameRoom", roomId);
     socket.on("LR", (_champ) => {
       champ = _champ;
       console.log(`im ${champ}`);
     });
-    socket.emit("comeInGameRoom", roomId);
     router.events.on("routeChangeStart", () => {
-      socket.emit(`gameOut`);
+      socket.emit(`gameOut`, roomId);
     });
+    console.log(`game[${roomId}]`);
     socket.on(`game[${roomId}]`, (_data) => {
       data = { ..._data };
+      console.log(data);
       // data.ball.x = _data.ball.x;
       // data.ball.y = _data.ball.y;
     });
@@ -78,22 +78,22 @@ export default function GameRoom() {
     draw_p1_bar(p5, data);
     draw_p2_bar(p5, data);
 
-    // if (champ == 1)
-    //   data.p1.mouse_y = p5.mouseY;
-    // else if (champ == 2)
-    //   data.p2.mouse_y = p5.mouseY;
     if (champ == 1) {
       console.log(`im ${champ}`);
       // data.p1.mouse_y = p5.mouseY;
       let send = {
-        roomId : roomId,
-        m_y : p5.mouseY,
-      }
+        roomId: roomId,
+        m_y: p5.mouseY,
+      };
       socket.emit("p1", send);
     } else if (champ == 2) {
       console.log(`im ${champ}`);
       // data.p2.mouse_y = p5.mouseY;
-      socket.emit("p2", roomId, p5.mouseY);
+      let send = {
+        roomId: roomId,
+        m_y: p5.mouseY,
+      };
+      socket.emit("p2", send);
     }
 
     if (data.ball.x != 0) draw_ball(p5, data);

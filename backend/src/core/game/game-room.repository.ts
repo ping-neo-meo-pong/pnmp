@@ -13,7 +13,7 @@ export class GameRoomRepository extends Repository<GameRoom> {
 
   async getGameRooms(userToken): Promise<GameRoom[]> {
     const gameRooms = await this.find({
-      relations: ['leftUserId', 'rightUserId']
+      relations: ['leftUserId', 'rightUserId'],
     });
     return gameRooms;
   }
@@ -24,8 +24,7 @@ export class GameRoomRepository extends Repository<GameRoom> {
       leftUserId: { id: userId },
     });
     console.log(`hi~2`);
-    if (gameRoom_left)
-      return gameRoom_left;
+    if (gameRoom_left) return gameRoom_left;
     console.log(`hi~3`);
 
     const gameRoom_right = await this.findOneBy({

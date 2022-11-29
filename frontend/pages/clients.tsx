@@ -26,15 +26,15 @@ export default function Client() {
       });
   }
   function getGameRooms() {
-    axios
-      .get("http://localhost/server/api/game", { withCredentials: true })
-      .then(function (response) {
-        user_data.game_room = response.data;
-        let newGameRoomList = [];
-        for (let gameRoom of user_data.game_room)
-          newGameRoomList.push(<GoToGameRoom key={gameRoom.id} gameRoom={gameRoom}/>)
-        setGameRoomList(newGameRoomList);
-      })
+    axios.get("http://localhost/server/api/game").then(function (response) {
+      user_data.game_room = response.data;
+      let newGameRoomList = [];
+      for (let gameRoom of user_data.game_room)
+        newGameRoomList.push(
+          <GoToGameRoom key={gameRoom.id} gameRoom={gameRoom} />
+        );
+      setGameRoomList(newGameRoomList);
+    });
   }
   function onClickGameRoom() {
     router.push(`/game/test`); //${user_data._name}`);
@@ -43,10 +43,12 @@ export default function Client() {
   function onSubmitMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     axios
-      .post(`http://localhost/server/api/dm/${event.currentTarget.invitedUserName.value}`)
+      .post(
+        `http://localhost/server/api/dm/${event.currentTarget.invitedUserName.value}`
+      )
       .then(function (response) {
         const dmRoom = response.data;
-        setDmRoomList((current : JSX.Element[]) => {
+        setDmRoomList((current: JSX.Element[]) => {
           current.push(<GoToDmRoom key={dmRoom.id} dmRoom={dmRoom} />);
           return [...current];
         });
@@ -63,9 +65,9 @@ export default function Client() {
         invitedUserName: event.currentTarget.invitedUserName.value,
       })
       .then(function (response) {
-        const dmRoom = response.data;
-        setDmRoomList((current : JSX.Element[]) => {
-          current.push(<GoToDmRoom key={dmRoom.id} dmRoom={dmRoom} />);
+        const gameRoom = response.data;
+        setGameRoomList((current: JSX.Element[]) => {
+          current.push(<GoToGameRoom key={gameRoom.id} gameRoom={gameRoom} />);
           return [...current];
         });
       })
@@ -83,15 +85,13 @@ export default function Client() {
         <input type="text" name="invitedUserName" />
       </form>
       {dmRoomList}
+
       <h1>Game room list</h1>
       <form onSubmit={onSubmitGameInvite}>
-        <button type="submit">create new DM room with </button>
+        <button type="submit">create new Game room with </button>
         <input type="text" name="invitedUserName" />
       </form>
       {gameRoomList}
-      {/* <button onClick={onClickGameRoom}>
-        <h2>Game</h2>
-      </button> */}
     </div>
   );
 }

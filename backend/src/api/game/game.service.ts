@@ -31,19 +31,22 @@ export class GameService {
         id: gameRoom.id,
         otherUser:
           gameRoom.leftUserId.id === userToken.id
-          ? gameRoom.rightUserId.username
-          : gameRoom.leftUserId.username,
+            ? gameRoom.rightUserId.username
+            : gameRoom.leftUserId.username,
       });
     }
     return result;
   }
 
-  async createGameRoom(leftUserId: string, rightUserIdName: string): Promise<any> {
+  async createGameRoom(
+    leftUserId: string,
+    rightUserIdName: string,
+  ): Promise<any> {
     const invitedUser = await this.userRepository.findOneBy({
-      username: rightUserIdName
+      username: rightUserIdName,
     });
     if (!invitedUser)
-    throw new BadRequestException('invited user does not exist');
+      throw new BadRequestException('invited user does not exist');
     if (leftUserId === invitedUser.id) {
       throw new BadRequestException('cannot create Game room with yourself');
     }
@@ -80,9 +83,10 @@ export class GameService {
       this.socketRepository.find(invitedUser.id)?.join(createdGameRoom.id);
       return {
         id: createdGameRoom.id,
-        otherUser: createdGameRoom.leftUserId.id === leftUserId ?
-          createdGameRoom.rightUserId.username :
-          createdGameRoom.leftUserId.username,
+        otherUser:
+          createdGameRoom.leftUserId.id === leftUserId
+            ? createdGameRoom.rightUserId.username
+            : createdGameRoom.leftUserId.username,
       };
     }
   }
