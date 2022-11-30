@@ -12,19 +12,25 @@ import {
   draw_p1_bar,
   draw_p2_bar,
   draw_ball,
+  draw_countDown,
+  draw_countDown2,
 } from "./sketch.js";
 
 let data = {
+  is_player: -1,
   roomId: 0,
   H: 400,
   W: 700,
   UD_d: 0,
   bar_d: 50,
+  countDown: -1,
   p1: {
+    countDown: -1,
     mouse_y: 0,
     score: 0,
   },
   p2: {
+    countDown: -1,
     mouse_y: 0,
     score: 0,
   },
@@ -50,15 +56,25 @@ export default function GameRoom() {
   };
   useEffect(() => {
     socket.emit("comeInGameRoom", roomId);
-    socket.on("LR", (_champ) => {
-      champ = _champ;
-      console.log(`im ${champ}`);
-    });
     router.events.on("routeChangeStart", () => {
       socket.emit(`gameOut`, roomId);
     });
+    socket.on(`countDown`, (count: number) => {
+      console.log(count);
+      data.countDown = count;
+    });
+    socket.on(`countDown1`, (count: number) => {
+      console.log(`countDown1: ${count}`);
+      data.p1.countDown = count;
+    });
+    socket.on(`countDown2`, (count: number) => {
+      console.log(`countDown2: ${count}`);
+      data.p2.countDown = count;
+    });
     console.log(`game[${roomId}]`);
     socket.on(`game[${roomId}]`, (_data) => {
+      data.p1.countDown = -1;
+      data.p2.countDown = -1;
       data = { ..._data };
       console.log(data);
       // data.ball.x = _data.ball.x;
@@ -77,72 +93,22 @@ export default function GameRoom() {
     twinkle(p5);
     draw_p1_bar(p5, data);
     draw_p2_bar(p5, data);
-
-    if (champ == 1) {
-      console.log(`im ${champ}`);
-      // data.p1.mouse_y = p5.mouseY;
-      let send = {
-        roomId: roomId,
-        m_y: p5.mouseY,
-      };
-      socket.emit("p1", send);
-    } else if (champ == 2) {
-      console.log(`im ${champ}`);
-      // data.p2.mouse_y = p5.mouseY;
-      let send = {
-        roomId: roomId,
-        m_y: p5.mouseY,
-      };
-      socket.emit("p2", send);
+    if (data.countDown >= 0) {
+      draw_countDown(p5, data);
     }
+    console.log(`data.p1.countdown: ${data.p1.countDown}`);
+    console.log(`data.p2.countdown: ${data.p2.countDown}`);
+    if (data.p1.countDown >= 0 || data.p2.countDown >= 0) {
+      draw_countDown2(p5, data);
+    }
+
+    let send = {
+      roomId: roomId,
+      m_y: p5.mouseY,
+    };
+    socket.emit("racket", send);
 
     if (data.ball.x != 0) draw_ball(p5, data);
   };
   return <Sketch setup={setup} draw={draw} />;
 }
-
-// function p5_print() {
-//   const setup = (p5: p5Types, canvasParentRef: Element) => {
-//     // use parent to render the canvas in this ref
-//     // (without that p5 will render the canvas outside of your component)
-//     p5.createCanvas(data.game.W, data.game.H).parent(canvasParentRef);
-//   };
-
-//   let champ: number;
-//   const draw = (p5: p5Types) => {
-//     useEffect(() => {
-//       socket.emit('im_gamer');
-//       socket.on("LR", (_champ) => {
-//         champ = _champ;
-//         console.log(`im ${champ}`)
-//       })
-//       socket.on("game_data", (_data) => {
-//         data = _data;
-//       })
-//       let bar_loop = setInterval(() => {
-//         if (champ % 2 === 0) {
-//           socket.emit("p1", data.p1.mouse_y);
-//         }
-//         else if (champ % 2 === 1) {
-//           socket.emit("p2", data.p2.mouse_y);
-//         }
-//       }, 1000 / 30);
-//     }, []);
-//     if (Router.)
-//     p5.background(230);
-//     frame(p5, data);
-
-//     draw_score(p5, data);
-
-//     p5.fill('white');
-//     twinkle(p5);
-//     draw_p1_bar(p5, data);
-//     draw_p2_bar(p5, data);
-
-//     if (data.ball.x != 0)
-//       draw_ball(p5, data);
-
-//     data.p1.mouse_y = p5.mouseY;
-//   };
-//   return <Sketch setup={setup} draw={draw} />;
-// }

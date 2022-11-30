@@ -11,10 +11,12 @@ import { DmRoom } from '../core/dm/dm-room.entity';
 import { SocketModule } from '../core/socket/socket.module';
 import { JwtModule } from '@nestjs/jwt';
 import { GameRoomRepository } from 'src/core/game/game-room.repository';
+import { GameModule } from 'src/core/game/game.module';
 
 @Module({
   imports: [
     SocketModule,
+    GameModule,
     TypeOrmModule.forFeature([DmRoom]),
     TypeOrmExModule.forCustomRepository([
       DmRoomRepository,

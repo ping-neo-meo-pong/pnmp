@@ -62,7 +62,7 @@ export default function Client() {
     event.preventDefault();
     axios
       .post(`http://localhost/server/api/game`, {
-        invitedUserName: event.currentTarget.invitedUserName.value,
+        invitedUserId: event.currentTarget.invitedUserId.value,
       })
       .then(function (response) {
         const gameRoom = response.data;
@@ -89,7 +89,7 @@ export default function Client() {
       <h1>Game room list</h1>
       <form onSubmit={onSubmitGameInvite}>
         <button type="submit">create new Game room with </button>
-        <input type="text" name="invitedUserName" />
+        <input type="text" name="invitedUserId" />
       </form>
       {gameRoomList}
     </div>
@@ -124,7 +124,7 @@ function GoToGameRoom({ gameRoom }: any) {
 
   return (
     <div>
-      <button onClick={onClickGameRoom}>GAME with {gameRoom.otherUser}</button>
+      <button onClick={onClickGameRoom}>{gameRoom.leftUser.username} VS {gameRoom.rightUser.username}</button>
     </div>
   );
 }

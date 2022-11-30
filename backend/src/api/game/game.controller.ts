@@ -9,7 +9,7 @@ import {
   Param,
 } from '@nestjs/common';
 import { GameService } from './game.service';
-import { GameRoom } from '../../core/game/game-room.entity';
+import { GameRoomDto } from '../../core/game/dto/game-room.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { request } from 'http';
@@ -23,9 +23,8 @@ export class GameController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get()
-  getGames(@Request() request): Promise<GameRoom[]> {
-    const userToken = request.user;
-    return this.gameService.getGames(userToken);
+  getGames(@Request() request): Promise<GameRoomDto[]> {
+    return this.gameService.getGames();
   }
 
   // @UseGuards(AuthGuard('jwt'))
@@ -41,9 +40,9 @@ export class GameController {
   createGameRoom(
     @Request() request,
     @Body() gameRoomData: any,
-  ): Promise<GameRoom> {
+  ): Promise<GameRoomDto> {
     const leftUserId = request.user.id;
-    const rightUserId = gameRoomData.invitedUserName;
+    const rightUserId = gameRoomData.invitedUserId;
     return this.gameService.createGameRoom(leftUserId, rightUserId);
   }
 }

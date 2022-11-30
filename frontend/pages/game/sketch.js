@@ -27,6 +27,22 @@ export function draw_score(p5obj, data) {
 	p5obj.text(data.p2.score, 2 * data.W / 3, 60);
 }
 
+export function draw_countDown(p5obj, data) {
+	p5obj.fill('blue');
+	p5obj.textSize(100);
+	p5obj.textAlign(p5obj.CENTER);
+	p5obj.text(data.countDown, data.W / 2, data.H / 2);
+}
+export function draw_countDown2(p5obj, data) {
+	console.log('draw_countDown2');
+	p5obj.fill('red');
+	p5obj.textSize(100);
+	p5obj.textAlign(p5obj.CENTER);
+
+	p5obj.text(data.p1.countDown, data.W / 3, data.H / 2);
+	p5obj.text(data.p2.countDown, data.W * 2 / 3, data.H / 2);
+}
+
 export function draw_p1_bar(p5obj, data) {
 	// erase();
 	// rect(data.bar_d, data.p1.mouse_y - 1000, 20, 2000);
