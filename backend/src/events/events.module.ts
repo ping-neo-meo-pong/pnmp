@@ -12,6 +12,8 @@ import { SocketModule } from '../core/socket/socket.module';
 import { JwtModule } from '@nestjs/jwt';
 import { GameRoomRepository } from 'src/core/game/game-room.repository';
 import { GameModule } from 'src/core/game/game.module';
+import { GameQueueRepository } from 'src/core/game/game-queue.repository';
+import { UserRepository } from 'src/core/user/user.repository';
 
 @Module({
   imports: [
@@ -21,7 +23,7 @@ import { GameModule } from 'src/core/game/game.module';
     TypeOrmExModule.forCustomRepository([
       DmRoomRepository,
       DmRepository,
-      GameRoomRepository,
+      UserRepository,
     ]),
     JwtModule.register({
       secret: process.env.JWT_SECRET,

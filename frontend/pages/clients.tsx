@@ -11,6 +11,10 @@ export default function Client() {
   let [gameRoomList, setGameRoomList]: any = useState([]);
   useEffect(getGameRooms, []);
 
+  socket.on('goToGameRoom', (roomId)=>{
+    router.push(`/game/${roomId}`);
+  });
+
   function getDmRooms() {
     axios
       .get("http://localhost/server/api/dm")
@@ -92,6 +96,9 @@ export default function Client() {
         <input type="text" name="invitedUserId" />
       </form>
       {gameRoomList}
+
+      <h1>Maching</h1>
+      <button onClick={()=>{socket.emit('gameMatching')}}>Maching</button>
     </div>
   );
 }

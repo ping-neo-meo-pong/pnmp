@@ -1,16 +1,16 @@
 import {
-    ConnectedSocket,
-    MessageBody,
-    OnGatewayConnection,
-    OnGatewayDisconnect,
-    OnGatewayInit,
-    SubscribeMessage,
-    WebSocketGateway,
-    WebSocketServer,
-    WsResponse,
-    WsException,
+  ConnectedSocket,
+  MessageBody,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  OnGatewayInit,
+  SubscribeMessage,
+  WebSocketGateway,
+  WebSocketServer,
+  WsResponse,
+  WsException,
 } from '@nestjs/websockets';
-import { UseGuards } from '@nestjs/common';
+import { Injectable, UseGuards } from '@nestjs/common';
 import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Server, Socket } from 'socket.io';
@@ -24,6 +24,9 @@ import { GameRoomRepository } from 'src/core/game/game-room.repository';
 import { on } from 'events';
 import { clear } from 'console';
 import { GameRoom } from '../core/game/dto/game-room.dto';
+import { GameQue } from '../core/game/dto/game-queue.dto';
+import { GameQueueRepository } from '../core/game/game-queue.repository'
+import { UserRepository } from '../core/user/user.repository';
 
 function wsGuard(socket: UserSocket) {
   if (!socket.hasOwnProperty('user')) {
@@ -43,7 +46,9 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private dmRoomRepository: DmRoomRepository,
     private dmRepository: DmRepository,
     private gameRoomRepository: GameRoomRepository,
-  ) {}
+    private gameQueueRepository: GameQueueRepository,
+    private userRepository: UserRepository,
+  ) { }
 
   handleConnection(socket: Socket) {
     console.log('connected');
@@ -89,10 +94,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() roomId: string,
   ) {
     wsGuard(client);
-    
+
     const room = await this.gameRoomRepository.findById(+roomId);
     if (!room)
-      return ;
+      return;
     client.join(roomId);
     //   if user == L ? R
     if (room.gameRoomDto.leftUser.id == client.user.id) {
@@ -111,14 +116,14 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
           clearInterval(room.startTimer);
           room.gameLoop = setInterval(() => {
             this.server
-            .in(roomId)
-            .emit(`game[${roomId}]`, room.gameRoomDto.gameData);
+              .in(roomId)
+              .emit(`game[${roomId}]`, room.gameRoomDto.gameData);
             ball_engine(room);
           }, 1000 / 30);
         } else {
           this.server
-          .in(roomId)
-          .emit('countDown', count);
+            .in(roomId)
+            .emit('countDown', count);
           count--;
         }
       }, 1000);
@@ -148,7 +153,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     wsGuard(client);
     const room = await this.gameRoomRepository.findById(+roomId);
     if (!room)
-      return ;
+      return;
 
     console.log(client.user.id);
     const joinedClients = this.server.sockets.adapter.rooms.get(roomId);
@@ -166,8 +171,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         else {
           console.log('countDown');
           this.server
-          .in(roomId)
-          .emit('countDown1', countDown);
+            .in(roomId)
+            .emit('countDown1', countDown);
           countDown--;
         }
       }, 1000);
@@ -181,14 +186,93 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         else {
           console.log('countDown');
           this.server
-          .in(roomId)
-          .emit('countDown2', countDown);
+            .in(roomId)
+            .emit('countDown2', countDown);
           countDown--;
         }
       }, 1000);
     }
     console.log(`game out`);
   }
+
+  @SubscribeMessage('gameMatching')
+  async gameQue(
+    @ConnectedSocket() client: UserSocket,
+  ) {
+    console.log(client.user.id);
+    const user = await this.userRepository.findOneBy({ id: client.user.id });
+    if (user) {
+      // user.ladder += 10;
+      // await this.userRepository.update(client.user.id, {
+      //   ladder: user.ladder,
+      // });
+      this.gameQueueRepository.addQue(client.user.id, user.ladder);
+      let idx = this.gameQueueRepository.nextIdx();
+      let cnt = 0;
+      let wait = 0;
+      this.gameQueueRepository.setQueLoop(idx, setInterval(async ()=>{
+          if (cnt == 0 || cnt == 1 || cnt == 3) {
+            let room = await this.gameQueueRepository.matchingQue(client.user.id, wait);
+            console.log('events find room');
+            console.log(room);
+            if (room) {
+              // clearInterval(this.gameQueueRepository.getQueLoop(idx));
+              console.log('really find Que!!');
+              console.log(client.user.id);
+              console.log(room);
+              client.join(room.gameRoomDto.id);
+              if (room.gameRoomDto.leftUser.id == client.user.id) {
+                console.log('rightUser emit!');
+                console.log(room.gameRoomDto.rightUser.id);
+                this.socketRepository.find(room.gameRoomDto.rightUser.id).join(room.gameRoomDto.id);
+              } else {
+                console.log('leftUser');
+                console.log(room.gameRoomDto.leftUser.id);
+                this.socketRepository.find(room.gameRoomDto.leftUser.id).join(room.gameRoomDto.id);
+              }
+              this.server
+              .in(room.gameRoomDto.id)
+              .emit('goToGameRoom', room.gameRoomDto.id);
+            } else {
+              wait++;
+              this.gameQueueRepository.setWait(idx, wait);
+              console.log(wait);
+              console.log(this.gameQueueRepository.getWait(idx));
+            }
+          }
+          cnt++;
+        }, 10000)
+      );
+    }
+  }
+}
+
+async function matching(client, idx, wait, cnt) {
+  let room = await this.gameQueueRepository.matchingQue(client.user.id, wait);
+  console.log('events find room');
+  console.log(room);
+  if (room) {
+    clearInterval(this.gameQueueRepository.getQueLoop(idx));
+    console.log('really find Que!!');
+    console.log(client.user.id);
+    console.log(room);
+    client.join(room.gameRoomDto.id);
+    if (room.gameRoomDto.leftUser.id == client.user.id) {
+      console.log('rightUser emit!');
+      console.log(room.gameRoomDto.rightUser.id);
+      this.socketRepository.find(room.gameRoomDto.rightUser.id).join(room.gameRoomDto.id);
+    } else {
+      console.log('leftUser');
+      console.log(room.gameRoomDto.leftUser.id);
+      this.socketRepository.find(room.gameRoomDto.leftUser.id).join(room.gameRoomDto.id);
+    }
+    this.server
+    .in(room.gameRoomDto.id)
+    .emit('goToGameRoom', room.gameRoomDto.id);
+  }
+  cnt++;
+  if (cnt == 1 || cnt == 3 || cnt == 6)
+    this.gameQueueRepository.setWait(idx, wait);
 }
 
 function ball_engine(room: GameRoom) {
@@ -230,25 +314,25 @@ function check_wall(room: GameRoom) {
 function check_bar(room: GameRoom) {
   if (
     room.gameRoomDto.gameData.ball.x + room.gameRoomDto.gameData.ball.v_x >
-      room.gameRoomDto.gameData.bar_d &&
+    room.gameRoomDto.gameData.bar_d &&
     room.gameRoomDto.gameData.ball.x + room.gameRoomDto.gameData.ball.v_x <
-      room.gameRoomDto.gameData.bar_d + 20 &&
+    room.gameRoomDto.gameData.bar_d + 20 &&
     Math.abs(
       room.gameRoomDto.gameData.ball.y +
-        room.gameRoomDto.gameData.ball.v_y -
-        room.gameRoomDto.gameData.p1.mouse_y,
+      room.gameRoomDto.gameData.ball.v_y -
+      room.gameRoomDto.gameData.p1.mouse_y,
     ) < 40
   ) {
     room.gameRoomDto.gameData.ball.v_x = Math.abs(room.gameRoomDto.gameData.ball.v_x);
   } else if (
     room.gameRoomDto.gameData.ball.x + room.gameRoomDto.gameData.ball.v_x <
-      room.gameRoomDto.gameData.W - room.gameRoomDto.gameData.bar_d - 20 &&
+    room.gameRoomDto.gameData.W - room.gameRoomDto.gameData.bar_d - 20 &&
     room.gameRoomDto.gameData.ball.x + room.gameRoomDto.gameData.ball.v_x >
-      room.gameRoomDto.gameData.W - room.gameRoomDto.gameData.bar_d - 40 &&
+    room.gameRoomDto.gameData.W - room.gameRoomDto.gameData.bar_d - 40 &&
     Math.abs(
       room.gameRoomDto.gameData.ball.y +
-        room.gameRoomDto.gameData.ball.v_y -
-        room.gameRoomDto.gameData.p2.mouse_y,
+      room.gameRoomDto.gameData.ball.v_y -
+      room.gameRoomDto.gameData.p2.mouse_y,
     ) < 40
   ) {
     if (room.gameRoomDto.gameData.ball.v_x > 0) room.gameRoomDto.gameData.ball.v_x *= -1;

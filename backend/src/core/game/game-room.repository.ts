@@ -2,7 +2,9 @@ import { GameRoom } from './dto/game-room.dto';
 import { GameMode } from 'src/enum/game-mode.enum';
 import { CreateGameRoomDto } from '../../api/game/dto/create-game-room.dto';
 import { User } from '../user/user.entity';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class GameRoomRepository {
   private gameRooms: GameRoom[] = [];
   private nextRoomId: number = 0;

@@ -10,6 +10,7 @@ import { GameHistoryRepository } from '../../core/game/game-history.repository';
 import { UserRepository } from 'src/core/user/user.repository';
 import { SocketModule } from 'src/core/socket/socket.module';
 import { GameModule as _GameModule } from 'src/core/game/game.module';
+import { GameQueueRepository } from 'src/core/game/game-queue.repository';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { GameModule as _GameModule } from 'src/core/game/game.module';
     TypeOrmExModule.forCustomRepository([
       GameHistoryRepository,
       UserRepository,
+      GameQueueRepository,
     ]),
   ],
   controllers: [GameController],
