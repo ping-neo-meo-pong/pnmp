@@ -11,9 +11,11 @@ export default function Client() {
   let [gameRoomList, setGameRoomList]: any = useState([]);
   useEffect(getGameRooms, []);
 
-  socket.on('goToGameRoom', (roomId)=>{
-    router.push(`/game/${roomId}`);
-  });
+  useEffect(()=>{
+    socket.on('goToGameRoom', (roomId)=>{
+      router.push(`/game/${roomId}`);
+    });
+  }, []);
 
   function getDmRooms() {
     axios
@@ -97,11 +99,15 @@ export default function Client() {
       </form>
       {gameRoomList}
 
-      <h1>Maching</h1>
-      <button onClick={()=>{
-        router.push(`/matching`);
-        socket.emit('gameMatching');
-      }}>Maching</button>
+      <h1>Random Maching</h1>
+      <button onClick={async ()=>{
+        await router.push(`/matching`);
+        socket.emit('gameMatching', 1);
+      }}>Maching Mode 1</button>
+      <button onClick={async ()=>{
+        await router.push(`/matching`);
+        socket.emit('gameMatching', 2);
+      }}>Maching Mode 2</button>
     </div>
   );
 }

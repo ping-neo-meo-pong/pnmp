@@ -71,12 +71,12 @@ export default function GameRoom() {
       console.log(`countDown2: ${count}`);
       data.p2.countDown = count;
     });
-    console.log(`game[${roomId}]`);
+    // console.log(`game[${roomId}]`);
     socket.on(`game[${roomId}]`, (_data) => {
       data.p1.countDown = -1;
       data.p2.countDown = -1;
       data = { ..._data };
-      console.log(data);
+      // console.log(data);
       // data.ball.x = _data.ball.x;
       // data.ball.y = _data.ball.y;
     });
@@ -96,8 +96,8 @@ export default function GameRoom() {
     if (data.countDown >= 0) {
       draw_countDown(p5, data);
     }
-    console.log(`data.p1.countdown: ${data.p1.countDown}`);
-    console.log(`data.p2.countdown: ${data.p2.countDown}`);
+    // console.log(`data.p1.countdown: ${data.p1.countDown}`);
+    // console.log(`data.p2.countdown: ${data.p2.countDown}`);
     if (data.p1.countDown >= 0 || data.p2.countDown >= 0) {
       draw_countDown2(p5, data);
     }

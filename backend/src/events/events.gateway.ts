@@ -23,10 +23,11 @@ import { DmRepository } from '../core/dm/dm.repository';
 import { GameRoomRepository } from 'src/core/game/game-room.repository';
 import { on } from 'events';
 import { clear } from 'console';
-import { GameRoom } from '../core/game/dto/game-room.dto';
+import { GameRoom, GameRoomDto } from '../core/game/dto/game-room.dto';
 import { GameQue } from '../core/game/dto/game-queue.dto';
 import { GameQueueRepository } from '../core/game/game-queue.repository'
 import { UserRepository } from '../core/user/user.repository';
+import { GameMode } from 'src/enum/game-mode.enum';
 
 function wsGuard(socket: UserSocket) {
   if (!socket.hasOwnProperty('user')) {
@@ -118,7 +119,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
             this.server
               .in(roomId)
               .emit(`game[${roomId}]`, room.gameRoomDto.gameData);
-            ball_engine(room);
+            ball_engine(room.gameRoomDto);
           }, 1000 / 30);
         } else {
           this.server
@@ -198,6 +199,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('gameMatching')
   async gameQue(
     @ConnectedSocket() client: UserSocket,
+    @MessageBody() mode: GameMode,
   ) {
     console.log(client.user.id);
     const user = await this.userRepository.findOneBy({ id: client.user.id });
@@ -205,7 +207,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // await this.userRepository.update(client.user.id, {
       //   ladder: user.ladder,
       // });
-      this.gameQueueRepository.addQue(client.user.id, user.ladder);
+      this.gameQueueRepository.addQue(client.user.id, user.ladder, mode);
       let idx = this.gameQueueRepository.nextIdx();
       let wait = 0;
       await this.func(10000, client, idx, wait);
@@ -257,66 +259,81 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 }
 
 
-function ball_engine(room: GameRoom) {
-  check_wall(room);
-  check_bar(room);
+function ball_engine(dto: GameRoomDto) {
+  check_wall(dto);
+  check_bar(dto);
 
-  room.gameRoomDto.gameData.ball.x += room.gameRoomDto.gameData.ball.v_x;
-  room.gameRoomDto.gameData.ball.y += room.gameRoomDto.gameData.ball.v_y;
+  dto.gameData.ball.x += dto.gameData.ball.v_x;
+  dto.gameData.ball.y += dto.gameData.ball.v_y;
 }
 
-function check_wall(room: GameRoom) {
+function check_wall(dto: GameRoomDto) {
   if (
-    room.gameRoomDto.gameData.ball.x + room.gameRoomDto.gameData.ball.v_x >
-    room.gameRoomDto.gameData.W - 20
+    dto.gameData.ball.x + dto.gameData.ball.v_x >
+    dto.gameData.W - 20
   ) {
     // right
-    room.gameRoomDto.gameData.ball.v_x *= -1;
-    room.gameRoomDto.gameData.p1.score += 1;
-  } else if (room.gameRoomDto.gameData.ball.x + room.gameRoomDto.gameData.ball.v_x < 0) {
+    dto.gameData.ball.v_x *= -1;
+    dto.gameData.p1.score += 1;
+  } else if (dto.gameData.ball.x + dto.gameData.ball.v_x < 0) {
     // left
-    room.gameRoomDto.gameData.ball.v_x *= -1;
-    room.gameRoomDto.gameData.p2.score += 1;
+    dto.gameData.ball.v_x *= -1;
+    dto.gameData.p2.score += 1;
   }
   if (
-    room.gameRoomDto.gameData.ball.y + room.gameRoomDto.gameData.ball.v_y >
-    room.gameRoomDto.gameData.H - room.gameRoomDto.gameData.UD_d - 20
+    dto.gameData.ball.y + dto.gameData.ball.v_y >
+    dto.gameData.H - dto.gameData.UD_d - 20
   ) {
     // down
-    room.gameRoomDto.gameData.ball.v_y *= -1;
+    dto.gameData.ball.v_y *= -1;
   } else if (
-    room.gameRoomDto.gameData.ball.y + room.gameRoomDto.gameData.ball.v_y <
-    room.gameRoomDto.gameData.UD_d
+    dto.gameData.ball.y + dto.gameData.ball.v_y <
+    dto.gameData.UD_d
   ) {
     // up
-    room.gameRoomDto.gameData.ball.v_y *= -1;
+    dto.gameData.ball.v_y *= -1;
   }
 }
 
-function check_bar(room: GameRoom) {
-  if (
-    room.gameRoomDto.gameData.ball.x + room.gameRoomDto.gameData.ball.v_x >
-    room.gameRoomDto.gameData.bar_d &&
-    room.gameRoomDto.gameData.ball.x + room.gameRoomDto.gameData.ball.v_x <
-    room.gameRoomDto.gameData.bar_d + 20 &&
+function check_bar(dto: GameRoomDto) {
+  if ( // check left bar
+    dto.gameData.ball.x + dto.gameData.ball.v_x >
+    dto.gameData.bar_d &&
+    dto.gameData.ball.x + dto.gameData.ball.v_x <
+    dto.gameData.bar_d + 20 &&
     Math.abs(
-      room.gameRoomDto.gameData.ball.y +
-      room.gameRoomDto.gameData.ball.v_y -
-      room.gameRoomDto.gameData.p1.mouse_y,
+      dto.gameData.ball.y +
+      dto.gameData.ball.v_y -
+      dto.gameData.p1.mouse_y,
     ) < 40
   ) {
-    room.gameRoomDto.gameData.ball.v_x = Math.abs(room.gameRoomDto.gameData.ball.v_x);
+    plus_speed(dto.gameData);
+    if (dto.gameData.ball.v_x < 0)
+      dto.gameData.ball.v_x *= -1;
   } else if (
-    room.gameRoomDto.gameData.ball.x + room.gameRoomDto.gameData.ball.v_x <
-    room.gameRoomDto.gameData.W - room.gameRoomDto.gameData.bar_d - 20 &&
-    room.gameRoomDto.gameData.ball.x + room.gameRoomDto.gameData.ball.v_x >
-    room.gameRoomDto.gameData.W - room.gameRoomDto.gameData.bar_d - 40 &&
+    dto.gameData.ball.x + dto.gameData.ball.v_x >
+    dto.gameData.W - (dto.gameData.bar_d + 40) &&
+    dto.gameData.ball.x + dto.gameData.ball.v_x <
+    dto.gameData.W - (dto.gameData.bar_d + 20) &&
     Math.abs(
-      room.gameRoomDto.gameData.ball.y +
-      room.gameRoomDto.gameData.ball.v_y -
-      room.gameRoomDto.gameData.p2.mouse_y,
+      dto.gameData.ball.y +
+      dto.gameData.ball.v_y -
+      dto.gameData.p2.mouse_y,
     ) < 40
   ) {
-    if (room.gameRoomDto.gameData.ball.v_x > 0) room.gameRoomDto.gameData.ball.v_x *= -1;
+    plus_speed(dto.gameData);
+    if (dto.gameData.ball.v_x > 0)
+      dto.gameData.ball.v_x *= -1;
+  }
+}
+
+function plus_speed(gameData: any) {
+  if (Math.abs(gameData.ball.v_x) + gameData.ball.plus_speed < 15)
+    gameData.ball.v_x = Math.abs(gameData.ball.v_x) + gameData.ball.plus_speed;
+  if (Math.abs(gameData.ball.v_y) + gameData.ball.plus_speed < 17) {
+    if (gameData.ball.v_y < 0)
+      gameData.ball.v_y = gameData.ball.v_y - gameData.ball.plus_speed;
+    else if (gameData.ball.v_y > 0)
+      gameData.ball.v_y = gameData.ball.v_y + gameData.ball.plus_speed;
   }
 }

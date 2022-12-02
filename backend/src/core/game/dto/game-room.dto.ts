@@ -27,6 +27,7 @@ export interface GameRoomDto {
       y: number,
       v_x: number,
       v_y: number,
+      plus_speed: number,
     },
     p1: {
       in: boolean,

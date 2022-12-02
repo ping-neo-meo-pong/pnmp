@@ -55,7 +55,19 @@ export class GameRoomRepository {
 }
 
 
-function initRoom(leftUser: User, rightUser: User, gameMode: GameMode, roomId: string) {
+function initRoom(leftUser: User, rightUser: User, mode: GameMode, roomId: string) {
+  let _W = 500;
+  let _H = 400;
+  let ball_v_x = 5;
+  let ball_v_y = 6;
+  let plus_speed = 1;
+  if (mode == GameMode.HARD)
+    ball_v_x = 9;
+  if (mode == GameMode.HARD)
+    ball_v_y = 11;
+  if (mode == GameMode.HARD)
+    plus_speed = 2;
+
   return {
     gameLoop: null,
     startTimer: null,
@@ -67,18 +79,19 @@ function initRoom(leftUser: User, rightUser: User, gameMode: GameMode, roomId: s
       rightUser: rightUser,
       startAt: new Date(),
       endAt: new Date(),
-      gameMode: gameMode,
+      gameMode: mode,
       gameData: {
-        W: 500,
-        H: 400,
+        W: _W,
+        H: _H,
         UD_d: 20,
         bar_d: 50,
         loop: null,
         ball: {
-          x: 100,
-          y: 100,
+          x: _W / 2,
+          y: _H / 2,
           v_x: 6,
           v_y: 7,
+          plus_speed: plus_speed,
         },
         p1: {
           in: false,

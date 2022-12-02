@@ -44,7 +44,7 @@ export class GameService {
     return (await this.gameRoomRepository.createGameRoom(user, invitedUser, GameMode.NORMAL)).gameRoomDto;
   }
 
-  async addQue(userId: string, rating: number) {
-    this.gameQueueRepository.addQue(userId, rating);
+  async addQue(userId: string, rating: number, mode: GameMode) {
+    this.gameQueueRepository.addQue(userId, rating, mode);
   }
 }

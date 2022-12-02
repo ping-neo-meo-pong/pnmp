@@ -16,8 +16,8 @@ export class GameQueueRepository {
     private userRepository: UserRepository,
   ) { }
 
-  addQue(userId: string, rating: number) {
-    this.gameQue[this.idx] = { userId: userId, ladder: rating, wait: 0 };
+  addQue(userId: string, rating: number, _mode: GameMode) {
+    this.gameQue[this.idx] = { userId: userId, ladder: rating, mode: _mode, wait: 0 };
     console.log(this.gameQue);
   }
 
@@ -73,17 +73,17 @@ export class GameQueueRepository {
       }
     }
     for (let idx=0; this.gameQue[idx]; idx++) {
-      // console.log(`idx: ${idx}`);
-      // console.log(this.gameQue[idx]);
       if (myId == this.gameQue[idx].userId || this.gameQue[idx].ladder == -1)
         continue ;
-      if (_wait >= Math.abs(myLadder - this.gameQue[idx].ladder) &&
+      if (this.gameQue[myidx].mode == this.gameQue[idx].mode &&
+        _wait >= Math.abs(myLadder - this.gameQue[idx].ladder) &&
         this.gameQue[idx].wait >= Math.abs(myLadder - this.gameQue[idx].ladder))
       {
         clearTimeout(this.getQueLoop(myidx));
         clearTimeout(this.getQueLoop(idx));
         let leftUser = await this.userRepository.findOneBy({ id: this.gameQue[myidx].userId });
         let rightUser = await this.userRepository.findOneBy({ id: this.gameQue[idx].userId });
+        let room = this.gameRoomRepository.createGameRoom(leftUser, rightUser, this.gameQue[myidx].mode);
         if (myidx < idx) {
           this.gameQue.splice(idx, 1);
           this.gameQue.splice(myidx, 1);
@@ -92,7 +92,6 @@ export class GameQueueRepository {
           this.gameQue.splice(idx, 1);
         }
         this.idx -= 2;
-        let room = this.gameRoomRepository.createGameRoom(leftUser, rightUser, GameMode.NORMAL);
         return room;
       }
     }
