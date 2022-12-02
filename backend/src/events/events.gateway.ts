@@ -97,24 +97,30 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     wsGuard(client);
 
     const room = await this.gameRoomRepository.findById(+roomId);
-    if (!room)
+    if (!room) {
+      console.log('No Room');
       return;
+    }
     client.join(roomId);
+    console.log(`client ${client.user} joined in ${roomId}`);
+
     //   if user == L ? R
+    let viewer = 0;
     if (room.gameRoomDto.leftUser.id == client.user.id) {
       clearInterval(room.p1EndTimer);
       room.gameRoomDto.gameData.p1.in = true;
     } else if (room.gameRoomDto.rightUser.id == client.user.id) {
       clearInterval(room.p2EndTimer);
       room.gameRoomDto.gameData.p2.in = true;
-    } else { /* 관전자 */ }
+    } else { viewer = 1; console.log(`im viewer`) }
 
     // if user L & R
     if (room.gameRoomDto.gameData.p1.in && room.gameRoomDto.gameData.p2.in) {
       let count = 3;
       room.startTimer = setInterval(() => {
-        if (count === 0) {
+        if (count === 0 || viewer == 1) {
           clearInterval(room.startTimer);
+          clearInterval(room.gameLoop);
           room.gameLoop = setInterval(() => {
             this.server
               .in(roomId)
@@ -150,7 +156,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     wsGuard(client);
     const room = await this.gameRoomRepository.findById(_data.roomId);
     if (!room)
-      return ;
+      return;
     //   if user == L ? R
     if (room.gameRoomDto.leftUser.id == client.user.id) {
       room.gameRoomDto.gameData.p1.mouse_y = _data.m_y;
@@ -169,7 +175,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     wsGuard(client);
     const room = await this.gameRoomRepository.findById(+roomId);
     if (!room)
-      return ;
+      return;
 
     console.log('gameOut');
     console.log(client.user.id);
@@ -178,7 +184,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       client.leave(roomId);
     }
     else {
-      return ;
+      return;
     }
 
     //   if user == L ? R
@@ -221,7 +227,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: UserSocket,
     @MessageBody() mode: GameMode,
   ) {
-    console.log(client.user.id);
+    // console.log(client.user.id);
     const user = await this.userRepository.findOneBy({ id: client.user.id });
     if (user) {
       // await this.userRepository.update(client.user.id, {

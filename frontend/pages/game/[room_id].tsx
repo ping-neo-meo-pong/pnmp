@@ -47,7 +47,7 @@ let bar_loop: NodeJS.Timer;
 
 export default function GameRoom() {
   const router = useRouter();
-  const roomId = router.query.room_id;
+  const roomId = `${router.query.room_id}`;
 
   const setup = (p5: p5Types, canvasParentRef: Element) => {
     // use parent to render the canvas in this ref
@@ -72,28 +72,27 @@ export default function GameRoom() {
       console.log(`countDown2: ${count}`);
       data.p2.countDown = count;
     });
-    // console.log(`game[${roomId}]`);
     socket.on(`game[${roomId}]`, (_data) => {
+      // console.log(`game[${roomId}]`);
       data.p1.countDown = -1;
       data.p2.countDown = -1;
       data = { ..._data };
-      // console.log(data);
-      // data.ball.x = _data.ball.x;
-      // data.ball.y = _data.ball.y;
     });
-
+    
     socket.on('getOut!', async ()=>{
       dataInit();
       await router.push(`/clients`);
     });
-
+    
     return ()=>{
+      console.log(`hi? return`);
       router.events.off("routeChangeStart", routeChangeHandler);
     }
   }, []);
-
-  let champ: number;
+  
   const draw = (p5: p5Types) => {
+    console.log(`user_data.game_room`);
+    console.log(user_data.game_room);
     p5.background(230);
     frame(p5, data);
 
@@ -101,22 +100,23 @@ export default function GameRoom() {
 
     p5.fill("white");
     twinkle(p5);
-    draw_p1_bar(p5, data);
-    draw_p2_bar(p5, data);
     if (data.countDown >= 0) {
       draw_countDown(p5, data);
     }
-    // console.log(`data.p1.countdown: ${data.p1.countDown}`);
-    // console.log(`data.p2.countdown: ${data.p2.countDown}`);
-    if (data.p1.countDown >= 0 || data.p2.countDown >= 0) {
-      draw_countDown2(p5, data);
-    }
+    draw_countDown2(p5, data);
+    p5.fill('white');
+    draw_p1_bar(p5, data);
+    draw_p2_bar(p5, data);
 
     let send = {
       roomId: roomId,
       m_y: p5.mouseY,
     };
-    socket.emit("racket", send);
+    if (!(user_data.game_room[+roomId] &&
+      user_data.game_room[+roomId].leftUser.id != socket.id &&
+      user_data.game_room[+roomId].rightUser.id != socket.id)) {
+      socket.emit("racket", send);
+    }
 
     if (data.ball.x != 0) draw_ball(p5, data);
   };
