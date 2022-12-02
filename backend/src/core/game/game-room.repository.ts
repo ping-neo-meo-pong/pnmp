@@ -16,7 +16,8 @@ export class GameRoomRepository {
 
   eraseGameRoom(roomId: string) {
     delete this.gameRooms[roomId];
-    this.nextRoomId--;
+    if (this.nextRoomId > 0)
+      this.nextRoomId--;
     console.log(this.gameRooms);
   }
 
