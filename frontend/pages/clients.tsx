@@ -98,7 +98,10 @@ export default function Client() {
       {gameRoomList}
 
       <h1>Maching</h1>
-      <button onClick={()=>{socket.emit('gameMatching')}}>Maching</button>
+      <button onClick={()=>{
+        router.push(`/matching`);
+        socket.emit('gameMatching');
+      }}>Maching</button>
     </div>
   );
 }

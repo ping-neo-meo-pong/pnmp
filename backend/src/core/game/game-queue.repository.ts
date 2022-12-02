@@ -21,15 +21,28 @@ export class GameQueueRepository {
     console.log(this.gameQue);
   }
 
-  async matchingQue(userId: string, i: number): Promise<GameRoom> {
-    return this.checkQue(userId, i);
+  // async matchingQue(userId: string, i: number): Promise<GameRoom> {
+  //   return this.checkQue(userId, i);
+  // }
+
+  cencelQue(userId: string): boolean {
+    for (let i=0; this.gameQue[i]; i++) {
+      if (userId == this.gameQue[i].userId) {
+        clearTimeout(this.getQueLoop(i));
+        this.gameQue.splice(i, 1);
+        this.idx--;
+        console.log(this.gameQue);
+        return true;
+      }
+    }
+    return false;
   }
 
   getGameQue(): any[] {
     return this.gameQue;
   }
 
-  getQueLoop(idx: number): NodeJS.Timer {
+  getQueLoop(idx: number): NodeJS.Timeout {
     return this.queLoop[idx];
   }
 
@@ -38,6 +51,8 @@ export class GameQueueRepository {
   }
 
   setWait(idx: number, _wait: number) {
+    console.log(this.gameQue[idx].wait);
+    console.log(_wait);
     this.gameQue[idx].wait = _wait;
   }
   getWait(idx: number): number {
@@ -65,8 +80,8 @@ export class GameQueueRepository {
       if (_wait >= Math.abs(myLadder - this.gameQue[idx].ladder) &&
         this.gameQue[idx].wait >= Math.abs(myLadder - this.gameQue[idx].ladder))
       {
-        clearInterval(this.getQueLoop(myidx));
-        clearInterval(this.getQueLoop(idx));
+        clearTimeout(this.getQueLoop(myidx));
+        clearTimeout(this.getQueLoop(idx));
         let leftUser = await this.userRepository.findOneBy({ id: this.gameQue[myidx].userId });
         let rightUser = await this.userRepository.findOneBy({ id: this.gameQue[idx].userId });
         if (myidx < idx) {
@@ -76,6 +91,7 @@ export class GameQueueRepository {
           this.gameQue.splice(myidx, 1);
           this.gameQue.splice(idx, 1);
         }
+        this.idx -= 2;
         let room = this.gameRoomRepository.createGameRoom(leftUser, rightUser, GameMode.NORMAL);
         return room;
       }

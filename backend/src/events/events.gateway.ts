@@ -202,78 +202,60 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(client.user.id);
     const user = await this.userRepository.findOneBy({ id: client.user.id });
     if (user) {
-      // user.ladder += 10;
       // await this.userRepository.update(client.user.id, {
       //   ladder: user.ladder,
       // });
       this.gameQueueRepository.addQue(client.user.id, user.ladder);
       let idx = this.gameQueueRepository.nextIdx();
-      let cnt = 0;
       let wait = 0;
-      this.gameQueueRepository.setQueLoop(idx, setInterval(async ()=>{
-          if (cnt == 0 || cnt == 1 || cnt == 3) {
-            let room = await this.gameQueueRepository.matchingQue(client.user.id, wait);
-            console.log('events find room');
-            console.log(room);
-            if (room) {
-              // clearInterval(this.gameQueueRepository.getQueLoop(idx));
-              console.log('really find Que!!');
-              console.log(client.user.id);
-              console.log(room);
-              client.join(room.gameRoomDto.id);
-              if (room.gameRoomDto.leftUser.id == client.user.id) {
-                console.log('rightUser emit!');
-                console.log(room.gameRoomDto.rightUser.id);
-                this.socketRepository.find(room.gameRoomDto.rightUser.id).join(room.gameRoomDto.id);
-              } else {
-                console.log('leftUser');
-                console.log(room.gameRoomDto.leftUser.id);
-                this.socketRepository.find(room.gameRoomDto.leftUser.id).join(room.gameRoomDto.id);
-              }
-              this.server
-              .in(room.gameRoomDto.id)
-              .emit('goToGameRoom', room.gameRoomDto.id);
-            } else {
-              wait++;
-              this.gameQueueRepository.setWait(idx, wait);
-              console.log(wait);
-              console.log(this.gameQueueRepository.getWait(idx));
-            }
-          }
-          cnt++;
-        }, 10000)
-      );
+      await this.func(10000, client, idx, wait);
     }
+  }
+  async func(time, client, idx, wait) {
+    if (await this.matching(client, idx, wait) == false) {
+      this.gameQueueRepository.setQueLoop(idx, setTimeout(() => {
+        this.func(time + 10000, client, idx, wait + 1)
+      }, time));
+    }
+  }
+  
+  async matching(client, idx, wait): Promise<boolean> {
+    let room = await this.gameQueueRepository.checkQue(client.user.id, wait);
+    console.log('events find room');
+    console.log(room);
+    if (room) {
+      // clearInterval(this.gameQueueRepository.getQueLoop(idx));
+      console.log('really find Que!!');
+      console.log(client.user.id);
+      console.log(room);
+      client.join(room.gameRoomDto.id);
+      if (room.gameRoomDto.leftUser.id == client.user.id) {
+        console.log('rightUser emit!');
+        console.log(room.gameRoomDto.rightUser.id);
+        this.socketRepository.find(room.gameRoomDto.rightUser.id).join(room.gameRoomDto.id);
+      } else {
+        console.log('leftUser');
+        console.log(room.gameRoomDto.leftUser.id);
+        this.socketRepository.find(room.gameRoomDto.leftUser.id).join(room.gameRoomDto.id);
+      }
+      this.server
+      .in(room.gameRoomDto.id)
+      .emit('goToGameRoom', room.gameRoomDto.id);
+      return true;
+    } else {
+      this.gameQueueRepository.setWait(idx, wait);
+      return false;
+    }
+  }
+  @SubscribeMessage('cencelMatching')
+  async cencelMatcing(
+    @ConnectedSocket() client: UserSocket,
+  ) {
+    if (this.gameQueueRepository.cencelQue(client.user.id) == false)
+      console.log(`cencel Error`);
   }
 }
 
-async function matching(client, idx, wait, cnt) {
-  let room = await this.gameQueueRepository.matchingQue(client.user.id, wait);
-  console.log('events find room');
-  console.log(room);
-  if (room) {
-    clearInterval(this.gameQueueRepository.getQueLoop(idx));
-    console.log('really find Que!!');
-    console.log(client.user.id);
-    console.log(room);
-    client.join(room.gameRoomDto.id);
-    if (room.gameRoomDto.leftUser.id == client.user.id) {
-      console.log('rightUser emit!');
-      console.log(room.gameRoomDto.rightUser.id);
-      this.socketRepository.find(room.gameRoomDto.rightUser.id).join(room.gameRoomDto.id);
-    } else {
-      console.log('leftUser');
-      console.log(room.gameRoomDto.leftUser.id);
-      this.socketRepository.find(room.gameRoomDto.leftUser.id).join(room.gameRoomDto.id);
-    }
-    this.server
-    .in(room.gameRoomDto.id)
-    .emit('goToGameRoom', room.gameRoomDto.id);
-  }
-  cnt++;
-  if (cnt == 1 || cnt == 3 || cnt == 6)
-    this.gameQueueRepository.setWait(idx, wait);
-}
 
 function ball_engine(room: GameRoom) {
   check_wall(room);
