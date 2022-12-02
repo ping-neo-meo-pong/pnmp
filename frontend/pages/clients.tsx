@@ -102,11 +102,11 @@ export default function Client() {
       <h1>Random Maching</h1>
       <button onClick={async ()=>{
         await router.push(`/matching`);
-        socket.emit('gameMatching', 1);
+        socket.emit('gameMatching', "NOMAL");
       }}>Maching Mode 1</button>
       <button onClick={async ()=>{
         await router.push(`/matching`);
-        socket.emit('gameMatching', 2);
+        socket.emit('gameMatching', "HARD");
       }}>Maching Mode 2</button>
     </div>
   );

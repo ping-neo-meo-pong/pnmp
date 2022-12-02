@@ -14,6 +14,12 @@ export class GameRoomRepository {
     return this.gameRooms[this.nextRoomId++];
   }
 
+  eraseGameRoom(roomId: string) {
+    delete this.gameRooms[roomId];
+    this.nextRoomId--;
+    console.log(this.gameRooms);
+  }
+
   async findById(roomId: number): Promise<GameRoom> {
     return this.gameRooms[roomId];
   }

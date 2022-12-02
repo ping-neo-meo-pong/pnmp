@@ -119,7 +119,21 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
             this.server
               .in(roomId)
               .emit(`game[${roomId}]`, room.gameRoomDto.gameData);
-            ball_engine(room.gameRoomDto);
+            if (ball_engine(room.gameRoomDto) == false) {
+              this.server
+                .in(roomId)
+                .emit(`game[${roomId}]`, room.gameRoomDto.gameData);
+              console.log('game OVER!!!');
+              clearInterval(room.gameLoop);
+              // game history
+              // erase gameRoom
+              this.gameRoomRepository.eraseGameRoom(roomId);
+              setTimeout(() => {
+                this.server
+                  .in(roomId)
+                  .emit(`getOut!`);
+              }, 3000)
+            }
           }, 1000 / 30);
         } else {
           this.server
@@ -135,7 +149,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async bar(@ConnectedSocket() client: UserSocket, @MessageBody() _data) {
     wsGuard(client);
     const room = await this.gameRoomRepository.findById(_data.roomId);
-
+    if (!room)
+      return ;
     //   if user == L ? R
     if (room.gameRoomDto.leftUser.id == client.user.id) {
       room.gameRoomDto.gameData.p1.mouse_y = _data.m_y;
@@ -154,12 +169,17 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     wsGuard(client);
     const room = await this.gameRoomRepository.findById(+roomId);
     if (!room)
-      return;
+      return ;
 
+    console.log('gameOut');
     console.log(client.user.id);
     const joinedClients = this.server.sockets.adapter.rooms.get(roomId);
-    if (joinedClients.has(client.id))
+    if (joinedClients && joinedClients.has(client.id)) {
       client.leave(roomId);
+    }
+    else {
+      return ;
+    }
 
     //   if user == L ? R
     if (room.gameRoomDto.leftUser.id == client.user.id) {
@@ -220,7 +240,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }, time));
     }
   }
-  
+
   async matching(client, idx, wait): Promise<boolean> {
     let room = await this.gameQueueRepository.checkQue(client.user.id, wait);
     console.log('events find room');
@@ -241,8 +261,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         this.socketRepository.find(room.gameRoomDto.leftUser.id).join(room.gameRoomDto.id);
       }
       this.server
-      .in(room.gameRoomDto.id)
-      .emit('goToGameRoom', room.gameRoomDto.id);
+        .in(room.gameRoomDto.id)
+        .emit('goToGameRoom', room.gameRoomDto.id);
       return true;
     } else {
       this.gameQueueRepository.setWait(idx, wait);
@@ -259,26 +279,54 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 }
 
 
-function ball_engine(dto: GameRoomDto) {
-  check_wall(dto);
+function ball_engine(dto: GameRoomDto): boolean {
+  if (check_wall(dto) < 0)
+    return false;
   check_bar(dto);
 
   dto.gameData.ball.x += dto.gameData.ball.v_x;
   dto.gameData.ball.y += dto.gameData.ball.v_y;
+  return true;
 }
 
-function check_wall(dto: GameRoomDto) {
+function check_wall(dto: GameRoomDto): number {
   if (
     dto.gameData.ball.x + dto.gameData.ball.v_x >
     dto.gameData.W - 20
   ) {
     // right
-    dto.gameData.ball.v_x *= -1;
+    dto.gameData.ball.x = dto.gameData.W / 2;
+    dto.gameData.ball.y = dto.gameData.H / 2;
     dto.gameData.p1.score += 1;
+    if (dto.gameData.p1.score == 5) {
+      return -1;
+    }
+    if (dto.gameMode == GameMode.HARD) {
+      let temp = dto.gameData.ball.v_x * -1;
+      dto.gameData.ball.v_x = 0;
+      setTimeout(() => {
+        dto.gameData.ball.v_x = temp;
+      }, 1000)
+    } else {
+      dto.gameData.ball.v_x *= -1;
+    }
   } else if (dto.gameData.ball.x + dto.gameData.ball.v_x < 0) {
     // left
-    dto.gameData.ball.v_x *= -1;
+    dto.gameData.ball.x = dto.gameData.W / 2;
+    dto.gameData.ball.y = dto.gameData.H / 2;
     dto.gameData.p2.score += 1;
+    if (dto.gameData.p2.score == 5) {
+      return -1;
+    }
+    if (dto.gameMode == GameMode.HARD) {
+      let temp = dto.gameData.ball.v_x * -1;
+      dto.gameData.ball.v_x = 0;
+      setTimeout(() => {
+        dto.gameData.ball.v_x = temp;
+      }, 1000)
+    } else {
+      dto.gameData.ball.v_x *= -1;
+    }
   }
   if (
     dto.gameData.ball.y + dto.gameData.ball.v_y >
@@ -293,6 +341,7 @@ function check_wall(dto: GameRoomDto) {
     // up
     dto.gameData.ball.v_y *= -1;
   }
+  return 1;
 }
 
 function check_bar(dto: GameRoomDto) {
