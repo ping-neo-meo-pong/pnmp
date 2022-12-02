@@ -27,9 +27,13 @@ export class GameService {
 
   async getGames(): Promise<GameRoomDto[]> {
     const gameRooms = await this.gameRoomRepository.findAll();
+    if (!gameRooms) {
+      return null;
+    }
     const ttt = [];
     for (const room of gameRooms) {
-      ttt.push(room.gameRoomDto);
+      if (room)
+        ttt.push(room.gameRoomDto);
     }
     return ttt;
   }

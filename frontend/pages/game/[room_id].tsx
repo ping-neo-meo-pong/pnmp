@@ -56,9 +56,10 @@ export default function GameRoom() {
   };
   useEffect(() => {
     socket.emit("comeInGameRoom", roomId);
-    router.events.on("routeChangeStart", () => {
+    function routeChangeHandler() {
       socket.emit(`gameOut`, roomId);
-    });
+    }
+    router.events.on("routeChangeStart", routeChangeHandler);
     socket.on(`countDown`, (count: number) => {
       console.log(count);
       data.countDown = count;
@@ -80,6 +81,15 @@ export default function GameRoom() {
       // data.ball.x = _data.ball.x;
       // data.ball.y = _data.ball.y;
     });
+
+    socket.on('getOut!', async ()=>{
+      dataInit();
+      await router.push(`/clients`);
+    });
+
+    return ()=>{
+      router.events.off("routeChangeStart", routeChangeHandler);
+    }
   }, []);
 
   let champ: number;
@@ -111,4 +121,32 @@ export default function GameRoom() {
     if (data.ball.x != 0) draw_ball(p5, data);
   };
   return <Sketch setup={setup} draw={draw} />;
+}
+
+function dataInit() {
+  data = {
+    is_player: -1,
+    roomId: 0,
+    H: 400,
+    W: 700,
+    UD_d: 0,
+    bar_d: 50,
+    countDown: -1,
+    p1: {
+      countDown: -1,
+      mouse_y: 0,
+      score: 0,
+    },
+    p2: {
+      countDown: -1,
+      mouse_y: 0,
+      score: 0,
+    },
+    ball: {
+      x: 0,
+      y: 0,
+      v_x: 0,
+      v_y: 0,
+    },
+  };
 }
