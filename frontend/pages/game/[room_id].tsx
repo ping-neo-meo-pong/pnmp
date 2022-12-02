@@ -91,8 +91,6 @@ export default function GameRoom() {
   }, []);
   
   const draw = (p5: p5Types) => {
-    console.log(`user_data.game_room`);
-    console.log(user_data.game_room);
     p5.background(230);
     frame(p5, data);
 
@@ -102,8 +100,9 @@ export default function GameRoom() {
     twinkle(p5);
     if (data.countDown >= 0) {
       draw_countDown(p5, data);
+    } else {
+      draw_countDown2(p5, data);
     }
-    draw_countDown2(p5, data);
     p5.fill('white');
     draw_p1_bar(p5, data);
     draw_p2_bar(p5, data);
@@ -112,9 +111,7 @@ export default function GameRoom() {
       roomId: roomId,
       m_y: p5.mouseY,
     };
-    if (!(user_data.game_room[+roomId] &&
-      user_data.game_room[+roomId].leftUser.id != socket.id &&
-      user_data.game_room[+roomId].rightUser.id != socket.id)) {
+    if (user_data.is_player == 1) {
       socket.emit("racket", send);
     }
 

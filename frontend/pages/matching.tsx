@@ -1,11 +1,12 @@
 import { useRouter } from "next/router"
-import { socket } from "./login";
+import { socket, user_data } from "./login";
 import { useEffect } from "react";
 
 export default function matching() {
   const router = useRouter();
   useEffect(()=>{
     socket.on('goToGameRoom', (roomId)=>{
+      user_data.is_player = 1;
       router.push(`/game/${roomId}`);
     });
   }, []);

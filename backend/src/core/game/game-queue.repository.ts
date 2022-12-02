@@ -51,8 +51,7 @@ export class GameQueueRepository {
   }
 
   setWait(idx: number, _wait: number) {
-    console.log(this.gameQue[idx].wait);
-    console.log(_wait);
+    console.log(idx);
     this.gameQue[idx].wait = _wait;
   }
   getWait(idx: number): number {

@@ -14,6 +14,7 @@ export let user_data: any = {
   _socket: "",
   _token: "",
   _room: [],
+  is_player: 0,
 };
 
 export let socket: Socket;

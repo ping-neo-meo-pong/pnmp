@@ -102,7 +102,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
     client.join(roomId);
-    console.log(`client ${client.user} joined in ${roomId}`);
+    console.log(`client ${client.user.id} joined in ${roomId}`);
 
     //   if user == L ? R
     let viewer = 0;
@@ -138,6 +138,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
                 this.server
                   .in(roomId)
                   .emit(`getOut!`);
+                this.server.socketsLeave(roomId);
               }, 3000)
             }
           }, 1000 / 30);
@@ -181,6 +182,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(client.user.id);
     const joinedClients = this.server.sockets.adapter.rooms.get(roomId);
     if (joinedClients && joinedClients.has(client.id)) {
+      console.log(`leave ${client.user.id} in ${roomId}`);
       client.leave(roomId);
     }
     else {

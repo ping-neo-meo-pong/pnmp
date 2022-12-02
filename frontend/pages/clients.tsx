@@ -11,8 +11,9 @@ export default function Client() {
   let [gameRoomList, setGameRoomList]: any = useState([]);
   useEffect(getGameRooms, []);
 
-  useEffect(()=>{
-    socket.on('goToGameRoom', (roomId)=>{
+  useEffect(() => {
+    user_data.is_player = 0;
+    socket.on('goToGameRoom', (roomId) => {
       router.push(`/game/${roomId}`);
     });
   }, []);
@@ -100,11 +101,11 @@ export default function Client() {
       {gameRoomList}
 
       <h1>Random Maching</h1>
-      <button onClick={async ()=>{
+      <button onClick={async () => {
         await router.push(`/matching`);
         socket.emit('gameMatching', "NOMAL");
       }}>Maching Mode 1</button>
-      <button onClick={async ()=>{
+      <button onClick={async () => {
         await router.push(`/matching`);
         socket.emit('gameMatching', "HARD");
       }}>Maching Mode 2</button>
@@ -135,6 +136,13 @@ function GoToGameRoom({ gameRoom }: any) {
   let result: JSX.Element[] = [];
 
   function onClickGameRoom() {
+    console.log(`come in room~`);
+    console.log(gameRoom);
+    if (gameRoom.leftUser.id == socket.id ||
+      gameRoom.rightUser.id == socket.id) {
+        user_data.is_player = 1;
+    }
+
     router.push(`/game/${gameRoom.id}`);
   }
 
