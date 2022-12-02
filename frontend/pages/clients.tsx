@@ -19,7 +19,7 @@ export default function Client() {
 
   function getDmRooms() {
     axios
-      .get("http://localhost/server/api/dm")
+      .get("/server/api/dm")
       .then(function (response) {
         user_data._room = response.data;
         let newDmRoomList = [];
@@ -32,7 +32,7 @@ export default function Client() {
       });
   }
   function getGameRooms() {
-    axios.get("http://localhost/server/api/game").then(function (response) {
+    axios.get("/server/api/game").then(function (response) {
       user_data.game_room = response.data;
       let newGameRoomList = [];
       for (let gameRoom of user_data.game_room)
@@ -50,7 +50,7 @@ export default function Client() {
     event.preventDefault();
     axios
       .post(
-        `http://localhost/server/api/dm/${event.currentTarget.invitedUserName.value}`
+        `/server/api/dm/${event.currentTarget.invitedUserName.value}`
       )
       .then(function (response) {
         const dmRoom = response.data;
@@ -67,7 +67,7 @@ export default function Client() {
   function onSubmitGameInvite(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     axios
-      .post(`http://localhost/server/api/game`, {
+      .post(`/server/api/game`, {
         invitedUserId: event.currentTarget.invitedUserId.value,
       })
       .then(function (response) {

@@ -19,7 +19,7 @@ export let user_data: any = {
 export let socket: Socket;
 
 function initSocketConnection() {
-  socket = io("http://localhost", { transports: ["websocket"] });
+  socket = io({ transports: ["websocket"] });
   socket.on("disconnect", () => {
     console.log("disconnected");
   });
@@ -34,7 +34,7 @@ export default function Login() {
     console.log(event.currentTarget.username.value);
     await axios
       .post(
-        "http://localhost/server/api/auth/login",
+        "/server/api/auth/login",
         {
           username: event.currentTarget.username.value,
           password: event.currentTarget.password.value,
