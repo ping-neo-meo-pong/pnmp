@@ -26,13 +26,13 @@ export function draw_score(p5obj, data) {
 	p5obj.textAlign(p5obj.LEFT);
 	p5obj.text(data.p2.score, 2 * data.W / 3, 60);
 
-	if (data.p1.score == 5) {
+	if (data.p1.score == 5 || data.p2.score == -1) {
 		p5obj.fill('green');
 		p5obj.textSize(80);
 		p5obj.textAlign(p5obj.CENTER);
 		p5obj.text('!LEFT WIN!', data.W / 2, data.H / 2);
 	}
-	if (data.p2.score == 5) {
+	if (data.p2.score == 5 || data.p1.score == -1) {
 		p5obj.fill('green');
 		p5obj.textSize(80);
 		p5obj.textAlign(p5obj.CENTER);

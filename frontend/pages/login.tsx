@@ -45,10 +45,8 @@ export default function Login() {
       )
       .then(function (response) {
         user_data._token = response.data.accessToken;
-        // user_data._name = response.data.username;
-        // user_data._token = response.data.token;
-        // user_data._id = response.data.username;
-        console.log(user_data._name);
+        user_data._id = response.data.id;
+        console.log(user_data._id);
         // user_data._pass = event.currentTarget.password.value;
         initSocketConnection();
         router.push("/clients");

@@ -137,11 +137,11 @@ function GoToGameRoom({ gameRoom }: any) {
 
   function onClickGameRoom() {
     console.log(`come in room~`);
-    console.log(gameRoom.leftUser.username);
-    console.log(gameRoom.rightUser.username);
-    console.log(user_data._name);
-    if (gameRoom.leftUser.username == user_data._name ||
-      gameRoom.rightUser.username == user_data._name) {
+    console.log(gameRoom.leftUser.id);
+    console.log(gameRoom.rightUser.id);
+    console.log(user_data._id);
+    if (gameRoom.leftUser.id == user_data._id ||
+      gameRoom.rightUser.id == user_data._id) {
         user_data.is_player = 1;
     }
 
