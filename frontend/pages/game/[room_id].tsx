@@ -67,9 +67,11 @@ export default function GameRoom() {
     socket.on(`countDown1`, (count: number) => {
       console.log(`countDown1: ${count}`);
       data.p1.countDown = count;
+      data.countDown = -1;
     });
     socket.on(`countDown2`, (count: number) => {
       console.log(`countDown2: ${count}`);
+      data.countDown = -1;
       data.p2.countDown = count;
     });
     socket.on(`game[${roomId}]`, (_data) => {

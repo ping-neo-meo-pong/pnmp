@@ -192,6 +192,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     //   if user == L ? R
     if (room.gameRoomDto.leftUser.id == client.user.id) {
       room.gameRoomDto.gameData.p1.in = false;
+      clearInterval(room.startTimer);
       clearInterval(room.gameLoop);
       let countDown = 60;
       room.p1EndTimer = setInterval(() => {
@@ -230,31 +231,38 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() mode: GameMode,
   ) {
     // console.log(client.user.id);
+    const is_join = await this.gameRoomRepository.findByUserId(client.user.id);
+    if (is_join) {
+      console.log(`already you game`);
+      return ;
+    }
     const user = await this.userRepository.findOneBy({ id: client.user.id });
     if (user) {
       // await this.userRepository.update(client.user.id, {
       //   ladder: user.ladder,
       // });
       this.gameQueueRepository.addQue(client.user.id, user.ladder, mode);
-      let idx = this.gameQueueRepository.nextIdx();
       let wait = 0;
-      await this.func(10000, client, idx, wait);
+      await this.func(10000, client, wait);
     }
   }
-  async func(time, client, idx, wait) {
-    if (await this.matching(client, idx, wait) == false) {
+  async func(time, client, wait) {
+    if (await this.matching(client, wait) == false) {
+      let idx = this.gameQueueRepository.getIdx();
+      clearTimeout(this.gameQueueRepository.getQueLoop(idx));
       this.gameQueueRepository.setQueLoop(idx, setTimeout(() => {
-        this.func(time + 10000, client, idx, wait + 1)
+        this.func(time + 10000, client, wait + 1)
       }, time));
     }
   }
 
-  async matching(client, idx, wait): Promise<boolean> {
+  async matching(client, wait): Promise<boolean> {
     let room = await this.gameQueueRepository.checkQue(client.user.id, wait);
     console.log('events find room');
     console.log(room);
+    let idx = this.gameQueueRepository.getIdx();
     if (room) {
-      // clearInterval(this.gameQueueRepository.getQueLoop(idx));
+      clearTimeout(this.gameQueueRepository.getQueLoop(idx));
       console.log('really find Que!!');
       console.log(client.user.id);
       console.log(room);
@@ -273,6 +281,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         .emit('goToGameRoom', room.gameRoomDto.id);
       return true;
     } else {
+      console.log(`setWait idx: ${idx}`);
       this.gameQueueRepository.setWait(idx, wait);
       return false;
     }

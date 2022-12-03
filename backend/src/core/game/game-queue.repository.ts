@@ -10,14 +10,14 @@ import { Injectable } from "@nestjs/common";
 export class GameQueueRepository {
   private gameQue: any[] = [];
   private queLoop: NodeJS.Timer[] = [];
-  private idx: number = 0;
+  private idx: number = -1;
   constructor(
     private gameRoomRepository: GameRoomRepository,
     private userRepository: UserRepository,
   ) { }
 
   addQue(userId: string, rating: number, _mode: GameMode) {
-    this.gameQue[this.idx] = { userId: userId, ladder: rating, mode: _mode, wait: 0 };
+    this.gameQue[++this.idx] = { userId: userId, ladder: rating, mode: _mode, wait: 0 };
     console.log(this.gameQue);
   }
 
@@ -58,8 +58,12 @@ export class GameQueueRepository {
     return this.gameQue[idx].wait;
   }
 
-  nextIdx(): number {
-    return this.idx++;
+  getIdx(): number {
+    return this.idx;
+  }
+
+  setIdx(i: number) {
+    this.idx = i;
   }
 
   async checkQue(myId: string, _wait: number): Promise<GameRoom> {
