@@ -57,7 +57,7 @@ export default function GameRoom() {
   useEffect(() => {
     socket.emit("comeInGameRoom", roomId);
     function routeChangeHandler() {
-      socket.emit(`gameOut`, roomId);
+      socket.emit(`roomOut`, roomId);
     }
     router.events.on("routeChangeStart", routeChangeHandler);
     socket.on(`countDown`, (count: number) => {
@@ -109,11 +109,11 @@ export default function GameRoom() {
     draw_p1_bar(p5, data);
     draw_p2_bar(p5, data);
 
-    let send = {
-      roomId: roomId,
-      m_y: p5.mouseY,
-    };
     if (user_data.is_player == 1) {
+      let send = {
+        roomId: roomId,
+        m_y: p5.mouseY,
+      };
       socket.emit("racket", send);
     }
 

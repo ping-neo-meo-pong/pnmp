@@ -126,20 +126,21 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
               .in(roomId)
               .emit(`game[${roomId}]`, room.gameRoomDto.gameData);
             if (ball_engine(room.gameRoomDto) == false) {
-              this.server
-                .in(roomId)
-                .emit(`game[${roomId}]`, room.gameRoomDto.gameData);
-              console.log('game OVER!!!');
-              clearInterval(room.gameLoop);
-              // game history
-              // erase gameRoom
-              this.gameRoomRepository.eraseGameRoom(roomId);
-              setTimeout(() => {
-                this.server
-                  .in(roomId)
-                  .emit(`getOut!`);
-                this.server.socketsLeave(roomId);
-              }, 3000)
+              this.closeGame(roomId, room);
+              // this.server
+              //   .in(roomId)
+              //   .emit(`game[${roomId}]`, room.gameRoomDto.gameData);
+              // console.log('game OVER!!!');
+              // clearInterval(room.gameLoop);
+              // // game history
+              // // erase gameRoom
+              // this.gameRoomRepository.eraseGameRoom(roomId);
+              // setTimeout(() => {
+              //   this.server
+              //     .in(roomId)
+              //     .emit(`getOut!`);
+              //   this.server.socketsLeave(roomId);
+              // }, 3000)
             }
           }, 1000 / 30);
         } else {
@@ -168,8 +169,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  @SubscribeMessage('gameOut')
-  async gameOut(
+  @SubscribeMessage('roomOut')
+  async roomOut(
     @ConnectedSocket() client: UserSocket,
     @MessageBody() roomId: string,
   ) {
@@ -196,8 +197,12 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       clearInterval(room.gameLoop);
       let countDown = 60;
       room.p1EndTimer = setInterval(() => {
-        if (countDown < 0)
+        if (countDown < 0) {
           clearInterval(room.p1EndTimer);
+          clearInterval(room.p2EndTimer);
+          room.gameRoomDto.gameData.p1.score = -1;
+          this.closeGame(roomId, room);
+        }
         else {
           console.log('countDown');
           this.server
@@ -211,8 +216,12 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       clearInterval(room.gameLoop);
       let countDown = 60;
       room.p2EndTimer = setInterval(() => {
-        if (countDown < 0)
+        if (countDown < 0) {
+          clearInterval(room.p1EndTimer);
           clearInterval(room.p2EndTimer);
+          room.gameRoomDto.gameData.p2.score = -1;
+          this.closeGame(roomId, room);
+        }
         else {
           console.log('countDown');
           this.server
@@ -289,6 +298,24 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return false;
     }
   }
+
+  closeGame(roomId: string, room: GameRoom) {
+    this.server
+      .in(roomId)
+      .emit(`game[${roomId}]`, room.gameRoomDto.gameData);
+    console.log('game OVER!!!');
+    clearInterval(room.gameLoop);
+    // game history
+    // erase gameRoom
+    this.gameRoomRepository.eraseGameRoom(roomId);
+    setTimeout(() => {
+      this.server
+        .in(roomId)
+        .emit(`getOut!`);
+      this.server.socketsLeave(roomId);
+    }, 3000)
+  }
+
   @SubscribeMessage('cencelMatching')
   async cencelMatcing(
     @ConnectedSocket() client: UserSocket,
