@@ -10,14 +10,15 @@ import { Injectable } from "@nestjs/common";
 export class GameQueueRepository {
   private gameQue: any[] = [];
   private queLoop: NodeJS.Timer[] = [];
-  private idx: number = -1;
+  private idx: number = this.gameQue.length;
   constructor(
     private gameRoomRepository: GameRoomRepository,
     private userRepository: UserRepository,
   ) { }
 
   addQue(userId: string, rating: number, _mode: GameMode) {
-    this.gameQue[++this.idx] = { userId: userId, ladder: rating, mode: _mode, wait: 0 };
+    this.gameQue[this.idx] = { userId: userId, ladder: rating, mode: _mode, wait: 0 };
+    this.idx = this.gameQue.length;
     console.log(this.gameQue);
   }
 
@@ -30,7 +31,7 @@ export class GameQueueRepository {
       if (userId == this.gameQue[i].userId) {
         clearTimeout(this.getQueLoop(i));
         this.gameQue.splice(i, 1);
-        this.idx--;
+        this.idx = this.gameQue.length;
         console.log(this.gameQue);
         return true;
       }
@@ -66,6 +67,16 @@ export class GameQueueRepository {
     this.idx = i;
   }
 
+  findIdxByUserId(userId: string): number {
+    for (let i=0; this.gameQue[i]; i++) {
+      if (userId == this.gameQue[i].userId) {
+        return i;
+      }
+    }
+    console.log(`can not find idx by userId`);
+    return -1;
+  }
+
   async checkQue(myId: string, _wait: number): Promise<GameRoom> {
     let myLadder = -1;
     let myidx = 0;
@@ -94,7 +105,7 @@ export class GameQueueRepository {
           this.gameQue.splice(myidx, 1);
           this.gameQue.splice(idx, 1);
         }
-        this.idx -= 2;
+        this.idx = this.gameQue.length;
         return room;
       }
     }

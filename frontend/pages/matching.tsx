@@ -5,10 +5,18 @@ import { useEffect } from "react";
 export default function matching() {
   const router = useRouter();
   useEffect(()=>{
+    function routeChangeHandler() {
+      socket.emit(`cencelMatching`);
+    }
+    router.events.on("routeChangeStart", routeChangeHandler);
     socket.on('goToGameRoom', (roomId)=>{
       user_data.is_player = 1;
       router.push(`/game/${roomId}`);
     });
+
+    return ()=>{
+      router.events.off("routeChangeStart", routeChangeHandler);
+    }
   }, []);
   return (
     <div>

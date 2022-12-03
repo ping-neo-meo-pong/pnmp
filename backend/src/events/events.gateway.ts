@@ -225,7 +225,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log(`game out`);
   }
 
-  @SubscribeMessage('gameMatching')
+  @SubscribeMessage('gameMatching') ////////////// Matching ///////////////
   async gameQue(
     @ConnectedSocket() client: UserSocket,
     @MessageBody() mode: GameMode,
@@ -248,7 +248,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
   async func(time, client, wait) {
     if (await this.matching(client, wait) == false) {
-      let idx = this.gameQueueRepository.getIdx();
+      let idx = this.gameQueueRepository.findIdxByUserId(client.user.id);
       clearTimeout(this.gameQueueRepository.getQueLoop(idx));
       this.gameQueueRepository.setQueLoop(idx, setTimeout(() => {
         this.func(time + 10000, client, wait + 1)
@@ -257,10 +257,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   async matching(client, wait): Promise<boolean> {
+    let idx = this.gameQueueRepository.findIdxByUserId(client.user.id);
     let room = await this.gameQueueRepository.checkQue(client.user.id, wait);
     console.log('events find room');
     console.log(room);
-    let idx = this.gameQueueRepository.getIdx();
     if (room) {
       clearTimeout(this.gameQueueRepository.getQueLoop(idx));
       console.log('really find Que!!');
