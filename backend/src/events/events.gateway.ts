@@ -112,7 +112,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } else if (room.gameRoomDto.rightUser.id == client.user.id) {
       clearInterval(room.p2EndTimer);
       room.gameRoomDto.gameData.p2.in = true;
-    } else { viewer = 1; console.log(`im viewer`) }
+    } else { viewer = 1; console.log(`im viewer`); return ; }
 
     // if user L & R
     if (room.gameRoomDto.gameData.p1.in && room.gameRoomDto.gameData.p2.in) {
@@ -258,6 +258,9 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async matching(client, wait): Promise<boolean> {
     let idx = this.gameQueueRepository.findIdxByUserId(client.user.id);
+    if (idx < 0) {
+      return ; // TypeError: Cannot set properties of undefined (setting 'wait') :288
+    }
     let room = await this.gameQueueRepository.checkQue(client.user.id, wait);
     console.log('events find room');
     console.log(room);
