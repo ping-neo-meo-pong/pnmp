@@ -55,10 +55,10 @@ export default function GameRoom() {
     p5.createCanvas(data.W, data.H).parent(canvasParentRef);
   };
   useEffect(() => {
-    socket.emit("comeInGameRoom", roomId);
     function routeChangeHandler() {
       socket.emit(`roomOut`, roomId);
     }
+    socket.emit("comeInGameRoom", roomId);
     router.events.on("routeChangeStart", routeChangeHandler);
     socket.on(`countDown`, (count: number) => {
       console.log(count);
@@ -89,6 +89,11 @@ export default function GameRoom() {
     return ()=>{
       console.log(`hi? return`);
       router.events.off("routeChangeStart", routeChangeHandler);
+      socket.off("comeInGameRoom");
+      socket.off("countDown");
+      socket.off(`countDown1`);
+      socket.off(`countDown2`);
+      socket.off(`game[${roomId}]`);
     }
   }, []);
   

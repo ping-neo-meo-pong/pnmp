@@ -12,10 +12,26 @@ export default function Client() {
   useEffect(getGameRooms, []);
 
   useEffect(() => {
-    user_data.is_player = 0;
-    socket.on('goToGameRoom', (roomId) => {
+    function goToGameRoom(roomId: number) {
       router.push(`/game/${roomId}`);
-    });
+    }
+    function gameInvited(inviterId: string) {
+      console.log(`you got mail~`);
+      if (window.confirm(`invited by ${inviterId}\nplaying?`) == true) {
+        user_data.is_player = 1;
+        socket.emit('acceptFriendQue', inviterId);
+        socket.off(`acceptFriendQue`,);
+      }
+      else {}
+    }
+    user_data.is_player = 0;
+    socket.on('goToGameRoom', goToGameRoom);
+    socket.on('gameInvited', gameInvited);
+
+    return ()=>{
+      socket.off('gameInvited', gameInvited);
+      socket.off('goToGameRoom', goToGameRoom);
+    }
   }, []);
 
   function getDmRooms() {
@@ -67,20 +83,27 @@ export default function Client() {
 
   function onSubmitGameInvite(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    axios
-      .post(`/server/api/game`, {
-        invitedUserId: event.currentTarget.invitedUserId.value,
-      })
-      .then(function (response) {
-        const gameRoom = response.data;
-        setGameRoomList((current: JSX.Element[]) => {
-          current.push(<GoToGameRoom key={gameRoom.id} gameRoom={gameRoom} />);
-          return [...current];
-        });
-      })
-      .catch((error) => {
-        alert(error.response.data.message);
-      });
+    if (event.currentTarget.invitedUserId.value) {
+      socket.emit(`gameToFriend`, {invitedUserName: event.currentTarget.invitedUserId.value, mode: "HARD"});
+      socket.off(`gameToFriend`);
+      router.push(`/matching`);
+    } else {
+      alert(`please input name`);
+    }
+    // axios
+    //   .post(`/server/api/game`, {
+    //     invitedUserId: event.currentTarget.invitedUserId.value,
+    //   })
+    //   .then(function (response) {
+    //     const gameRoom = response.data;
+    //     setGameRoomList((current: JSX.Element[]) => {
+    //       current.push(<GoToGameRoom key={gameRoom.id} gameRoom={gameRoom} />);
+    //       return [...current];
+    //     });
+    //   })
+    //   .catch((error) => {
+    //     alert(error.response.data.message);
+    //   });
   }
 
   return (

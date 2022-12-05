@@ -40,6 +40,8 @@ function wsGuard(socket: UserSocket) {
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
+  friendQue: any[] = [];
+  f_idx: number = 0;
 
   constructor(
     private socketRepository: SocketRepository,
@@ -89,6 +91,87 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   /////////////    game    //////////////
 
+  @SubscribeMessage('gameToFriend')
+  async makeGameRoom(
+    @ConnectedSocket() client: UserSocket,
+    @MessageBody() data: any,
+  ) {
+    if (this.gameQueueRepository.findIdxByUserId(client.user.id) >= 0) { console.log(`you are already joined at Que`); return; }
+    const invitedUser = await this.userRepository.findOneBy({username: data.invitedUserName});
+    if (this.gameQueueRepository.findIdxByUserId(invitedUser.id) >= 0) { console.log(`friend is already joined at Que`); return; }
+    const invitedSocket = await this.socketRepository.find(invitedUser.id);
+    if (invitedSocket) {
+      this.server.sockets.to(invitedSocket.id).emit(`gameInvited`, client.user.id);
+    } else {
+      console.log(`friend not login`);
+    }
+
+    for (let que of this.friendQue) {
+      if (que.leftUserId == client.user.id) { // inviter 만 찾는다
+        console.log(`you already joined fiend Que`);
+        return;
+      }
+    }
+    const leftUserId = client.user.id;
+    const rightUserId = invitedUser.id;
+
+    this.friendQue.push(
+      {
+        leftUserId: leftUserId,
+        rightUserId: rightUserId,
+        mode: data.mode,
+      }
+    );
+    console.log(this.friendQue);
+  }
+  @SubscribeMessage('acceptFriendQue')
+  async acceptFriendQue(
+    @ConnectedSocket() client: UserSocket,
+    @MessageBody() inviter: string,
+  ) {
+    // for (let que of this.friendQue) {
+    let findIndex = this.friendQue.findIndex(E => E.leftUserId == inviter);
+    if (findIndex >= 0) {
+      // if (que.leftUserId == inviter) { // inviter 만 찾는다
+        if (this.friendQue[findIndex].rightUserId == client.user.id) { // matching!
+          const leftUser = await this.userRepository.findOneBy({ id: inviter });
+          const rightUser = await this.userRepository.findOneBy({ id: client.user.id });
+          const room = await this.gameRoomRepository.createGameRoom(leftUser, rightUser, this.friendQue[findIndex].mode);
+          client.join(room.gameRoomDto.id);
+          if (room.gameRoomDto.leftUser.id == client.user.id) {
+            console.log('rightUser emit!');
+            console.log(room.gameRoomDto.rightUser.id);
+            this.socketRepository.find(room.gameRoomDto.rightUser.id).join(room.gameRoomDto.id);
+          } else {
+            console.log('leftUser');
+            console.log(room.gameRoomDto.leftUser.id);
+            this.socketRepository.find(room.gameRoomDto.leftUser.id).join(room.gameRoomDto.id);
+          }
+          this.server
+            .in(room.gameRoomDto.id)
+            .emit('goToGameRoom', room.gameRoomDto.id);
+        } else {
+          console.log(`you are not invited`);
+        }
+      // }
+      this.friendQue.splice(findIndex, 1);
+    } else {
+      console.log(`inviter out the que`);
+    }
+  }
+  @SubscribeMessage('cencelFriendQue')
+  async cencelFriendQue(
+    @ConnectedSocket() client: UserSocket,
+    @MessageBody() inviter: string,
+  ) {
+    let findIndex = this.friendQue.findIndex(leftUserId => leftUserId == inviter); // inviter 만 찾는다
+    if (findIndex >= 0) { 
+      this.friendQue.splice(findIndex, 1);
+      return;
+    }
+    console.log(`there is no Friend Que`);
+  }
+
   @SubscribeMessage('comeInGameRoom')
   async comeCome(
     @ConnectedSocket() client: UserSocket,
@@ -112,7 +195,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } else if (room.gameRoomDto.rightUser.id == client.user.id) {
       clearInterval(room.p2EndTimer);
       room.gameRoomDto.gameData.p2.in = true;
-    } else { viewer = 1; console.log(`im viewer`); return ; }
+    } else { console.log(`im viewer`); return; }
 
     // if user L & R
     if (room.gameRoomDto.gameData.p1.in && room.gameRoomDto.gameData.p2.in) {
@@ -127,20 +210,6 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
               .emit(`game[${roomId}]`, room.gameRoomDto.gameData);
             if (ball_engine(room.gameRoomDto) == false) {
               this.closeGame(roomId, room);
-              // this.server
-              //   .in(roomId)
-              //   .emit(`game[${roomId}]`, room.gameRoomDto.gameData);
-              // console.log('game OVER!!!');
-              // clearInterval(room.gameLoop);
-              // // game history
-              // // erase gameRoom
-              // this.gameRoomRepository.eraseGameRoom(roomId);
-              // setTimeout(() => {
-              //   this.server
-              //     .in(roomId)
-              //     .emit(`getOut!`);
-              //   this.server.socketsLeave(roomId);
-              // }, 3000)
             }
           }, 1000 / 30);
         } else {
@@ -243,7 +312,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     const is_join = await this.gameRoomRepository.findByUserId(client.user.id);
     if (is_join) {
       console.log(`already you game`);
-      return ;
+      return;
     }
     const user = await this.userRepository.findOneBy({ id: client.user.id });
     if (user) {
@@ -268,7 +337,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async matching(client, wait): Promise<boolean> {
     let idx = this.gameQueueRepository.findIdxByUserId(client.user.id);
     if (idx < 0) {
-      return ; // TypeError: Cannot set properties of undefined (setting 'wait') :288
+      return; // TypeError: Cannot set properties of undefined (setting 'wait') :288
     }
     let room = await this.gameQueueRepository.checkQue(client.user.id, wait);
     console.log('events find room');
@@ -320,8 +389,17 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   async cencelMatcing(
     @ConnectedSocket() client: UserSocket,
   ) {
-    if (this.gameQueueRepository.cencelQue(client.user.id) == false)
+    if (this.gameQueueRepository.cencelQue(client.user.id) == false) {
       console.log(`cencel Error`);
+    }
+
+    let findIndex = this.friendQue.findIndex(E => E.leftUserId == client.user.id);
+    if (findIndex >= 0) { // inviter 만 찾는다
+      this.friendQue.splice(findIndex, 1);
+      console.log(this.friendQue);
+      return;
+    }
+    console.log(`there is no Friend Que`);
   }
 }
 

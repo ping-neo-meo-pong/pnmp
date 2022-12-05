@@ -73,7 +73,7 @@ export class GameQueueRepository {
         return i;
       }
     }
-    console.log(`can not find idx by userId`);
+    console.log(`Q.R: can not find idx by userId`);
     return -1;
   }
 
