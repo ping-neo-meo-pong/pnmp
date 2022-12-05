@@ -71,23 +71,23 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     try {
       socket.user = this.jwtService.verify(jwt);
       this.socketRepository.save(socket.user.id, socket);
-      const dmRooms = await this.dmRoomRepository.getDmRooms(socket.user.id);
-      for (const dmRoom of dmRooms) socket.join(dmRoom.id);
+      //   const dmRooms = await this.dmRoomRepository.getDmRooms(socket.user.id);
+      //   for (const dmRoom of dmRooms) socket.join(dmRoom.id);
     } catch (err) {
       socket.disconnect();
     }
   }
 
-  @SubscribeMessage('dmMessage')
-  onDmMessage(@ConnectedSocket() socket: UserSocket, @MessageBody() data: any) {
-    wsGuard(socket);
-    this.dmRepository.save({
-      message: data.msg,
-      dmRoomId: data.roomId,
-      sendUserId: socket.user.id,
-    });
-    this.server.in(data.roomId).emit(`dmMsgEvent_${data.roomId}`, data.msg);
-  }
+  //   @SubscribeMessage('dmMessage')
+  //   onDmMessage(@ConnectedSocket() socket: UserSocket, @MessageBody() data: any) {
+  //     wsGuard(socket);
+  //     this.dmRepository.save({
+  //       message: data.msg,
+  //       dmRoomId: data.roomId,
+  //       sendUserId: socket.user.id,
+  //     });
+  //     this.server.in(data.roomId).emit(`dmMsgEvent_${data.roomId}`, data.msg);
+  //   }
 
   /////////////    game    //////////////
 
