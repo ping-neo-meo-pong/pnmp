@@ -18,7 +18,11 @@ export class AuthService {
     });
 
     if (existUser) {
-      return { id: existUser.id, firstLogin: false };
+      return {
+        id: existUser.id,
+        username: existUser.username,
+        firstLogin: false,
+      };
     }
 
     const newUser = this.userRepository.create({ username: username });
