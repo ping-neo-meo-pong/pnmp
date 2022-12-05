@@ -48,6 +48,11 @@ export default function Login() {
         user_data._id = response.data.id;
         console.log(user_data._id);
         // user_data._pass = event.currentTarget.password.value;
+        const loginUser = {
+          id: response.data.id,
+          username: response.data.username,
+        };
+        window.localStorage.setItem("loginUser", JSON.stringify(loginUser));
         initSocketConnection();
         router.push("/clients");
       })
