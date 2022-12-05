@@ -14,12 +14,13 @@ export let user_data: any = {
   _socket: "",
   _token: "",
   _room: [],
+  is_player: 0,
 };
 
 export let socket: Socket;
 
 function initSocketConnection() {
-  socket = io("http://localhost", { transports: ["websocket"] });
+  socket = io({ transports: ["websocket"] });
   socket.on("disconnect", () => {
     console.log("disconnected");
   });
@@ -31,10 +32,11 @@ export default function Login() {
 
   async function onSubmitHandler(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    user_data._name = event.currentTarget.username.value;
     console.log(event.currentTarget.username.value);
     await axios
       .post(
-        "http://localhost/server/api/auth/login",
+        "/server/api/auth/login",
         {
           username: event.currentTarget.username.value,
           password: event.currentTarget.password.value,
@@ -43,7 +45,8 @@ export default function Login() {
       )
       .then(function (response) {
         user_data._token = response.data.accessToken;
-        user_data._name = response.data.username;
+        user_data._id = response.data.id;
+        console.log(user_data._id);
         // user_data._pass = event.currentTarget.password.value;
         initSocketConnection();
         router.push("/clients");

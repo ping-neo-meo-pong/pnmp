@@ -25,6 +25,36 @@ export function draw_score(p5obj, data) {
 	p5obj.text(data.p1.score, data.W / 3 - 30, 60);
 	p5obj.textAlign(p5obj.LEFT);
 	p5obj.text(data.p2.score, 2 * data.W / 3, 60);
+
+	if (data.p1.score == 5 || data.p2.score == -1) {
+		p5obj.fill('green');
+		p5obj.textSize(80);
+		p5obj.textAlign(p5obj.CENTER);
+		p5obj.text('!LEFT WIN!', data.W / 2, data.H / 2);
+	}
+	if (data.p2.score == 5 || data.p1.score == -1) {
+		p5obj.fill('green');
+		p5obj.textSize(80);
+		p5obj.textAlign(p5obj.CENTER);
+		p5obj.text('!RIGHT WIN!', data.W / 2, data.H / 2);
+	}
+}
+
+export function draw_countDown(p5obj, data) {
+	p5obj.fill('blue');
+	p5obj.textSize(100);
+	p5obj.textAlign(p5obj.CENTER);
+	p5obj.text(data.countDown, data.W / 2, data.H / 2);
+}
+export function draw_countDown2(p5obj, data) {
+	p5obj.fill('red');
+	p5obj.textSize(100);
+	p5obj.textAlign(p5obj.CENTER);
+
+	if (data.p1.countDown > 0)
+		p5obj.text(data.p1.countDown, data.W / 3, data.H / 2);
+	if (data.p2.countDown > 0)
+		p5obj.text(data.p2.countDown, data.W * 2 / 3, data.H / 2);
 }
 
 export function draw_p1_bar(p5obj, data) {

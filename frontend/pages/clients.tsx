@@ -11,9 +11,32 @@ export default function Client() {
   let [gameRoomList, setGameRoomList]: any = useState([]);
   useEffect(getGameRooms, []);
 
+  useEffect(() => {
+    function goToGameRoom(roomId: number) {
+      router.push(`/game/${roomId}`);
+    }
+    function gameInvited(inviterId: string) {
+      console.log(`you got mail~`);
+      if (window.confirm(`invited by ${inviterId}\nplaying?`) == true) {
+        user_data.is_player = 1;
+        socket.emit('acceptFriendQue', inviterId);
+        socket.off(`acceptFriendQue`,);
+      }
+      else {}
+    }
+    user_data.is_player = 0;
+    socket.on('goToGameRoom', goToGameRoom);
+    socket.on('gameInvited', gameInvited);
+
+    return ()=>{
+      socket.off('gameInvited', gameInvited);
+      socket.off('goToGameRoom', goToGameRoom);
+    }
+  }, []);
+
   function getDmRooms() {
     axios
-      .get("http://localhost/server/api/dm")
+      .get("/server/api/dm")
       .then(function (response) {
         user_data._room = response.data;
         let newDmRoomList = [];
@@ -26,7 +49,7 @@ export default function Client() {
       });
   }
   function getGameRooms() {
-    axios.get("http://localhost/server/api/game").then(function (response) {
+    axios.get("/server/api/game").then(function (response) {
       user_data.game_room = response.data;
       let newGameRoomList = [];
       for (let gameRoom of user_data.game_room)
@@ -44,7 +67,7 @@ export default function Client() {
     event.preventDefault();
     axios
       .post(
-        `http://localhost/server/api/dm/${event.currentTarget.invitedUserName.value}`
+        `/server/api/dm/${event.currentTarget.invitedUserName.value}`
       )
       .then(function (response) {
         const dmRoom = response.data;
@@ -60,20 +83,27 @@ export default function Client() {
 
   function onSubmitGameInvite(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    axios
-      .post(`http://localhost/server/api/game`, {
-        invitedUserName: event.currentTarget.invitedUserName.value,
-      })
-      .then(function (response) {
-        const gameRoom = response.data;
-        setGameRoomList((current: JSX.Element[]) => {
-          current.push(<GoToGameRoom key={gameRoom.id} gameRoom={gameRoom} />);
-          return [...current];
-        });
-      })
-      .catch((error) => {
-        alert(error.response.data.message);
-      });
+    if (event.currentTarget.invitedUserId.value) {
+      socket.emit(`gameToFriend`, {invitedUserName: event.currentTarget.invitedUserId.value, mode: "HARD"});
+      socket.off(`gameToFriend`);
+      router.push(`/matching`);
+    } else {
+      alert(`please input name`);
+    }
+    // axios
+    //   .post(`/server/api/game`, {
+    //     invitedUserId: event.currentTarget.invitedUserId.value,
+    //   })
+    //   .then(function (response) {
+    //     const gameRoom = response.data;
+    //     setGameRoomList((current: JSX.Element[]) => {
+    //       current.push(<GoToGameRoom key={gameRoom.id} gameRoom={gameRoom} />);
+    //       return [...current];
+    //     });
+    //   })
+    //   .catch((error) => {
+    //     alert(error.response.data.message);
+    //   });
   }
 
   return (
@@ -89,9 +119,19 @@ export default function Client() {
       <h1>Game room list</h1>
       <form onSubmit={onSubmitGameInvite}>
         <button type="submit">create new Game room with </button>
-        <input type="text" name="invitedUserName" />
+        <input type="text" name="invitedUserId" />
       </form>
       {gameRoomList}
+
+      <h1>Random Maching</h1>
+      <button onClick={async () => {
+        await router.push(`/matching`);
+        socket.emit('gameMatching', "NOMAL");
+      }}>Maching Mode 1</button>
+      <button onClick={async () => {
+        await router.push(`/matching`);
+        socket.emit('gameMatching', "HARD");
+      }}>Maching Mode 2</button>
     </div>
   );
 }
@@ -119,12 +159,21 @@ function GoToGameRoom({ gameRoom }: any) {
   let result: JSX.Element[] = [];
 
   function onClickGameRoom() {
+    console.log(`come in room~`);
+    console.log(gameRoom.leftUser.id);
+    console.log(gameRoom.rightUser.id);
+    console.log(user_data._id);
+    if (gameRoom.leftUser.id == user_data._id ||
+      gameRoom.rightUser.id == user_data._id) {
+        user_data.is_player = 1;
+    }
+
     router.push(`/game/${gameRoom.id}`);
   }
 
   return (
     <div>
-      <button onClick={onClickGameRoom}>GAME with {gameRoom.otherUser}</button>
+      <button onClick={onClickGameRoom}>{gameRoom.leftUser.username} VS {gameRoom.rightUser.username}</button>
     </div>
   );
 }

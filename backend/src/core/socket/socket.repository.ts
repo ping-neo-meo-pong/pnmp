@@ -13,6 +13,8 @@ export class SocketRepository {
 
   save(userId: string, socket: UserSocket): void {
     this.map.set(userId, socket);
+    console.log('socket save');
+    console.log(userId);
   }
 
   delete(userId: string): void {

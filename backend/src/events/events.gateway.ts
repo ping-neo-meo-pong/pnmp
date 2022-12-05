@@ -10,7 +10,7 @@ import {
   WsResponse,
   WsException,
 } from '@nestjs/websockets';
-import { UseGuards } from '@nestjs/common';
+import { Injectable, UseGuards } from '@nestjs/common';
 import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Server, Socket } from 'socket.io';
@@ -21,34 +21,13 @@ import { JwtService } from '@nestjs/jwt';
 import { DmRoomRepository } from '../core/dm/dm-room.repository';
 import { DmRepository } from '../core/dm/dm.repository';
 import { GameRoomRepository } from 'src/core/game/game-room.repository';
-
-// let index = 0;
-
-const game = {
-  W: 700,
-  H: 400,
-  UD_d: 20,
-  bar_d: 50,
-  ball: {
-    x: 200,
-    y: 200,
-    v_x: 9,
-    v_y: 8,
-  },
-  p1: {
-    mouse_y: 0,
-    score: 0,
-  },
-  p2: {
-    mouse_y: 0,
-    score: 0,
-  },
-};
-
-const data: any[] = [];
-
-let loop: NodeJS.Timer;
-const champ = 0;
+import { on } from 'events';
+import { clear } from 'console';
+import { GameRoom, GameRoomDto } from '../core/game/dto/game-room.dto';
+import { GameQue } from '../core/game/dto/game-queue.dto';
+import { GameQueueRepository } from '../core/game/game-queue.repository';
+import { UserRepository } from '../core/user/user.repository';
+import { GameMode } from 'src/enum/game-mode.enum';
 
 function wsGuard(socket: UserSocket) {
   if (!socket.hasOwnProperty('user')) {
@@ -61,6 +40,8 @@ function wsGuard(socket: UserSocket) {
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
+  friendQue: any[] = [];
+  f_idx = 0;
 
   constructor(
     private socketRepository: SocketRepository,
@@ -68,6 +49,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private dmRoomRepository: DmRoomRepository,
     private dmRepository: DmRepository,
     private gameRoomRepository: GameRoomRepository,
+    private gameQueueRepository: GameQueueRepository,
+    private userRepository: UserRepository,
   ) {}
 
   handleConnection(socket: Socket) {
@@ -106,12 +89,110 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     this.server.in(data.roomId).emit(`dmMsgEvent_${data.roomId}`, data.msg);
   }
 
-  @SubscribeMessage('id')
-  id_print(@MessageBody('id') data: number) {
-    console.log(data);
-  }
-
   /////////////    game    //////////////
+
+  @SubscribeMessage('gameToFriend')
+  async makeGameRoom(
+    @ConnectedSocket() client: UserSocket,
+    @MessageBody() data: any,
+  ) {
+    if (this.gameQueueRepository.findIdxByUserId(client.user.id) >= 0) {
+      console.log(`you are already joined at Que`);
+      return;
+    }
+    const invitedUser = await this.userRepository.findOneBy({
+      username: data.invitedUserName,
+    });
+    if (this.gameQueueRepository.findIdxByUserId(invitedUser.id) >= 0) {
+      console.log(`friend is already joined at Que`);
+      return;
+    }
+    const invitedSocket = await this.socketRepository.find(invitedUser.id);
+    if (invitedSocket) {
+      this.server.sockets
+        .to(invitedSocket.id)
+        .emit(`gameInvited`, client.user.id);
+    } else {
+      console.log(`friend not login`);
+    }
+
+    for (const que of this.friendQue) {
+      if (que.leftUserId == client.user.id) {
+        // inviter 만 찾는다
+        console.log(`you already joined fiend Que`);
+        return;
+      }
+    }
+    const leftUserId = client.user.id;
+    const rightUserId = invitedUser.id;
+
+    this.friendQue.push({
+      leftUserId: leftUserId,
+      rightUserId: rightUserId,
+      mode: data.mode,
+    });
+    console.log(this.friendQue);
+  }
+  @SubscribeMessage('acceptFriendQue')
+  async acceptFriendQue(
+    @ConnectedSocket() client: UserSocket,
+    @MessageBody() inviter: string,
+  ) {
+    // for (let que of this.friendQue) {
+    const findIndex = this.friendQue.findIndex((E) => E.leftUserId == inviter);
+    if (findIndex >= 0) {
+      // if (que.leftUserId == inviter) { // inviter 만 찾는다
+      if (this.friendQue[findIndex].rightUserId == client.user.id) {
+        // matching!
+        const leftUser = await this.userRepository.findOneBy({ id: inviter });
+        const rightUser = await this.userRepository.findOneBy({
+          id: client.user.id,
+        });
+        const room = await this.gameRoomRepository.createGameRoom(
+          leftUser,
+          rightUser,
+          this.friendQue[findIndex].mode,
+        );
+        client.join(room.gameRoomDto.id);
+        if (room.gameRoomDto.leftUser.id == client.user.id) {
+          console.log('rightUser emit!');
+          console.log(room.gameRoomDto.rightUser.id);
+          this.socketRepository
+            .find(room.gameRoomDto.rightUser.id)
+            .join(room.gameRoomDto.id);
+        } else {
+          console.log('leftUser');
+          console.log(room.gameRoomDto.leftUser.id);
+          this.socketRepository
+            .find(room.gameRoomDto.leftUser.id)
+            .join(room.gameRoomDto.id);
+        }
+        this.server
+          .in(room.gameRoomDto.id)
+          .emit('goToGameRoom', room.gameRoomDto.id);
+      } else {
+        console.log(`you are not invited`);
+      }
+      // }
+      this.friendQue.splice(findIndex, 1);
+    } else {
+      console.log(`inviter out the que`);
+    }
+  }
+  @SubscribeMessage('cencelFriendQue')
+  async cencelFriendQue(
+    @ConnectedSocket() client: UserSocket,
+    @MessageBody() inviter: string,
+  ) {
+    const findIndex = this.friendQue.findIndex(
+      (leftUserId) => leftUserId == inviter,
+    ); // inviter 만 찾는다
+    if (findIndex >= 0) {
+      this.friendQue.splice(findIndex, 1);
+      return;
+    }
+    console.log(`there is no Friend Que`);
+  }
 
   @SubscribeMessage('comeInGameRoom')
   async comeCome(
@@ -120,175 +201,315 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     wsGuard(client);
 
-    // for (let i = 0; i < data.length(); i++) {
-    //   console.log(test);
-    // }
-
-    client.join(roomId); // join
-
-    const test = await this.gameRoomRepository.findOne({
-      relations: ['leftUserId', 'rightUserId'],
-      where: [
-        {
-          leftUserId: { id: client.user.id },
-        },
-        {
-          rightUserId: { id: client.user.id },
-        },
-      ],
-    }); // find LR & send
-    console.log('test:');
-    console.log(test);
-
-    if (!data[roomId]) {
-      data[roomId] = { roomId: roomId, game: initGame(), champ: 0 };
+    const room = await this.gameRoomRepository.findById(+roomId);
+    if (!room) {
+      console.log('No Room');
+      return;
     }
-    for (const test in data) {
-      // for roomId
-      console.log(data[test]);
-    }
-    // console.log(data);
+    client.join(roomId);
+    console.log(`client ${client.user.id} joined in ${roomId}`);
 
-    // console.log('id');
-    // console.log(test.leftUserId.id);
-    // console.log(client.user.id);
     //   if user == L ? R
-    if (test.leftUserId.id == client.user.id) {
-      client.emit('LR', 1);
-      data[roomId].champ++;
-      console.log('you are LEFT');
-      console.log(data[roomId].champ);
-    } else if (test.rightUserId.id == client.user.id) {
-      client.emit('LR', 2);
-      data[roomId].champ++;
-      console.log('you are RIGHT');
-      console.log(data[roomId].champ);
+    if (room.gameRoomDto.leftUser.id == client.user.id) {
+      clearInterval(room.p1EndTimer);
+      room.gameRoomDto.gameData.p1.in = true;
+    } else if (room.gameRoomDto.rightUser.id == client.user.id) {
+      clearInterval(room.p2EndTimer);
+      room.gameRoomDto.gameData.p2.in = true;
+    } else {
+      console.log(`im viewer`);
+      return;
     }
 
     // if user L & R
-    if (data[roomId].champ == 2) {
-      // if user L & R
-      clearInterval(loop);
-      loop = setInterval(() => {
-        for (const i in data) {
-          console.log(data[i]);
-          this.server
-            .in(data[i].roomId)
-            .emit(`game[${data[i].roomId}]`, data[i].game);
-          //   console.log(`game[${gameRoom.roomId}]`);
-          ball_engine(data[i].roomId);
-        } // https://velog.io/@lilyoh/js-object-%EC%9A%94%EC%86%8C%EC%97%90-%EC%A0%91%EA%B7%BC%ED%95%98%EA%B3%A0-%EC%88%9C%ED%9A%8C%ED%95%98%EA%B8%B0
-      }, 1000 / 30);
+    if (room.gameRoomDto.gameData.p1.in && room.gameRoomDto.gameData.p2.in) {
+      let count = 3;
+      room.startTimer = setInterval(() => {
+        if (count === 0) {
+          clearInterval(room.startTimer);
+          clearInterval(room.gameLoop);
+          room.gameLoop = setInterval(() => {
+            this.server
+              .in(roomId)
+              .emit(`game[${roomId}]`, room.gameRoomDto.gameData);
+            if (ball_engine(room.gameRoomDto) == false) {
+              this.closeGame(roomId, room);
+            }
+          }, 1000 / 30);
+        } else {
+          this.server.in(roomId).emit('countDown', count);
+          count--;
+        }
+      }, 1000);
     }
   }
-  @SubscribeMessage('p1')
-  p1(@ConnectedSocket() client: UserSocket, @MessageBody() _data) {
+
+  @SubscribeMessage('racket')
+  async bar(@ConnectedSocket() client: UserSocket, @MessageBody() _data) {
     wsGuard(client);
-    data[_data.roomId].game.p1.mouse_y = _data.m_y;
-    // console.log('data[roomId]');
-    // console.log(data[_data.roomId]);
+    const room = await this.gameRoomRepository.findById(_data.roomId);
+    if (!room) return;
+    //   if user == L ? R
+    if (room.gameRoomDto.leftUser.id == client.user.id) {
+      room.gameRoomDto.gameData.p1.mouse_y = _data.m_y;
+    } else if (room.gameRoomDto.rightUser.id == client.user.id) {
+      room.gameRoomDto.gameData.p2.mouse_y = _data.m_y;
+    } else {
+      client.disconnect(); // attacker
+    }
   }
-  @SubscribeMessage('p2')
-  p2(@ConnectedSocket() client: UserSocket, @MessageBody() _data) {
-    wsGuard(client);
-    data[_data.roomId].game.p2.mouse_y = _data.m_y;
-  }
-  @SubscribeMessage('gameOut')
-  gameOut(
+
+  @SubscribeMessage('roomOut')
+  async roomOut(
     @ConnectedSocket() client: UserSocket,
     @MessageBody() roomId: string,
   ) {
     wsGuard(client);
-    // clearInterval(loop);
-    // if (champ == 2) champ = 1;
-    // else if (champ == 1) champ = 0;
-    console.log(`game out : ${champ}`);
+    const room = await this.gameRoomRepository.findById(+roomId);
+    if (!room) return;
+
+    console.log('gameOut');
+    console.log(client.user.id);
+    const joinedClients = this.server.sockets.adapter.rooms.get(roomId);
+    if (joinedClients && joinedClients.has(client.id)) {
+      console.log(`leave ${client.user.id} in ${roomId}`);
+      client.leave(roomId);
+    } else {
+      return;
+    }
+
+    //   if user == L ? R
+    if (room.gameRoomDto.leftUser.id == client.user.id) {
+      room.gameRoomDto.gameData.p1.in = false;
+      clearInterval(room.startTimer);
+      clearInterval(room.gameLoop);
+      let countDown = 60;
+      room.p1EndTimer = setInterval(() => {
+        if (countDown < 0) {
+          clearInterval(room.p1EndTimer);
+          clearInterval(room.p2EndTimer);
+          room.gameRoomDto.gameData.p1.score = -1;
+          this.closeGame(roomId, room);
+        } else {
+          console.log('countDown');
+          this.server.in(roomId).emit('countDown1', countDown);
+          countDown--;
+        }
+      }, 1000);
+    } else if (room.gameRoomDto.rightUser.id == client.user.id) {
+      room.gameRoomDto.gameData.p2.in = false;
+      clearInterval(room.gameLoop);
+      let countDown = 60;
+      room.p2EndTimer = setInterval(() => {
+        if (countDown < 0) {
+          clearInterval(room.p1EndTimer);
+          clearInterval(room.p2EndTimer);
+          room.gameRoomDto.gameData.p2.score = -1;
+          this.closeGame(roomId, room);
+        } else {
+          console.log('countDown');
+          this.server.in(roomId).emit('countDown2', countDown);
+          countDown--;
+        }
+      }, 1000);
+    }
+    console.log(`game out`);
   }
-}
 
-function ball_engine(roomId: string) {
-  check_wall(roomId);
-  check_bar(roomId);
-
-  data[roomId].game.ball.x += data[roomId].game.ball.v_x;
-  data[roomId].game.ball.y += data[roomId].game.ball.v_y;
-}
-
-function initGame() {
-  return {
-    W: 500,
-    H: 400,
-    UD_d: 20,
-    bar_d: 50,
-    ball: {
-      x: 200,
-      y: 200,
-      v_x: 9,
-      v_y: 8,
-    },
-    p1: {
-      mouse_y: 0,
-      score: 0,
-    },
-    p2: {
-      mouse_y: 0,
-      score: 0,
-    },
-  };
-}
-
-function check_wall(roomId: string) {
-  if (
-    data[roomId].game.ball.x + data[roomId].game.ball.v_x >
-    data[roomId].game.W - 20
+  @SubscribeMessage('gameMatching') ////////////// Matching ///////////////
+  async gameQue(
+    @ConnectedSocket() client: UserSocket,
+    @MessageBody() mode: GameMode,
   ) {
+    // console.log(client.user.id);
+    const is_join = await this.gameRoomRepository.findByUserId(client.user.id);
+    if (is_join) {
+      console.log(`already you game`);
+      return;
+    }
+    const user = await this.userRepository.findOneBy({ id: client.user.id });
+    if (user) {
+      // await this.userRepository.update(client.user.id, {
+      //   ladder: user.ladder,
+      // });
+      this.gameQueueRepository.addQue(client.user.id, user.ladder, mode);
+      const wait = 0;
+      await this.func(10000, client, wait);
+    }
+  }
+  async func(time, client, wait) {
+    if ((await this.matching(client, wait)) == false) {
+      const idx = this.gameQueueRepository.findIdxByUserId(client.user.id);
+      clearTimeout(this.gameQueueRepository.getQueLoop(idx));
+      this.gameQueueRepository.setQueLoop(
+        idx,
+        setTimeout(() => {
+          this.func(time + 10000, client, wait + 1);
+        }, time),
+      );
+    }
+  }
+
+  async matching(client, wait): Promise<boolean> {
+    const idx = this.gameQueueRepository.findIdxByUserId(client.user.id);
+    if (idx < 0) {
+      return; // TypeError: Cannot set properties of undefined (setting 'wait') :288
+    }
+    const room = await this.gameQueueRepository.checkQue(client.user.id, wait);
+    console.log('events find room');
+    console.log(room);
+    if (room) {
+      clearTimeout(this.gameQueueRepository.getQueLoop(idx));
+      console.log('really find Que!!');
+      console.log(client.user.id);
+      console.log(room);
+      client.join(room.gameRoomDto.id);
+      if (room.gameRoomDto.leftUser.id == client.user.id) {
+        console.log('rightUser emit!');
+        console.log(room.gameRoomDto.rightUser.id);
+        this.socketRepository
+          .find(room.gameRoomDto.rightUser.id)
+          .join(room.gameRoomDto.id);
+      } else {
+        console.log('leftUser');
+        console.log(room.gameRoomDto.leftUser.id);
+        this.socketRepository
+          .find(room.gameRoomDto.leftUser.id)
+          .join(room.gameRoomDto.id);
+      }
+      this.server
+        .in(room.gameRoomDto.id)
+        .emit('goToGameRoom', room.gameRoomDto.id);
+      return true;
+    } else {
+      console.log(`setWait idx: ${idx}`);
+      this.gameQueueRepository.setWait(idx, wait);
+      return false;
+    }
+  }
+
+  closeGame(roomId: string, room: GameRoom) {
+    this.server.in(roomId).emit(`game[${roomId}]`, room.gameRoomDto.gameData);
+    console.log('game OVER!!!');
+    clearInterval(room.gameLoop);
+    // game history
+    // erase gameRoom
+    this.gameRoomRepository.eraseGameRoom(roomId);
+    setTimeout(() => {
+      this.server.in(roomId).emit(`getOut!`);
+      this.server.socketsLeave(roomId);
+    }, 3000);
+  }
+
+  @SubscribeMessage('cencelMatching')
+  async cencelMatcing(@ConnectedSocket() client: UserSocket) {
+    if (this.gameQueueRepository.cencelQue(client.user.id) == false) {
+      console.log(`cencel Error`);
+    }
+
+    const findIndex = this.friendQue.findIndex(
+      (E) => E.leftUserId == client.user.id,
+    );
+    if (findIndex >= 0) {
+      // inviter 만 찾는다
+      this.friendQue.splice(findIndex, 1);
+      console.log(this.friendQue);
+      return;
+    }
+    console.log(`there is no Friend Que`);
+  }
+}
+
+function ball_engine(dto: GameRoomDto): boolean {
+  if (check_wall(dto) < 0) return false;
+  check_bar(dto);
+
+  dto.gameData.ball.x += dto.gameData.ball.v_x;
+  dto.gameData.ball.y += dto.gameData.ball.v_y;
+  return true;
+}
+
+function check_wall(dto: GameRoomDto): number {
+  if (dto.gameData.ball.x + dto.gameData.ball.v_x > dto.gameData.W - 20) {
     // right
-    data[roomId].game.ball.v_x *= -1;
-    data[roomId].game.p1.score += 1;
-  } else if (data[roomId].game.ball.x + data[roomId].game.ball.v_x < 0) {
+    dto.gameData.ball.x = dto.gameData.W / 2;
+    dto.gameData.ball.y = dto.gameData.H / 2;
+    dto.gameData.p1.score += 1;
+    if (dto.gameData.p1.score == 5) {
+      return -1;
+    }
+    if (dto.gameMode == GameMode.HARD) {
+      const temp = dto.gameData.ball.v_x * -1;
+      dto.gameData.ball.v_x = 0;
+      setTimeout(() => {
+        dto.gameData.ball.v_x = temp;
+      }, 1000);
+    } else {
+      dto.gameData.ball.v_x *= -1;
+    }
+  } else if (dto.gameData.ball.x + dto.gameData.ball.v_x < 0) {
     // left
-    data[roomId].game.ball.v_x *= -1;
-    data[roomId].game.p2.score += 1;
+    dto.gameData.ball.x = dto.gameData.W / 2;
+    dto.gameData.ball.y = dto.gameData.H / 2;
+    dto.gameData.p2.score += 1;
+    if (dto.gameData.p2.score == 5) {
+      return -1;
+    }
+    if (dto.gameMode == GameMode.HARD) {
+      const temp = dto.gameData.ball.v_x * -1;
+      dto.gameData.ball.v_x = 0;
+      setTimeout(() => {
+        dto.gameData.ball.v_x = temp;
+      }, 1000);
+    } else {
+      dto.gameData.ball.v_x *= -1;
+    }
   }
   if (
-    data[roomId].game.ball.y + data[roomId].game.ball.v_y >
-    data[roomId].game.H - data[roomId].game.UD_d - 20
+    dto.gameData.ball.y + dto.gameData.ball.v_y >
+    dto.gameData.H - dto.gameData.UD_d - 20
   ) {
     // down
-    data[roomId].game.ball.v_y *= -1;
-  } else if (
-    data[roomId].game.ball.y + data[roomId].game.ball.v_y <
-    data[roomId].game.UD_d
-  ) {
+    dto.gameData.ball.v_y *= -1;
+  } else if (dto.gameData.ball.y + dto.gameData.ball.v_y < dto.gameData.UD_d) {
     // up
-    data[roomId].game.ball.v_y *= -1;
+    dto.gameData.ball.v_y *= -1;
+  }
+  return 1;
+}
+
+function check_bar(dto: GameRoomDto) {
+  if (
+    // check left bar
+    dto.gameData.ball.x + dto.gameData.ball.v_x > dto.gameData.bar_d &&
+    dto.gameData.ball.x + dto.gameData.ball.v_x < dto.gameData.bar_d + 20 &&
+    Math.abs(
+      dto.gameData.ball.y + dto.gameData.ball.v_y - dto.gameData.p1.mouse_y,
+    ) < 40
+  ) {
+    plus_speed(dto.gameData);
+    if (dto.gameData.ball.v_x < 0) dto.gameData.ball.v_x *= -1;
+  } else if (
+    dto.gameData.ball.x + dto.gameData.ball.v_x >
+      dto.gameData.W - (dto.gameData.bar_d + 40) &&
+    dto.gameData.ball.x + dto.gameData.ball.v_x <
+      dto.gameData.W - (dto.gameData.bar_d + 20) &&
+    Math.abs(
+      dto.gameData.ball.y + dto.gameData.ball.v_y - dto.gameData.p2.mouse_y,
+    ) < 40
+  ) {
+    plus_speed(dto.gameData);
+    if (dto.gameData.ball.v_x > 0) dto.gameData.ball.v_x *= -1;
   }
 }
 
-function check_bar(roomId: string) {
-  if (
-    data[roomId].game.ball.x + data[roomId].game.ball.v_x >
-      data[roomId].game.bar_d &&
-    data[roomId].game.ball.x + data[roomId].game.ball.v_x <
-      data[roomId].game.bar_d + 20 &&
-    Math.abs(
-      data[roomId].game.ball.y +
-        data[roomId].game.ball.v_y -
-        data[roomId].game.p1.mouse_y,
-    ) < 40
-  ) {
-    data[roomId].game.ball.v_x = Math.abs(data[roomId].game.ball.v_x);
-  } else if (
-    data[roomId].game.ball.x + data[roomId].game.ball.v_x <
-      data[roomId].game.W - data[roomId].game.bar_d - 20 &&
-    data[roomId].game.ball.x + data[roomId].game.ball.v_x >
-      data[roomId].game.W - data[roomId].game.bar_d - 40 &&
-    Math.abs(
-      data[roomId].game.ball.y +
-        data[roomId].game.ball.v_y -
-        data[roomId].game.p2.mouse_y,
-    ) < 40
-  ) {
-    if (data[roomId].game.ball.v_x > 0) data[roomId].game.ball.v_x *= -1;
+function plus_speed(gameData: any) {
+  if (Math.abs(gameData.ball.v_x) + gameData.ball.plus_speed < 15)
+    gameData.ball.v_x = Math.abs(gameData.ball.v_x) + gameData.ball.plus_speed;
+  if (Math.abs(gameData.ball.v_y) + gameData.ball.plus_speed < 17) {
+    if (gameData.ball.v_y < 0)
+      gameData.ball.v_y = gameData.ball.v_y - gameData.ball.plus_speed;
+    else if (gameData.ball.v_y > 0)
+      gameData.ball.v_y = gameData.ball.v_y + gameData.ball.plus_speed;
   }
 }

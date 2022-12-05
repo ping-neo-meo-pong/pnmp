@@ -46,4 +46,11 @@ export class User extends Base {
     nullable: true,
   })
   status: UserStatus;
+
+  @Column({
+    type: 'smallint',
+    comment: '래더 등급',
+    default: 1,
+  })
+  ladder: number;
 }
