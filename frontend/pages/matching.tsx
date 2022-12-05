@@ -26,7 +26,7 @@ export default function matching() {
         <button onClick={()=>{
           router.push(`/clients`);
           socket.emit(`cencelMatching`);
-        }}> Cencel Matching </button>
+        }}> Cancel Matching </button>
     </div>
   )
 }
