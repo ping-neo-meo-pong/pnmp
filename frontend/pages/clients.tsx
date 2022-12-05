@@ -1,7 +1,9 @@
 import Router, { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { user_data, socket } from "./login";
+import { user_data } from "./login";
+// import { socket } from "./login";
+import { socket } from "../lib/socket";
 
 export default function Client() {
   const router = useRouter();
@@ -82,6 +84,7 @@ export default function Client() {
   }
 
   function onSubmitGameInvite(event: React.FormEvent<HTMLFormElement>) {
+    console.log(`cookie: ${document.cookie}`);
     event.preventDefault();
     if (event.currentTarget.invitedUserId.value) {
       socket.emit(`gameToFriend`, {invitedUserName: event.currentTarget.invitedUserId.value, mode: "HARD"});
