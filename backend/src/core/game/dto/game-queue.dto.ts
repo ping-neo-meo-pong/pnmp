@@ -1,3 +1,3 @@
 export interface GameQue {
-    gameQue: Map<string, number>,
+  gameQue: Map<string, number>;
 }

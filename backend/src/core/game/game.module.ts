@@ -5,12 +5,8 @@ import { UserRepository } from '../user/user.repository';
 import { TypeOrmExModule } from '../../typeorm-ex.module';
 
 @Module({
-  imports: [
-    TypeOrmExModule.forCustomRepository([
-      UserRepository,
-    ]),
-  ],
+  imports: [TypeOrmExModule.forCustomRepository([UserRepository])],
   providers: [GameRoomRepository, GameQueueRepository],
   exports: [GameRoomRepository, GameQueueRepository],
 })
-export class GameModule { }
+export class GameModule {}
