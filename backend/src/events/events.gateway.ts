@@ -222,6 +222,24 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
+  @SubscribeMessage('giveMeInvited')
+  async giveMeInvited(@ConnectedSocket() client: UserSocket) {
+    wsGuard(client);
+    let gameQueList: any[] = [];
+    for (const que of this.friendQue) {
+      if (que.rightUserId == client.user.id) {
+        const user = await this.userRepository.findOneBy({id: que.leftUserId});
+        gameQueList.push({inviterName: user.username, inviterId: user.id});
+      }
+    }
+    if (gameQueList.length) {
+      client.emit(`invitedQue`, gameQueList);
+    } else {
+      console.log(`GMIQ: no invited Que`);
+    }
+  }
+
+
   @SubscribeMessage('racket')
   async bar(@ConnectedSocket() client: UserSocket, @MessageBody() _data) {
     wsGuard(client);
