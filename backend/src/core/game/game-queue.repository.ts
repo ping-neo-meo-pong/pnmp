@@ -1,7 +1,7 @@
 // import { GameQue } from "./dto/game-queue.dto";
 import { GameRoomRepository } from './game-room.repository';
 import { UserRepository } from '../user/user.repository';
-import { GameRoom } from './dto/game-room.dto';
+import { Game } from './dto/game-room.dto';
 import { GameMode } from '../../enum/game-mode.enum';
 import { Injectable } from '@nestjs/common';
 
@@ -81,7 +81,7 @@ export class GameQueueRepository {
     return -1;
   }
 
-  async checkQue(myId: string, _wait: number): Promise<GameRoom> {
+  async checkQue(myId: string, _wait: number): Promise<Game> {
     let myLadder = -1;
     let myidx = 0;
     for (let i = 0; this.gameQue[i]; i++) {
@@ -106,7 +106,7 @@ export class GameQueueRepository {
         const rightUser = await this.userRepository.findOneBy({
           id: this.gameQue[idx].userId,
         });
-        const room = this.gameRoomRepository.createGameRoom(
+        const room = this.gameRoomRepository.createGame(
           leftUser,
           rightUser,
           this.gameQue[myidx].mode,

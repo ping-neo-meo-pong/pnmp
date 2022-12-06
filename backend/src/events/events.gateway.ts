@@ -23,11 +23,12 @@ import { DmRepository } from '../core/dm/dm.repository';
 import { GameRoomRepository } from 'src/core/game/game-room.repository';
 import { on } from 'events';
 import { clear } from 'console';
-import { GameRoom, GameRoomDto } from '../core/game/dto/game-room.dto';
+import { Game, GameRoomDto } from '../core/game/dto/game-room.dto';
 import { GameQue } from '../core/game/dto/game-queue.dto';
 import { GameQueueRepository } from '../core/game/game-queue.repository';
 import { UserRepository } from '../core/user/user.repository';
 import { GameMode } from 'src/enum/game-mode.enum';
+import { GameHistoryRepository } from 'src/core/game/game-history.repository';
 
 function wsGuard(socket: UserSocket) {
   if (!socket.hasOwnProperty('user')) {
@@ -51,6 +52,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private gameRoomRepository: GameRoomRepository,
     private gameQueueRepository: GameQueueRepository,
     private userRepository: UserRepository,
+    private gameHistroyRepository: GameHistoryRepository,
   ) {}
 
   handleConnection(socket: Socket) {
@@ -148,7 +150,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const rightUser = await this.userRepository.findOneBy({
           id: client.user.id,
         });
-        const room = await this.gameRoomRepository.createGameRoom(
+        const room = await this.gameRoomRepository.createGame(
           leftUser,
           rightUser,
           this.friendQue[findIndex].mode,
@@ -201,7 +203,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ) {
     wsGuard(client);
 
-    const room = await this.gameRoomRepository.findById(+roomId);
+    const room = await this.gameRoomRepository.findById(roomId);
     if (!room) {
       console.log('No Room');
       return;
@@ -233,6 +235,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
               .in(roomId)
               .emit(`game[${roomId}]`, room.gameRoomDto.gameData);
             if (ball_engine(room.gameRoomDto) == false) {
+              // this.sendToDB(roomId);
               this.closeGame(roomId, room);
             }
           }, 1000 / 30);
@@ -283,7 +286,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() roomId: string,
   ) {
     wsGuard(client);
-    const room = await this.gameRoomRepository.findById(+roomId);
+    const room = await this.gameRoomRepository.findById(roomId);
     if (!room) return;
 
     console.log('gameOut');
@@ -406,7 +409,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  closeGame(roomId: string, room: GameRoom) {
+  closeGame(roomId: string, room: Game) {
     this.server.in(roomId).emit(`game[${roomId}]`, room.gameRoomDto.gameData);
     console.log('game OVER!!!');
     clearInterval(room.gameLoop);
@@ -418,6 +421,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.socketsLeave(roomId);
     }, 3000);
   }
+
+  // sendToDB(roomId: string) {
+  //   this.gameHistroyRepository.save()
+  // }
 
   @SubscribeMessage('cencelMatching')
   async cencelMatcing(@ConnectedSocket() client: UserSocket) {
