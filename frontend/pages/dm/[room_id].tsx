@@ -1,48 +1,66 @@
-// import { Socket } from "socket.io-client";
-import { user_data, socket } from "../login";
+import { Socket, io } from "socket.io-client";
+// import { user_data, socket } from "../login";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { dmSocket } from "../../sockets/sockets";
 
 export default function Dm() {
   const router = useRouter();
   const roomId = router.query.room_id;
 
   const [msgList, setMsgList] = useState([]);
+  let loginUser: any;
+  if (typeof window !== 'undefined') {
+    loginUser = JSON.parse(
+      localStorage?.getItem("loginUser") ?? "{ id: null, username: null }"
+    );
+  } else {
+    loginUser = { id: null, username: null };
+  }
 
   useEffect(() => {
-    axios
-      .get(`/server/api/dm/msg?roomId=${roomId}`)
-      .then(function (response) {
-        const dmList = response.data;
-        let newDmList = [];
-        for (let dm of dmList)
-          newDmList.push(<h3>{dm.message}</h3>);
-        setMsgList(newDmList);
+    loginUser = JSON.parse(
+      localStorage.getItem("loginUser") ?? "{ id: null, username: null }"
+    );
+    console.log(loginUser);
+    if (roomId) {
+      axios
+        .get(`/server/api/dm/msg?roomId=${roomId}`)
+        .then(function (response) {
+          const dmList = response.data;
+          console.log(dmList);
+          setMsgList(dmList);
 
-        socket.on(`dmMsgEvent_${roomId}`, (message) => {
-          setMsgList((current) => {
-            current.push(<h3>{message}</h3>);
-            return [...current];
+          dmSocket.emit("dmRoom", roomId);
+          dmSocket.on(`drawDm`, (message) => {
+            console.log(message);
+            setMsgList((current) => {
+              current.push(message);
+              return [...current];
+            });
           });
-        });
 
-        router.events.on('routeChangeStart', () => {
-          socket.off(`dmMsgEvent_${roomId}`);
+          router.events.on("routeChangeStart", () => {
+            dmSocket.off(`drawDm`);
+          });
+        })
+        .catch(() => {
+          router.push("/login");
         });
-      })
-      .catch(() => {
-        router.push("/login");
-      });
-  }, []);
+    }
+  }, [router.isReady]);
 
   function onSubmitMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const msgData = {
       roomId: router.query.room_id,
+      userId: loginUser.id,
+      username: loginUser.username,
       msg: event.currentTarget.message.value,
     };
-    socket.emit("dmMessage", msgData);
+    console.log(msgData);
+    dmSocket.emit(`dm`, msgData);
   }
 
   return (
@@ -52,7 +70,21 @@ export default function Dm() {
         <input type="text" id="message" name="message" />
         <button type="submit">send_message</button>
       </form>
-      {msgList}
+      {msgList.map((msg: any) => (
+        <DmMessage key={msg?.id} dm={msg} />
+      ))}
+    </div>
+  );
+}
+
+function DmMessage({ dm }: any) {
+  const date = new Date(dm?.createdAt);
+  return (
+    <div>
+      <h2 style={{ display: "inline" }}>{dm?.sendUserId?.username}</h2>
+      <span> {date.toLocaleString()}</span>
+      <div style={{ fontSize: "x-large" }}>{dm?.message}</div>
+      <br></br>
     </div>
   );
 }

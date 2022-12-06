@@ -19,8 +19,7 @@ export class DmService {
     private socketRepository: SocketRepository,
   ) {}
 
-  /*
-  async createDmRoom(userId: string, invitedUserId: string): Promise<DmRoom> {
+  async createDmRoom(userId: string, invitedUserId: string) {
     const invitedUser = await this.userRepository.findOneBy({
       id: invitedUserId,
     });
@@ -38,10 +37,20 @@ export class DmService {
       return dmRoom;
     }
     const user = await this.userRepository.findOneBy({ id: userId });
-    return await this.dmRoomRepository.createDmRoom(user, invitedUser);
+    const newDmRoom = await this.dmRoomRepository.createDmRoom(
+      user,
+      invitedUser,
+    );
+    return {
+      id: newDmRoom.id,
+      otherUser:
+        newDmRoom.userId.id === userId
+          ? newDmRoom.invitedUserId.username
+          : newDmRoom.userId.username,
+    };
   }
-  */
 
+  /*
   async createDmRoom(userId: string, invitedUserName: string): Promise<any> {
     const invitedUser = await this.userRepository.findOneBy({
       username: invitedUserName,
@@ -87,6 +96,7 @@ export class DmService {
       };
     }
   }
+  */
 
   async getDmRooms(userId: string): Promise<DmRoom[]> {
     const dmRooms = await this.dmRoomRepository.getDmRooms(userId);
@@ -108,7 +118,14 @@ export class DmService {
   }
 
   async getDms(roomId: any): Promise<Dm[]> {
+    if (!roomId) {
+      throw new BadRequestException('bad request');
+    }
     return await this.dmRepository.find({
+      relations: ['dmRoomId', 'sendUserId'],
+      order: {
+        createdAt: 'ASC',
+      },
       where: {
         dmRoomId: {
           id: roomId,

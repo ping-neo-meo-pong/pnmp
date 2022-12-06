@@ -7,17 +7,25 @@ import { Injectable } from '@nestjs/common';
 @Injectable()
 export class GameRoomRepository {
   private gameRooms: GameRoom[] = [];
-  private nextRoomId: number = 0;
+  private nextRoomId = 0;
 
-  async createGameRoom(leftUser: User, rightUser: User, gameMode: GameMode): Promise<GameRoom> {
-    this.gameRooms[this.nextRoomId] = initRoom(leftUser, rightUser, gameMode, this.nextRoomId.toString());
+  async createGameRoom(
+    leftUser: User,
+    rightUser: User,
+    gameMode: GameMode,
+  ): Promise<GameRoom> {
+    this.gameRooms[this.nextRoomId] = initRoom(
+      leftUser,
+      rightUser,
+      gameMode,
+      this.nextRoomId.toString(),
+    );
     return this.gameRooms[this.nextRoomId++];
   }
 
   eraseGameRoom(roomId: string) {
     delete this.gameRooms[roomId];
-    if (this.nextRoomId > 0)
-      this.nextRoomId--;
+    if (this.nextRoomId > 0) this.nextRoomId--;
     console.log(this.gameRooms);
   }
 
@@ -25,7 +33,7 @@ export class GameRoomRepository {
     return this.gameRooms[roomId];
   }
 
-  async findByUserId(userId: string): Promise<GameRoom | null>{
+  async findByUserId(userId: string): Promise<GameRoom | null> {
     for (const i in this.gameRooms) {
       if (this.gameRooms[i].gameRoomDto.leftUser.id == userId)
         return this.gameRooms[i];
@@ -35,10 +43,9 @@ export class GameRoomRepository {
     return null;
   }
 
-  async findAll(): Promise<GameRoom []> {
+  async findAll(): Promise<GameRoom[]> {
     return this.gameRooms;
   }
-
 
   // async getGameRooms(userToken): Promise<GameRoom[]> {
   //   const gameRooms = await this.find({
@@ -61,19 +68,20 @@ export class GameRoomRepository {
   // }
 }
 
-
-function initRoom(leftUser: User, rightUser: User, mode: GameMode, roomId: string) {
-  let _W = 500;
-  let _H = 400;
+function initRoom(
+  leftUser: User,
+  rightUser: User,
+  mode: GameMode,
+  roomId: string,
+) {
+  const _W = 500;
+  const _H = 400;
   let ball_v_x = 5;
   let ball_v_y = 6;
   let plus_speed = 1;
-  if (mode == GameMode.HARD)
-    ball_v_x = 9;
-  if (mode == GameMode.HARD)
-    ball_v_y = 11;
-  if (mode == GameMode.HARD)
-    plus_speed = 2;
+  if (mode == GameMode.HARD) ball_v_x = 9;
+  if (mode == GameMode.HARD) ball_v_y = 11;
+  if (mode == GameMode.HARD) plus_speed = 2;
 
   return {
     gameLoop: null,
@@ -112,7 +120,7 @@ function initRoom(leftUser: User, rightUser: User, mode: GameMode, roomId: strin
           mouse_y: 0,
           score: 0,
         },
-      }
-    }
+      },
+    },
   };
 }

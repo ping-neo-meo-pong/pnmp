@@ -32,8 +32,7 @@ export class GameService {
     }
     const ttt = [];
     for (const room of gameRooms) {
-      if (room)
-        ttt.push(room.gameRoomDto);
+      if (room) ttt.push(room.gameRoomDto);
     }
     return ttt;
   }
@@ -45,7 +44,13 @@ export class GameService {
     const invitedUser = await this.userRepository.findOneBy({
       id: invitedUserId,
     });
-    return (await this.gameRoomRepository.createGameRoom(user, invitedUser, GameMode.NORMAL)).gameRoomDto;
+    return (
+      await this.gameRoomRepository.createGameRoom(
+        user,
+        invitedUser,
+        GameMode.NORMAL,
+      )
+    ).gameRoomDto;
   }
 
   async addQue(userId: string, rating: number, mode: GameMode) {
