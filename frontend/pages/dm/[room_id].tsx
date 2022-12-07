@@ -1,16 +1,21 @@
 // import { Socket } from "socket.io-client";
-import { user_data, socket } from "../login";
+import { user_data } from "../login";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
+import { socket, useSocketAuthorization } from "../../lib/socket";
 
 export default function Dm() {
+  useSocketAuthorization();
   const router = useRouter();
-  const roomId = router.query.room_id;
 
   const [msgList, setMsgList] = useState([]);
 
   useEffect(() => {
+    if (!router.isReady)
+      return;
+
+    const roomId = router.query.room_id;
     axios
       .get(`/server/api/dm/msg?roomId=${roomId}`)
       .then(function (response) {
@@ -34,7 +39,7 @@ export default function Dm() {
       .catch(() => {
         router.push("/login");
       });
-  }, []);
+  }, [router.isReady]);
 
   function onSubmitMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

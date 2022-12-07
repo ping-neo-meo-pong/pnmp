@@ -3,10 +3,12 @@ import Image from "next/image";
 // import styles from '../styles/Home.module.css'
 import React, { FormEvent, SyntheticEvent } from "react";
 import { useRouter } from "next/dist/client/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import axios from "axios";
 import { io, Socket } from "socket.io-client";
+import { socket } from "../lib/socket";
+import { isLoggedIn } from "../lib/login";
 
 export let user_data: any = {
   _name: "",
@@ -17,18 +19,13 @@ export let user_data: any = {
   is_player: 0,
 };
 
-export let socket: Socket;
-
-function initSocketConnection() {
-  socket = io({ transports: ["websocket"] });
-  socket.on("disconnect", () => {
-    console.log("disconnected");
-  });
-  socket.emit("authorize", user_data._token);
-}
-
 export default function Login() {
   const router = useRouter();
+
+  useEffect(() => {
+    if (isLoggedIn())
+      router.push("/clients");
+  }, []);
 
   async function onSubmitHandler(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -48,7 +45,8 @@ export default function Login() {
         user_data._id = response.data.id;
         console.log(user_data._id);
         // user_data._pass = event.currentTarget.password.value;
-        initSocketConnection();
+        socket.emit("authorize", user_data._token);
+        window.localStorage.isLoggedIn = true;
         router.push("/clients");
       })
       .catch(function (error) {

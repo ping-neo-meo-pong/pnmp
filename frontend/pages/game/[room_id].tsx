@@ -1,9 +1,9 @@
-import { socket } from "../login";
+import { socket, useSocketAuthorization } from "../../lib/socket";
 import { user_data } from "../login";
 import axios from "axios";
 import { Router, useRouter } from "next/router";
 import React, { useEffect } from "react";
-import Sketch from "react-p5";
+import dynamic from "next/dynamic";
 import p5Types from "p5";
 import {
   frame,
@@ -15,6 +15,11 @@ import {
   draw_countDown,
   draw_countDown2,
 } from "./sketch.js";
+
+// Will only import `react-p5` on client-side
+const Sketch = dynamic(() => import('react-p5').then((mod) => mod.default), {
+  ssr: false,
+})
 
 let data = {
   is_player: -1,
@@ -46,19 +51,14 @@ let gameRoomId;
 let bar_loop: NodeJS.Timer;
 
 export default function GameRoom() {
+  useSocketAuthorization();
   const router = useRouter();
-  const roomId = `${router.query.room_id}`;
-
-  const setup = (p5: p5Types, canvasParentRef: Element) => {
-    // use parent to render the canvas in this ref
-    // (without that p5 will render the canvas outside of your component)
-    p5.createCanvas(data.W, data.H).parent(canvasParentRef);
-  };
   useEffect(() => {
+    if (!router.isReady)
+      return ;
     function routeChangeHandler() {
       socket.emit(`roomOut`, roomId);
     }
-    socket.emit("comeInGameRoom", roomId);
     router.events.on("routeChangeStart", routeChangeHandler);
     socket.on(`countDown`, (count: number) => {
       console.log(count);
@@ -80,22 +80,35 @@ export default function GameRoom() {
       data.p2.countDown = -1;
       data = { ..._data };
     });
-    
+
     socket.on('getOut!', async ()=>{
       dataInit();
       await router.push(`/clients`);
     });
     
+    console.log('before emit comeInGameRoom');
+    socket.emit("comeInGameRoom", roomId);
+    
     return ()=>{
       console.log(`hi? return`);
       router.events.off("routeChangeStart", routeChangeHandler);
-      socket.off("comeInGameRoom");
+      //socket.off("comeInGameRoom");
       socket.off("countDown");
       socket.off(`countDown1`);
       socket.off(`countDown2`);
-      socket.off(`game[${roomId}]`);
+      //socket.off(`game[${roomId}]`);
     }
-  }, []);
+  }, [router.isReady]);
+
+  if (!router.isReady)
+    return ;
+  const roomId = router.query.room_id;
+  
+  const setup = (p5: p5Types, canvasParentRef: Element) => {
+    // use parent to render the canvas in this ref
+    // (without that p5 will render the canvas outside of your component)
+    p5.createCanvas(data.W, data.H).parent(canvasParentRef);
+  };
   
   const draw = (p5: p5Types) => {
     p5.background(230);

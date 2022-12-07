@@ -2,10 +2,11 @@ import Router, { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { user_data } from "./login";
-// import { socket } from "./login";
-import { socket } from "../lib/socket";
+import { socket, useSocketAuthorization } from "../lib/socket";
+import { logout } from "../lib/login";
 
 export default function Client() {
+  useSocketAuthorization();
   const router = useRouter();
 
   let [dmRoomList, setDmRoomList]: any = useState([]);
@@ -13,7 +14,9 @@ export default function Client() {
   let [gameRoomList, setGameRoomList]: any = useState([]);
   useEffect(getGameRooms, []);
 
+  console.log('clients page before useEffect');
   useEffect(() => {
+    console.log('clients page useEffect');
     function goToGameRoom(roomId: number) {
       router.push(`/game/${roomId}`);
     }
@@ -51,15 +54,20 @@ export default function Client() {
       });
   }
   function getGameRooms() {
-    axios.get("/server/api/game").then(function (response) {
-      user_data.game_room = response.data;
-      let newGameRoomList = [];
-      for (let gameRoom of user_data.game_room)
-        newGameRoomList.push(
-          <GoToGameRoom key={gameRoom.id} gameRoom={gameRoom} />
-        );
-      setGameRoomList(newGameRoomList);
-    });
+    axios
+      .get("/server/api/game")
+      .then(function (response) {
+        user_data.game_room = response.data;
+        let newGameRoomList = [];
+        for (let gameRoom of user_data.game_room)
+          newGameRoomList.push(
+            <GoToGameRoom key={gameRoom.id} gameRoom={gameRoom} />
+          );
+        setGameRoomList(newGameRoomList);
+      })
+      .catch(() => {
+        router.push("/login");
+      });
   }
   function onClickGameRoom() {
     router.push(`/game/test`); //${user_data._name}`);
@@ -112,6 +120,10 @@ export default function Client() {
   return (
     <div>
       <h1>HI {user_data._name}</h1>
+      <button onClick={async () => {
+        await logout();
+        router.push("/login");
+      }}>logout</button>
       <h1>DM room list</h1>
       <form onSubmit={onSubmitMessage}>
         <button type="submit">create new DM room with </button>

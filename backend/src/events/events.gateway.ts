@@ -28,6 +28,7 @@ import { GameQue } from '../core/game/dto/game-queue.dto';
 import { GameQueueRepository } from '../core/game/game-queue.repository';
 import { UserRepository } from '../core/user/user.repository';
 import { GameMode } from 'src/enum/game-mode.enum';
+import { ExtractJwt } from 'passport-jwt';
 
 function wsGuard(socket: UserSocket) {
   if (!socket.hasOwnProperty('user')) {
@@ -66,9 +67,11 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('authorize')
   async authorize(
     @ConnectedSocket() socket: UserSocket,
-    @MessageBody() jwt: string,
   ) {
+    console.log('authorize()');
     try {
+      // remove jwt= from cookie string
+      const jwt = socket.handshake.headers.cookie.substr(4);
       socket.user = this.jwtService.verify(jwt);
       this.socketRepository.save(socket.user.id, socket);
       const dmRooms = await this.dmRoomRepository.getDmRooms(socket.user.id);
@@ -199,6 +202,8 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: UserSocket,
     @MessageBody() roomId: string,
   ) {
+    console.log('comeInGameRoom()');
+    console.log(roomId);
     wsGuard(client);
 
     const room = await this.gameRoomRepository.findById(+roomId);

@@ -1,9 +1,13 @@
 import { io, Socket } from "socket.io-client";
-import { isLoggedIn } from "./login.ts";
+import { useEffect } from 'react';
 
-export let socket: Socket = null;
+export const socket: Socket = io({ transports: ["websocket"] });
+socket.on("disconnect", () => {
+  console.log("disconnected");
+});
 
-if (isLoggedIn()) {
-  console.log('socket.ts');
-  socket = io({ transports: ["websocket"] });
+export function useSocketAuthorization() {
+  useEffect(() => {
+    socket.emit("authorize");
+  }, []);
 }

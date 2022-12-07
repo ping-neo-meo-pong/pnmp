@@ -1,8 +1,10 @@
 import { useRouter } from "next/router"
-import { socket, user_data } from "./login";
+import { user_data } from "./login";
+import { socket, useSocketAuthorization } from "../lib/socket";
 import { useEffect } from "react";
 
 export default function matching() {
+  useSocketAuthorization();
   const router = useRouter();
   useEffect(()=>{
     function routeChangeHandler() {
