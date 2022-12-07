@@ -27,12 +27,16 @@ export class GameService {
 
   async getGames(): Promise<GameRoomDto[]> {
     const gameRooms = await this.gameRoomRepository.findAll();
+    console.log('getGames');
+    console.log(gameRooms);
     if (!gameRooms) {
+      console.log(`cant get games`);
       return null;
     }
     const ttt = [];
-    for (const room of gameRooms) {
-      if (room) ttt.push(room.gameRoomDto);
+    for (const i in gameRooms) {
+      console.count(`hi`);
+      if (gameRooms[i]) ttt.push(gameRooms[i].gameRoomDto);
     }
     return ttt;
   }
@@ -45,7 +49,7 @@ export class GameService {
       id: invitedUserId,
     });
     return (
-      await this.gameRoomRepository.createGameRoom(
+      await this.gameRoomRepository.createGame(
         user,
         invitedUser,
         GameMode.NORMAL,

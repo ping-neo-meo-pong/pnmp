@@ -49,7 +49,7 @@ export class DmController {
   createDmRoom(
     @Request() request,
     @Param('invitedUserId') invitedUserId: string,
-  ): Promise<DmRoom> {
+  ) {
     const userId = request.user.id;
     return this.dmService.createDmRoom(userId, invitedUserId);
   }

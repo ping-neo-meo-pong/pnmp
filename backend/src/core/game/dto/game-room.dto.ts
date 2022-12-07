@@ -2,7 +2,7 @@ import { JwkKeyExportOptions } from 'crypto';
 import { User } from 'src/core/user/user.entity';
 import { GameMode } from '../../../enum/game-mode.enum';
 
-export interface GameRoom {
+export interface Game {
   gameLoop: NodeJS.Timer | null;
   startTimer: NodeJS.Timer | null;
   p1EndTimer: NodeJS.Timer | null;

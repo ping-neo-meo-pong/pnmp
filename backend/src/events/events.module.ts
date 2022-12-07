@@ -14,6 +14,7 @@ import { GameRoomRepository } from 'src/core/game/game-room.repository';
 import { GameModule } from 'src/core/game/game.module';
 import { GameQueueRepository } from 'src/core/game/game-queue.repository';
 import { UserRepository } from 'src/core/user/user.repository';
+import { GameHistoryRepository } from 'src/core/game/game-history.repository';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UserRepository } from 'src/core/user/user.repository';
       DmRoomRepository,
       DmRepository,
       UserRepository,
+      GameHistoryRepository,
     ]),
     JwtModule.register({
       secret: process.env.JWT_SECRET,
