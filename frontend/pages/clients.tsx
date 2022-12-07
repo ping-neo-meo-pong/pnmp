@@ -74,7 +74,7 @@ export default function Client() {
           }}> {que.inviterName} </button>
         )
       }
-      setGameRoomList(newGameRoomList);
+      setGameRoomList(...newGameRoomList);
     })
 
     return ()=>{
@@ -113,7 +113,10 @@ export default function Client() {
 
   return (
     <div>
-      <h1>HI {user_data._name}</h1>
+      <h1>
+        HI {user_data._name}
+        <button onClick={()=>{router.push('/profile')}}><h1> 프로필 </h1></button>
+      </h1>
       <button onClick={reset}> <h1>list 다시 불러오기</h1> </button>
       <h1>DM room list</h1>
       <form onSubmit={onSubmitMessage}>

@@ -112,6 +112,14 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log(`friend is already joined at Que`);
       return;
     }
+    if (await this.gameRoomRepository.findByUserId(client.user.id)) {
+      console.log(`you're already in the game`);
+      return ;
+    }
+    else if (await this.gameRoomRepository.findByUserId(invitedUser.id)) {
+      console.log(`friend is already in the game`);
+      return ;
+    }
     const invitedSocket = await this.socketRepository.find(invitedUser.id);
     if (invitedSocket) {
       this.server.sockets
@@ -322,6 +330,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }, 1000);
     } else if (room.gameRoomDto.rightUser.id == client.user.id) {
       room.gameRoomDto.gameData.p2.in = false;
+      clearInterval(room.startTimer);
       clearInterval(room.gameLoop);
       let countDown = 60;
       room.p2EndTimer = setInterval(() => {

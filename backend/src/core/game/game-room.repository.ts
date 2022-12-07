@@ -56,6 +56,7 @@ export class GameRoomRepository extends Repository<GameRoom> {
 
   eraseGameRoom(roomId: string) {
     delete this.gameRooms[roomId];
+    // this.gameRooms.erase(roomId);
     console.log(this.gameRooms);
   }
 
@@ -63,14 +64,14 @@ export class GameRoomRepository extends Repository<GameRoom> {
     return this.gameRooms[roomId];
   }
 
-  async findByUserId(userId: string): Promise<Game | null> {
+  async findByUserId(userId: string): Promise<Game> {
     for (const i in this.gameRooms) {
       if (this.gameRooms[i].gameRoomDto.leftUser.id == userId)
         return this.gameRooms[i];
       else if (this.gameRooms[i].gameRoomDto.rightUser.id == userId)
         return this.gameRooms[i];
     }
-    return null;
+    return ;
   }
 
   async findAll(): Promise<Game[]> {
