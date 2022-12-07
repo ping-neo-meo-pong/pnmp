@@ -44,7 +44,10 @@ export class GameRoomRepository extends Repository<GameRoom> {
     rightUser: User,
     gameMode: GameMode,
   ): Promise<Game> {
-    const gameRoom = await this.createGameRoom({leftUserId: leftUser, rightUserId: rightUser});
+    const gameRoom = await this.createGameRoom({
+      leftUserId: leftUser,
+      rightUserId: rightUser,
+    });
     this.gameRooms[gameRoom.id] = initRoom(
       leftUser,
       rightUser,
@@ -71,7 +74,7 @@ export class GameRoomRepository extends Repository<GameRoom> {
       else if (this.gameRooms[i].gameRoomDto.rightUser.id == userId)
         return this.gameRooms[i];
     }
-    return ;
+    return;
   }
 
   async findAll(): Promise<Game[]> {

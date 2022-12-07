@@ -31,7 +31,7 @@ import { GameMode } from 'src/enum/game-mode.enum';
 import { GameHistoryRepository } from 'src/core/game/game-history.repository';
 import { History } from 'src/core/game/dto/game-history.dto';
 import { GameRoom } from 'src/core/game/game-room.entity';
-import { Side, WinLose } from "../enum/win-lose.enum"
+import { Side, WinLose } from '../enum/win-lose.enum';
 
 function wsGuard(socket: UserSocket) {
   if (!socket.hasOwnProperty('user')) {
@@ -114,11 +114,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
     if (await this.gameRoomRepository.findByUserId(client.user.id)) {
       console.log(`you're already in the game`);
-      return ;
-    }
-    else if (await this.gameRoomRepository.findByUserId(invitedUser.id)) {
+      return;
+    } else if (await this.gameRoomRepository.findByUserId(invitedUser.id)) {
       console.log(`friend is already in the game`);
-      return ;
+      return;
     }
     const invitedSocket = await this.socketRepository.find(invitedUser.id);
     if (invitedSocket) {
@@ -261,11 +260,13 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('giveMeInvited')
   async giveMeInvited(@ConnectedSocket() client: UserSocket) {
     wsGuard(client);
-    let gameQueList: any[] = [];
+    const gameQueList: any[] = [];
     for (const que of this.friendQue) {
       if (que.rightUserId == client.user.id) {
-        const user = await this.userRepository.findOneBy({id: que.leftUserId});
-        gameQueList.push({inviterName: user.username, inviterId: user.id});
+        const user = await this.userRepository.findOneBy({
+          id: que.leftUserId,
+        });
+        gameQueList.push({ inviterName: user.username, inviterId: user.id });
       }
     }
     if (gameQueList.length) {
@@ -274,7 +275,6 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log(`GMIQ: no invited Que`);
     }
   }
-
 
   @SubscribeMessage('racket')
   async bar(@ConnectedSocket() client: UserSocket, @MessageBody() _data) {
@@ -443,7 +443,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       leftWin = 'LOSE';
       rightWin = 'WIN';
     }
-    let leftHistory: History = {
+    const leftHistory: History = {
       win: leftWin,
       side: Side.LEFT,
       score: room.gameData.p1.score,
@@ -451,7 +451,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       userId: room.leftUser.id,
       gameRoomId: room.id,
     };
-    let rightHistory: History = {
+    const rightHistory: History = {
       win: rightWin,
       side: Side.RIGHT,
       score: room.gameData.p2.score,

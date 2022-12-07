@@ -11,7 +11,7 @@ export default function Dm() {
 
   const [msgList, setMsgList] = useState([]);
   let loginUser: any;
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     loginUser = JSON.parse(
       localStorage?.getItem("loginUser") ?? "{ id: null, username: null }"
     );
