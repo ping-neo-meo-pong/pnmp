@@ -10,6 +10,8 @@ export default function Dm() {
   useSocketAuthorization();
   const router = useRouter();
 
+  const roomId = router.query.room_id;
+
   const [msgList, setMsgList] = useState([]);
   let loginUser: any;
   if (typeof window !== "undefined") {

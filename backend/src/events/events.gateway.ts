@@ -75,13 +75,16 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('authorize()');
     try {
       // remove jwt= from cookie string
-      const jwt = socket.handshake.headers.cookie.substr(4);
+      const cookie = socket.handshake.headers.cookie;
+      const jwt = cookie.substr(cookie.indexOf('jwt=')+4);
+      console.log(jwt);
       socket.user = this.jwtService.verify(jwt);
       this.socketRepository.save(socket.user.id, socket);
       //   const dmRooms = await this.dmRoomRepository.getDmRooms(socket.user.id);
       //   for (const dmRoom of dmRooms) socket.join(dmRoom.id);
     } catch (err) {
       socket.disconnect();
+      console.log('disconnect in authorize()');
     }
   }
 
