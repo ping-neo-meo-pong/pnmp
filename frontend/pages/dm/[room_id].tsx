@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { dmSocket } from "../../sockets/sockets";
 import { useSocketAuthorization } from "../../lib/socket";
+import { getLoginUser } from "../../lib/login";
 
 export default function Dm() {
   useSocketAuthorization();
@@ -23,9 +24,7 @@ export default function Dm() {
   }
 
   useEffect(() => {
-    loginUser = JSON.parse(
-      localStorage.getItem("loginUser") ?? "{ id: null, username: null }"
-    );
+    loginUser = getLoginUser();
     console.log(loginUser);
     if (roomId) {
       axios

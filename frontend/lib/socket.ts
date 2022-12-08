@@ -1,5 +1,7 @@
 import { io, Socket } from "socket.io-client";
 import { useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { isLoggedIn } from "./login";
 
 export const socket: Socket = io({ transports: ["websocket"] });
 socket.on("disconnect", () => {
@@ -7,7 +9,12 @@ socket.on("disconnect", () => {
 });
 
 export function useSocketAuthorization() {
+  const router = useRouter();
+
   useEffect(() => {
-    socket.emit("authorize");
+    if (isLoggedIn())
+      socket.emit("authorize");
+    else
+      router.push("/login");
   }, []);
 }

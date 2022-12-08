@@ -46,7 +46,6 @@ export default function Login() {
         console.log(user_data._id);
         // user_data._pass = event.currentTarget.password.value;
         socket.emit("authorize", user_data._token);
-        window.localStorage.isLoggedIn = true;
         const loginUser = {
           id: response.data.id,
           username: response.data.username,

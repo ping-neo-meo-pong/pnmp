@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { user_data } from "./login";
 import { socket, useSocketAuthorization } from "../lib/socket";
-import { logout } from "../lib/login";
+import { logout, getLoginUser } from "../lib/login";
 
 export default function Client() {
   useSocketAuthorization();
@@ -16,7 +16,11 @@ export default function Client() {
 
   console.log('clients page before useEffect');
   useEffect(() => {
-    console.log('clients page useEffect');
+    if (!router.isReady)
+      return ;
+
+    user_data._name = getLoginUser().username;
+    console.log(user_data._name);
     function goToGameRoom(roomId: number) {
       router.push(`/game/${roomId}`);
     }
@@ -37,7 +41,7 @@ export default function Client() {
       socket.off('gameInvited', gameInvited);
       socket.off('goToGameRoom', goToGameRoom);
     }
-  }, []);
+  }, [router.isReady]);
 
   function reset() {
     getDmRooms();

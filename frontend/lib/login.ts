@@ -3,8 +3,8 @@ import { useEffect } from "react";
 import axios from 'axios';
 
 export function isLoggedIn(): boolean {
-  console.log(`isLoggedIn(): localStorage.isLoggedIn: ${window.localStorage.isLoggedIn}`);
-  return !!window.localStorage.isLoggedIn;
+  console.log(`isLoggedIn(): localStorage.loginUser: ${window.localStorage.loginUser}`);
+  return !!window.localStorage.loginUser;
 }
 
 export function useLoginGuard() {
@@ -18,5 +18,18 @@ export function useLoginGuard() {
 
 export async function logout() {
   await axios.post('server/api/auth/logout');
-  window.localStorage.isLoggedIn = '';
+  window.localStorage.removeItem("loginUser");
+}
+
+export function getLoginUser() {
+  let loginUser: any;
+  if (typeof window !== "undefined") {
+    console.log(localStorage.getItem("loginUser"));
+    loginUser = JSON.parse(
+      localStorage?.getItem("loginUser") ?? '{ "id": null, "username": null }'
+    );
+  } else {
+    loginUser = { id: null, username: null };
+  }
+  return loginUser;
 }
