@@ -52,7 +52,7 @@ export default function Dm() {
           router.push("/login");
         });
     }
-  }, []);
+  }, [router.isReady]);
 
   function onSubmitMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
