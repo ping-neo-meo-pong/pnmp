@@ -4,25 +4,21 @@ import axios from "axios";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import { dmSocket } from "../../sockets/sockets";
+import { useSocketAuthorization } from "../../lib/socket";
+import { getLoginUser } from "../../lib/login";
 
 export default function Dm() {
+  useSocketAuthorization();
   const router = useRouter();
+
   const roomId = router.query.room_id;
 
-  const [msgList, setMsgList] = useState([]);
-  let loginUser: any;
-  if (typeof window !== "undefined") {
-    loginUser = JSON.parse(
-      localStorage?.getItem("loginUser") ?? "{ id: null, username: null }"
-    );
-  } else {
-    loginUser = { id: null, username: null };
-  }
+  const [msgList, setMsgList] = useState<any>([]);
+  let loginUser: any = getLoginUser();
 
   useEffect(() => {
-    loginUser = JSON.parse(
-      localStorage.getItem("loginUser") ?? "{ id: null, username: null }"
-    );
+    if (!router.isReady) return;
+    loginUser = getLoginUser();
     console.log(loginUser);
     if (roomId) {
       axios
@@ -35,7 +31,7 @@ export default function Dm() {
           dmSocket.emit("dmRoom", roomId);
           dmSocket.on(`drawDm`, (message) => {
             console.log(message);
-            setMsgList((current) => {
+            setMsgList((current: any) => {
               current.push(message);
               return [...current];
             });
@@ -46,7 +42,7 @@ export default function Dm() {
           });
         })
         .catch(() => {
-          router.push("/login");
+          // router.push("/login", );
         });
     }
   }, [router.isReady]);

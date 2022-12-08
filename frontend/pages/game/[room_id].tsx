@@ -1,9 +1,9 @@
-import { socket } from "../login";
+import { socket, useSocketAuthorization } from "../../lib/socket";
 import { user_data } from "../login";
 import axios from "axios";
 import { Router, useRouter } from "next/router";
 import React, { useEffect } from "react";
-import Sketch from "react-p5";
+import dynamic from "next/dynamic";
 import p5Types from "p5";
 import {
   frame,
@@ -15,8 +15,16 @@ import {
   draw_countDown,
   draw_countDown2,
 } from "./sketch.js";
+import { getLoginUser } from "../../lib/login";
+
+// Will only import `react-p5` on client-side
+const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
+  ssr: false,
+});
 
 let data = {
+  leftUser: "",
+  rightUser: "",
   is_player: -1,
   roomId: 0,
   H: 400,
@@ -46,19 +54,13 @@ let gameRoomId;
 let bar_loop: NodeJS.Timer;
 
 export default function GameRoom() {
+  useSocketAuthorization();
   const router = useRouter();
-  const roomId = `${router.query.room_id}`;
-
-  const setup = (p5: p5Types, canvasParentRef: Element) => {
-    // use parent to render the canvas in this ref
-    // (without that p5 will render the canvas outside of your component)
-    p5.createCanvas(data.W, data.H).parent(canvasParentRef);
-  };
   useEffect(() => {
+    if (!router.isReady) return;
     function routeChangeHandler() {
       socket.emit(`roomOut`, roomId);
     }
-    socket.emit("comeInGameRoom", roomId);
     router.events.on("routeChangeStart", routeChangeHandler);
     socket.on(`countDown`, (count: number) => {
       console.log(count);
@@ -78,25 +80,41 @@ export default function GameRoom() {
       // console.log(`game[${roomId}]`);
       data.p1.countDown = -1;
       data.p2.countDown = -1;
-      data = { ..._data };
+      data = {
+        ..._data.gameData,
+        leftUser: _data.leftUser.id,
+        rightUser: _data.rightUser.id,
+      };
     });
-    
-    socket.on('getOut!', async ()=>{
+
+    socket.on("getOut!", async () => {
       dataInit();
       await router.push(`/clients`);
     });
-    
-    return ()=>{
+
+    console.log("before emit comeInGameRoom");
+    socket.emit("comeInGameRoom", roomId);
+
+    return () => {
       console.log(`hi? return`);
       router.events.off("routeChangeStart", routeChangeHandler);
-      socket.off("comeInGameRoom");
+      //socket.off("comeInGameRoom");
       socket.off("countDown");
       socket.off(`countDown1`);
       socket.off(`countDown2`);
-      socket.off(`game[${roomId}]`);
-    }
-  }, []);
-  
+      //socket.off(`game[${roomId}]`);
+    };
+  }, [router.isReady]);
+
+  if (!router.isReady) return;
+  const roomId = router.query.room_id;
+
+  const setup = (p5: p5Types, canvasParentRef: Element) => {
+    // use parent to render the canvas in this ref
+    // (without that p5 will render the canvas outside of your component)
+    p5.createCanvas(data.W, data.H).parent(canvasParentRef);
+  };
+
   const draw = (p5: p5Types) => {
     p5.background(230);
     frame(p5, data);
@@ -110,11 +128,14 @@ export default function GameRoom() {
     } else {
       draw_countDown2(p5, data);
     }
-    p5.fill('white');
+    p5.fill("white");
     draw_p1_bar(p5, data);
     draw_p2_bar(p5, data);
 
-    if (user_data.is_player == 1) {
+    if (
+      data.leftUser == getLoginUser().id ||
+      data.rightUser == getLoginUser().id
+    ) {
       let send = {
         roomId: roomId,
         m_y: p5.mouseY,
@@ -129,6 +150,8 @@ export default function GameRoom() {
 
 function dataInit() {
   data = {
+    leftUser: "",
+    rightUser: "",
     is_player: -1,
     roomId: 0,
     H: 400,
