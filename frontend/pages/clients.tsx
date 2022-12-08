@@ -17,12 +17,12 @@ export default function Client() {
     }
     function gameInvited(inviterId: string) {
       console.log(`you got mail~`);
-      if (window.confirm(`invited by ${inviterId}\nplaying?`) == true) {
-        user_data.is_player = 1;
-        socket.emit('acceptFriendQue', inviterId);
-        socket.off(`acceptFriendQue`,);
-      }
-      else {}
+      // if (confirm(`invited by ${inviterId}\nplaying?`) == true) {
+      //   user_data.is_player = 1;
+      //   socket.emit('acceptFriendQue', inviterId);
+      //   socket.off(`acceptFriendQue`,);
+      // }
+      // else {}
     }
     user_data.is_player = 0;
     socket.on('goToGameRoom', goToGameRoom);
@@ -33,6 +33,11 @@ export default function Client() {
       socket.off('goToGameRoom', goToGameRoom);
     }
   }, []);
+
+  function reset() {
+    getDmRooms();
+    getGameRooms();
+  }
 
   function getDmRooms() {
     axios
@@ -49,18 +54,32 @@ export default function Client() {
       });
   }
   function getGameRooms() {
+    let newGameRoomList: any[] = [];
     axios.get("/server/api/game").then(function (response) {
       user_data.game_room = response.data;
-      let newGameRoomList = [];
       for (let gameRoom of user_data.game_room)
         newGameRoomList.push(
           <GoToGameRoom key={gameRoom.id} gameRoom={gameRoom} />
         );
       setGameRoomList(newGameRoomList);
     });
-  }
-  function onClickGameRoom() {
-    router.push(`/game/test`); //${user_data._name}`);
+    socket.emit('giveMeInvited');
+    socket.on(`invitedQue`, (ques)=>{
+      for (let que of ques) {
+        newGameRoomList.push(
+          <button key={que.inviterId} onClick={()=>{
+            socket.emit('acceptFriendQue', que.inviterId);
+            socket.off(`acceptFriendQue`,);
+            user_data.is_player = 1;
+          }}> {que.inviterName} </button>
+        )
+      }
+      setGameRoomList(...newGameRoomList);
+    })
+
+    return ()=>{
+      socket.off(`invitedQue`);
+    }
   }
 
   function onSubmitMessage(event: React.FormEvent<HTMLFormElement>) {
@@ -90,25 +109,15 @@ export default function Client() {
     } else {
       alert(`please input name`);
     }
-    // axios
-    //   .post(`/server/api/game`, {
-    //     invitedUserId: event.currentTarget.invitedUserId.value,
-    //   })
-    //   .then(function (response) {
-    //     const gameRoom = response.data;
-    //     setGameRoomList((current: JSX.Element[]) => {
-    //       current.push(<GoToGameRoom key={gameRoom.id} gameRoom={gameRoom} />);
-    //       return [...current];
-    //     });
-    //   })
-    //   .catch((error) => {
-    //     alert(error.response.data.message);
-    //   });
   }
 
   return (
     <div>
-      <h1>HI {user_data._name}</h1>
+      <h1>
+        HI {user_data._name}
+        <button onClick={()=>{router.push('/profile')}}><h1> 프로필 </h1></button>
+      </h1>
+      <button onClick={reset}> <h1>list 다시 불러오기</h1> </button>
       <h1>DM room list</h1>
       <form onSubmit={onSubmitMessage}>
         <button type="submit">create new DM room with </button>

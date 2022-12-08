@@ -1,60 +1,94 @@
-import { GameRoom } from './dto/game-room.dto';
+import { Game } from './dto/game-room.dto';
 import { GameMode } from 'src/enum/game-mode.enum';
 import { CreateGameRoomDto } from '../../api/game/dto/create-game-room.dto';
 import { User } from '../user/user.entity';
 import { Injectable } from '@nestjs/common';
+import { GameRoom } from './game-room.entity';
+import { Repository } from 'typeorm';
+import { CustomRepository } from 'src/typeorm-ex.decorator';
 
 @Injectable()
-export class GameRoomRepository {
-  private gameRooms: GameRoom[] = [];
-  private nextRoomId = 0;
+@CustomRepository(GameRoom)
+export class GameRoomRepository extends Repository<GameRoom> {
+  private gameRooms: any = {};
+  // private nextRoomId = 0;
 
-  async createGameRoom(
+  async createGameRoom(gameRoomData: CreateGameRoomDto): Promise<GameRoom> {
+    const gameRoom = this.create(gameRoomData);
+    await this.save(gameRoom);
+    return gameRoom;
+  }
+
+  async getGameRooms(userToken): Promise<GameRoom[]> {
+    const gameRooms = await this.find({
+      relations: ['leftUserId', 'rightUserId'],
+    });
+    return gameRooms;
+  }
+
+  async getGameRoomOne(userId): Promise<GameRoom> {
+    console.log(userId);
+    const gameRoom_left = await this.findOneBy({
+      leftUserId: { id: userId },
+    });
+    if (gameRoom_left) return gameRoom_left;
+
+    const gameRoom_right = await this.findOneBy({
+      rightUserId: { id: userId },
+    });
+    return gameRoom_right;
+  }
+
+  async createGame(
     leftUser: User,
     rightUser: User,
     gameMode: GameMode,
-  ): Promise<GameRoom> {
-    this.gameRooms[this.nextRoomId] = initRoom(
+  ): Promise<Game> {
+    const gameRoom = await this.createGameRoom({
+      leftUserId: leftUser,
+      rightUserId: rightUser,
+    });
+    this.gameRooms[gameRoom.id] = initRoom(
       leftUser,
       rightUser,
       gameMode,
-      this.nextRoomId.toString(),
+      gameRoom.id,
     );
-    return this.gameRooms[this.nextRoomId++];
+    return this.gameRooms[gameRoom.id];
   }
 
   eraseGameRoom(roomId: string) {
     delete this.gameRooms[roomId];
-    if (this.nextRoomId > 0) this.nextRoomId--;
+    // this.gameRooms.erase(roomId);
     console.log(this.gameRooms);
   }
 
-  async findById(roomId: number): Promise<GameRoom> {
+  async findById(roomId: string): Promise<Game> {
     return this.gameRooms[roomId];
   }
 
-  async findByUserId(userId: string): Promise<GameRoom | null> {
+  async findByUserId(userId: string): Promise<Game> {
     for (const i in this.gameRooms) {
       if (this.gameRooms[i].gameRoomDto.leftUser.id == userId)
         return this.gameRooms[i];
       else if (this.gameRooms[i].gameRoomDto.rightUser.id == userId)
         return this.gameRooms[i];
     }
-    return null;
+    return;
   }
 
-  async findAll(): Promise<GameRoom[]> {
+  async findAll(): Promise<Game[]> {
     return this.gameRooms;
   }
 
-  // async getGameRooms(userToken): Promise<GameRoom[]> {
+  // async getGameRooms(userToken): Promise<Game[]> {
   //   const gameRooms = await this.find({
   //     relations: ['leftUserId', 'rightUserId'],
   //   });
   //   return gameRooms;
   // }
 
-  // async getGameRoomOne(userId): Promise<GameRoom> {
+  // async getGameRoomOne(userId): Promise<Game> {
   //   console.log(userId);
   //   const gameRoom_left = await this.findOneBy({
   //     leftUserId: { id: userId },
