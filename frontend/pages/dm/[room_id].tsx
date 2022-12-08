@@ -14,16 +14,11 @@ export default function Dm() {
   const roomId = router.query.room_id;
 
   const [msgList, setMsgList] = useState([]);
-  let loginUser: any;
-  if (typeof window !== "undefined") {
-    loginUser = JSON.parse(
-      localStorage?.getItem("loginUser") ?? "{ id: null, username: null }"
-    );
-  } else {
-    loginUser = { id: null, username: null };
-  }
+  let loginUser: any = getLoginUser();
 
   useEffect(() => {
+    if (!router.isReady)
+      return ;
     loginUser = getLoginUser();
     console.log(loginUser);
     if (roomId) {
@@ -48,7 +43,7 @@ export default function Dm() {
           });
         })
         .catch(() => {
-          router.push("/login");
+          // router.push("/login", );
         });
     }
   }, [router.isReady]);

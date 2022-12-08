@@ -10,9 +10,9 @@ export default function Client() {
   const router = useRouter();
 
   let [dmRoomList, setDmRoomList]: any = useState([]);
-  useEffect(getDmRooms, []);
+  useEffect(getDmRooms, [router.isReady]);
   let [gameRoomList, setGameRoomList]: any = useState([]);
-  useEffect(getGameRooms, []);
+  useEffect(getGameRooms, [router.isReady]);
 
   console.log('clients page before useEffect');
   useEffect(() => {
@@ -49,6 +49,8 @@ export default function Client() {
   }
 
   function getDmRooms() {
+    if (!router.isReady)
+      return ;
     axios
       .get("/server/api/dm")
       .then(function (response) {
@@ -59,10 +61,12 @@ export default function Client() {
         setDmRoomList(newDmRoomList);
       })
       .catch(() => {
-        router.push("/login");
+        // router.push("/login");
       });
   }
   function getGameRooms() {
+    if (!router.isReady)
+      return ;
     let newGameRoomList: any[] = [];
     axios
     .get("/server/api/game")
@@ -75,7 +79,7 @@ export default function Client() {
       setGameRoomList(newGameRoomList);
     })
     .catch(() => {
-      router.push("/login");
+      // router.push("/login");
     });
     socket.emit('giveMeInvited');
     socket.on(`invitedQue`, (ques)=>{

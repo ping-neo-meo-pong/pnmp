@@ -49,6 +49,7 @@ export default function Login() {
         const loginUser = {
           id: response.data.id,
           username: response.data.username,
+          jwt: user_data._token,
         };
         window.localStorage.setItem("loginUser", JSON.stringify(loginUser));
         router.push("/clients");

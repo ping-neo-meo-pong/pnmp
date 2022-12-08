@@ -15,6 +15,7 @@ import {
   draw_countDown,
   draw_countDown2,
 } from "./sketch.js";
+import { getLoginUser } from "../../lib/login";
 
 // Will only import `react-p5` on client-side
 const Sketch = dynamic(() => import('react-p5').then((mod) => mod.default), {
@@ -22,6 +23,8 @@ const Sketch = dynamic(() => import('react-p5').then((mod) => mod.default), {
 })
 
 let data = {
+  leftUser: "",
+  rightUser: "",
   is_player: -1,
   roomId: 0,
   H: 400,
@@ -55,7 +58,7 @@ export default function GameRoom() {
   const router = useRouter();
   useEffect(() => {
     if (!router.isReady)
-      return ;
+      return;
     function routeChangeHandler() {
       socket.emit(`roomOut`, roomId);
     }
@@ -78,18 +81,18 @@ export default function GameRoom() {
       // console.log(`game[${roomId}]`);
       data.p1.countDown = -1;
       data.p2.countDown = -1;
-      data = { ..._data };
+      data = { ..._data.gameData, leftUser: _data.leftUser.id, rightUser: _data.rightUser.id };
     });
 
-    socket.on('getOut!', async ()=>{
+    socket.on('getOut!', async () => {
       dataInit();
       await router.push(`/clients`);
     });
-    
+
     console.log('before emit comeInGameRoom');
     socket.emit("comeInGameRoom", roomId);
-    
-    return ()=>{
+
+    return () => {
       console.log(`hi? return`);
       router.events.off("routeChangeStart", routeChangeHandler);
       //socket.off("comeInGameRoom");
@@ -101,15 +104,15 @@ export default function GameRoom() {
   }, [router.isReady]);
 
   if (!router.isReady)
-    return ;
+    return;
   const roomId = router.query.room_id;
-  
+
   const setup = (p5: p5Types, canvasParentRef: Element) => {
     // use parent to render the canvas in this ref
     // (without that p5 will render the canvas outside of your component)
     p5.createCanvas(data.W, data.H).parent(canvasParentRef);
   };
-  
+
   const draw = (p5: p5Types) => {
     p5.background(230);
     frame(p5, data);
@@ -127,7 +130,8 @@ export default function GameRoom() {
     draw_p1_bar(p5, data);
     draw_p2_bar(p5, data);
 
-    if (user_data.is_player == 1) {
+    if (data.leftUser == getLoginUser().id ||
+      data.rightUser == getLoginUser().id) {
       let send = {
         roomId: roomId,
         m_y: p5.mouseY,
@@ -142,6 +146,8 @@ export default function GameRoom() {
 
 function dataInit() {
   data = {
+    leftUser: "",
+    rightUser: "",
     is_player: -1,
     roomId: 0,
     H: 400,

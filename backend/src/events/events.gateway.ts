@@ -35,7 +35,7 @@ import { Side, WinLose } from '../enum/win-lose.enum';
 
 function wsGuard(socket: UserSocket) {
   if (!socket.hasOwnProperty('user')) {
-    socket.disconnect();
+    // socket.disconnect();
     throw new WsException('Not authorized');
   }
 }
@@ -71,12 +71,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('authorize')
   async authorize(
     @ConnectedSocket() socket: UserSocket,
+    @MessageBody() jwt: string,
   ) {
     console.log('authorize()');
     try {
-      // remove jwt= from cookie string
-      const cookie = socket.handshake.headers.cookie;
-      const jwt = cookie.substr(cookie.indexOf('jwt=')+4);
       console.log(jwt);
       socket.user = this.jwtService.verify(jwt);
       this.socketRepository.save(socket.user.id, socket);
@@ -230,19 +228,25 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
     //   if user == L ? R
     if (room.gameRoomDto.leftUser.id == client.user.id) {
+      clearInterval(room.gameLoop);
+      clearInterval(room.startTimer);
       clearInterval(room.p1EndTimer);
       room.gameRoomDto.gameData.p1.in = true;
     } else if (room.gameRoomDto.rightUser.id == client.user.id) {
+      clearInterval(room.gameLoop);
+      clearInterval(room.startTimer);
       clearInterval(room.p2EndTimer);
       room.gameRoomDto.gameData.p2.in = true;
     } else {
       console.log(`im viewer`);
+      client.emit(`game[${roomId}]`, room.gameRoomDto);
       return;
     }
 
     // if user L & R
     if (room.gameRoomDto.gameData.p1.in && room.gameRoomDto.gameData.p2.in) {
       let count = 3;
+      this.server.in(roomId).emit(`game[${roomId}]`, room.gameRoomDto);
       room.startTimer = setInterval(() => {
         if (count === 0) {
           clearInterval(room.startTimer);
@@ -250,7 +254,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
           room.gameLoop = setInterval(async () => {
             this.server
               .in(roomId)
-              .emit(`game[${roomId}]`, room.gameRoomDto.gameData);
+              .emit(`game[${roomId}]`, room.gameRoomDto);
             if (ball_engine(room.gameRoomDto, this.endScore) == false) {
               await this.saveHistory(room.gameRoomDto, this.endScore);
               this.closeGame(roomId, room);
@@ -294,7 +298,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     } else if (room.gameRoomDto.rightUser.id == client.user.id) {
       room.gameRoomDto.gameData.p2.mouse_y = _data.m_y;
     } else {
-      client.disconnect(); // attacker
+      // client.disconnect(); // attacker
     }
   }
 
@@ -429,7 +433,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   closeGame(roomId: string, room: Game) {
-    this.server.in(roomId).emit(`game[${roomId}]`, room.gameRoomDto.gameData);
+    this.server.in(roomId).emit(`game[${roomId}]`, room.gameRoomDto);
     console.log('game OVER!!!');
     clearInterval(room.gameLoop);
     // game history
