@@ -252,9 +252,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
           clearInterval(room.startTimer);
           clearInterval(room.gameLoop);
           room.gameLoop = setInterval(async () => {
-            this.server
-              .in(roomId)
-              .emit(`game[${roomId}]`, room.gameRoomDto);
+            this.server.in(roomId).emit(`game[${roomId}]`, room.gameRoomDto);
             if (ball_engine(room.gameRoomDto, this.endScore) == false) {
               await this.saveHistory(room.gameRoomDto, this.endScore);
               this.closeGame(roomId, room);

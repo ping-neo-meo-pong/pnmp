@@ -18,9 +18,9 @@ import {
 import { getLoginUser } from "../../lib/login";
 
 // Will only import `react-p5` on client-side
-const Sketch = dynamic(() => import('react-p5').then((mod) => mod.default), {
+const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
   ssr: false,
-})
+});
 
 let data = {
   leftUser: "",
@@ -57,8 +57,7 @@ export default function GameRoom() {
   useSocketAuthorization();
   const router = useRouter();
   useEffect(() => {
-    if (!router.isReady)
-      return;
+    if (!router.isReady) return;
     function routeChangeHandler() {
       socket.emit(`roomOut`, roomId);
     }
@@ -81,15 +80,19 @@ export default function GameRoom() {
       // console.log(`game[${roomId}]`);
       data.p1.countDown = -1;
       data.p2.countDown = -1;
-      data = { ..._data.gameData, leftUser: _data.leftUser.id, rightUser: _data.rightUser.id };
+      data = {
+        ..._data.gameData,
+        leftUser: _data.leftUser.id,
+        rightUser: _data.rightUser.id,
+      };
     });
 
-    socket.on('getOut!', async () => {
+    socket.on("getOut!", async () => {
       dataInit();
       await router.push(`/clients`);
     });
 
-    console.log('before emit comeInGameRoom');
+    console.log("before emit comeInGameRoom");
     socket.emit("comeInGameRoom", roomId);
 
     return () => {
@@ -100,11 +103,10 @@ export default function GameRoom() {
       socket.off(`countDown1`);
       socket.off(`countDown2`);
       //socket.off(`game[${roomId}]`);
-    }
+    };
   }, [router.isReady]);
 
-  if (!router.isReady)
-    return;
+  if (!router.isReady) return;
   const roomId = router.query.room_id;
 
   const setup = (p5: p5Types, canvasParentRef: Element) => {
@@ -126,12 +128,14 @@ export default function GameRoom() {
     } else {
       draw_countDown2(p5, data);
     }
-    p5.fill('white');
+    p5.fill("white");
     draw_p1_bar(p5, data);
     draw_p2_bar(p5, data);
 
-    if (data.leftUser == getLoginUser().id ||
-      data.rightUser == getLoginUser().id) {
+    if (
+      data.leftUser == getLoginUser().id ||
+      data.rightUser == getLoginUser().id
+    ) {
       let send = {
         roomId: roomId,
         m_y: p5.mouseY,

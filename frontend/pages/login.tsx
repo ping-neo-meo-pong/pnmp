@@ -23,8 +23,7 @@ export default function Login() {
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoggedIn())
-      router.push("/clients");
+    if (isLoggedIn()) router.push("/clients");
   }, []);
 
   async function onSubmitHandler(event: React.FormEvent<HTMLFormElement>) {

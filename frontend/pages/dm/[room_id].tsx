@@ -13,12 +13,11 @@ export default function Dm() {
 
   const roomId = router.query.room_id;
 
-  const [msgList, setMsgList] = useState([]);
+  const [msgList, setMsgList] = useState<any>([]);
   let loginUser: any = getLoginUser();
 
   useEffect(() => {
-    if (!router.isReady)
-      return ;
+    if (!router.isReady) return;
     loginUser = getLoginUser();
     console.log(loginUser);
     if (roomId) {
@@ -32,7 +31,7 @@ export default function Dm() {
           dmSocket.emit("dmRoom", roomId);
           dmSocket.on(`drawDm`, (message) => {
             console.log(message);
-            setMsgList((current) => {
+            setMsgList((current: any) => {
               current.push(message);
               return [...current];
             });
