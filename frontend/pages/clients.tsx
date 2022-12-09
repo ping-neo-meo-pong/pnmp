@@ -4,6 +4,7 @@ import axios from "axios";
 import { user_data } from "./login";
 import { socket, useSocketAuthorization } from "../lib/socket";
 import { logout, getLoginUser } from "../lib/login";
+import Layout from "../components/layout";
 
 export default function Client() {
   useSocketAuthorization();
@@ -135,7 +136,7 @@ export default function Client() {
   }
 
   return (
-    <div>
+    <Layout>
       <h1>
         HI {user_data._name}
         <button
@@ -189,7 +190,7 @@ export default function Client() {
       >
         Maching Mode 2
       </button>
-    </div>
+    </Layout>
   );
 }
 
