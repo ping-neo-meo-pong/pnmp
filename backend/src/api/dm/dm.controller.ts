@@ -30,15 +30,16 @@ export class DmController {
   @ApiBearerAuth()
   getDmRooms(@Request() request): Promise<DmRoom[]> {
     const userId = request.user.id;
-    return this.dmService.getDmRooms(userId);
+    return this.dmService.getDmRoomsByParticipant(userId);
   }
 
-  @Get('msg')
+  @Get(':roomId')
   @ApiOperation({ summary: '특정 dm방의 메세지 목록' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  getDms(@Query('roomId') roomId: any): Promise<Dm[]> {
-    return this.dmService.getDms(roomId);
+  getDms(@Request() request, @Param('roomId') roomId: string): Promise<Dm[]> {
+    const userId = request.user.id;
+    return this.dmService.getDms(roomId, userId);
   }
 
   @Post(':invitedUserId')

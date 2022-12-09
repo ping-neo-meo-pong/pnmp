@@ -12,6 +12,7 @@ import {
 import { Server, Socket } from 'socket.io';
 import { DmRepository } from '../../core/dm/dm.repository';
 import { DmRoomRepository } from '../../core/dm/dm-room.repository';
+import { BlockRepository } from '../../core/block/block.repository';
 
 @WebSocketGateway({ namespace: 'dm', transports: ['websocket'] })
 export class DmGateway
@@ -25,6 +26,8 @@ export class DmGateway
     private dmRepository: DmRepository,
     @InjectRepository(DmRoomRepository)
     private dmRoomRepository: DmRoomRepository,
+    @InjectRepository(BlockRepository)
+    private blockRepository: BlockRepository,
   ) {}
 
   afterInit() {
@@ -89,9 +92,24 @@ export class DmGateway
         id: newDm.id,
       },
     });
-    this.server.in(data.roomId).emit(`drawDm`, newDmData);
-    console.log(socket.id, socket.nsp.name);
-    console.log(data);
+    const dmRoom = await this.dmRoomRepository.getDmRoomByRoomId(data.roomId);
+    const userId =
+      data.userId === dmRoom.userId.id
+        ? dmRoom.invitedUserId.id
+        : dmRoom.userId.id;
+    const isBlockUser = await this.blockRepository.didUserBlockOther(
+      userId,
+      data.userId,
+    );
+    if (isBlockUser) {
+      this.server
+        .in(data.roomId)
+        .emit(`drawDm`, { ...newDmData, isSendUserBlocked: true });
+    } else {
+      this.server
+        .in(data.roomId)
+        .emit(`drawDm`, { ...newDmData, isSendUserBlocked: false });
+    }
   }
 
   //   @SubscribeMessage('id')

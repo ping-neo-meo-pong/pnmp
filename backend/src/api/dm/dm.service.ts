@@ -5,7 +5,7 @@ import { DmRepository } from '../../core/dm/dm.repository';
 import { DmRoom } from '../../core/dm/dm-room.entity';
 import { Dm } from '../../core/dm/dm.entity';
 import { UserRepository } from '../../core/user/user.repository';
-import { SocketRepository } from '../../core/socket/socket.repository';
+import { BlockRepository } from '../../core/block/block.repository';
 
 @Injectable()
 export class DmService {
@@ -16,7 +16,8 @@ export class DmService {
     private dmRepository: DmRepository,
     @InjectRepository(UserRepository)
     private userRepository: UserRepository,
-    private socketRepository: SocketRepository,
+    @InjectRepository(BlockRepository)
+    private blockRepository: BlockRepository,
   ) {}
 
   async createDmRoom(userId: string, invitedUserId: string) {
@@ -98,8 +99,8 @@ export class DmService {
   }
   */
 
-  async getDmRooms(userId: string): Promise<DmRoom[]> {
-    const dmRooms = await this.dmRoomRepository.getDmRooms(userId);
+  async getDmRoomsByParticipant(userId: string): Promise<DmRoom[]> {
+    const dmRooms = await this.dmRoomRepository.getDmRoomsByParticipant(userId);
     const result = [];
     for (const dmRoom of dmRooms) {
       result.push({
@@ -117,20 +118,22 @@ export class DmService {
     this.dmRepository.save(dmData);
   }
 
-  async getDms(roomId: any): Promise<Dm[]> {
-    if (!roomId) {
+  async getDms(roomId: string, userId: string): Promise<Dm[]> {
+    const dmRoom = await this.dmRoomRepository.getDmRoomByRoomId(roomId);
+    if (!dmRoom) {
       throw new BadRequestException('bad request');
     }
-    return await this.dmRepository.find({
-      relations: ['dmRoomId', 'sendUserId'],
-      order: {
-        createdAt: 'ASC',
-      },
-      where: {
-        dmRoomId: {
-          id: roomId,
-        },
-      },
-    });
+    const otherId =
+      userId === dmRoom.userId.id ? dmRoom.invitedUserId.id : dmRoom.userId.id;
+    const isBlockUser = await this.blockRepository.didUserBlockOther(
+      userId,
+      otherId,
+    );
+    return await this.dmRepository.getDms(
+      roomId,
+      userId,
+      otherId,
+      isBlockUser?.blockAt ?? null,
+    );
   }
 }

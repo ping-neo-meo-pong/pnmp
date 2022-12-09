@@ -1,4 +1,4 @@
-import { Repository } from 'typeorm';
+import { Repository, IsNull, Not } from 'typeorm';
 import { Block } from './block.entity';
 import { CustomRepository } from '../../typeorm-ex.decorator';
 import { User } from '../user/user.entity';
@@ -12,5 +12,20 @@ export class BlockRepository extends Repository<Block> {
     });
     await this.save(block);
     return block;
+  }
+
+  async didUserBlockOther(userId: string, otherId: string) {
+    return await this.findOne({
+      relations: ['userId', 'blockedUserId'],
+      where: {
+        userId: {
+          id: userId,
+        },
+        blockedUserId: {
+          id: otherId,
+        },
+        blockAt: Not(IsNull()),
+      },
+    });
   }
 }
