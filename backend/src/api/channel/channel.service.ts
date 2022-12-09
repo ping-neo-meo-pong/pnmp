@@ -152,6 +152,7 @@ export class ChannelService {
     }
     await this.channelMemberRepository.update(joinChannels.id, {
       leftAt: () => 'CURRENT_TIMESTAMP',
+      roleInChannel: RoleInChannel.NORMAL,
     });
     if (joinChannels.roleInChannel === RoleInChannel.OWNER) {
       await this.changeChannelOwner(channelId);
