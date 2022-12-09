@@ -14,6 +14,18 @@ export class BlockRepository extends Repository<Block> {
     return block;
   }
 
+  async getBlockUsers(userId: string) {
+    return await this.find({
+      relations: ['userId', 'blockedUserId'],
+      where: {
+        userId: {
+          id: userId,
+        },
+        blockAt: Not(IsNull()),
+      },
+    });
+  }
+
   async didUserBlockOther(userId: string, otherId: string) {
     return await this.findOne({
       relations: ['userId', 'blockedUserId'],

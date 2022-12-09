@@ -11,6 +11,8 @@ import { UserRepository } from '../../core/user/user.repository';
 import { ChannelPasswordDto } from './dto/channel-password.dto';
 import { RoleInChannel } from 'src/enum/role-in-channel.enum';
 import { ChangeRoleInChannelDto } from './dto/change-role-in-channel.dto';
+import { BlockRepository } from '../../core/block/block.repository';
+import { ChannelMessageRepository } from '../../core/channel/channel-message.repository';
 
 @Injectable()
 export class ChannelService {
@@ -19,8 +21,12 @@ export class ChannelService {
     private channelRepository: ChannelRepository,
     @InjectRepository(ChannelMemberRepository)
     private channelMemberRepository: ChannelMemberRepository,
+    @InjectRepository(ChannelMessageRepository)
+    private channelMessageRepository: ChannelMessageRepository,
     @InjectRepository(UserRepository)
     private userRepository: UserRepository,
+    @InjectRepository(BlockRepository)
+    private blockRepository: BlockRepository,
   ) {}
 
   async getChannels(userId: string): Promise<Channel[]> {
@@ -124,6 +130,19 @@ export class ChannelService {
       leftAt: () => 'CURRENT_TIMESTAMP',
     });
     return channel;
+  }
+
+  async getChannelMessages(userId: string, channelId: string) {
+    const channel = await this.channelRepository.findOneBy({ id: channelId });
+    if (!channel) {
+      throw new BadRequestException('채널 정보가 잘못됨');
+    }
+    const blockUsers = await this.blockRepository.getBlockUsers(userId);
+    return await this.channelMessageRepository.getChannelMessages(
+      userId,
+      channelId,
+      blockUsers,
+    );
   }
 
   async findParticipants(channelId: string): Promise<User[]> {

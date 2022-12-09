@@ -10,6 +10,7 @@ import { ChannelMessage } from '../../core/channel/channel-message.entity';
 import { ChannelMemberRepository } from '../../core/channel/channel-member.repository';
 import { ChannelMessageRepository } from '../../core/channel/channel-message.repository';
 import { UserRepository } from '../../core/user/user.repository';
+import { BlockRepository } from '../../core/block/block.repository';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UserRepository } from '../../core/user/user.repository';
       ChannelMemberRepository,
       ChannelMessageRepository,
       UserRepository,
+      BlockRepository,
     ]),
   ],
   controllers: [ChannelController],

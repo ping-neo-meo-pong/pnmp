@@ -78,6 +78,18 @@ export class ChannelController {
     return this.channelService.getOutChannel(userId, channelId);
   }
 
+  @Get(':channelId')
+  @ApiOperation({ summary: '특정 채널 메세지 불러오기' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  getChannelMessages(
+    @Req() req,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
+  ) {
+    const userId = req.user.id;
+    return this.channelService.getChannelMessages(userId, channelId);
+  }
+
   @Get(':channelId/member')
   @ApiOperation({ summary: '특정 채널에 참여한 멤버 보기' })
   findParticipants(@Param('channelId', ParseUUIDPipe) channelId: string) {
