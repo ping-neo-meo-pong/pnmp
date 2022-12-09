@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  BadRequestException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../core/user/user.entity';
 import { UserRepository } from '../../core/user/user.repository';
@@ -12,7 +8,6 @@ import { Like, IsNull, In, Not } from 'typeorm';
 import { FriendRespository } from '../../core/friend/friend.repository';
 import { Friend } from '../../core/friend/friend.entity';
 import { BlockRepository } from '../../core/block/block.repository';
-import { UserRole } from '../../enum/user-role.enum';
 import { ChannelRepository } from '../../core/channel/channel.repository';
 import { ChannelMemberRepository } from '../../core/channel/channel-member.repository';
 import { GameHistoryRepository } from '../../core/game/game-history.repository';
@@ -181,34 +176,8 @@ export class UserService {
     return { success: true };
   }
 
-  async blockUserFromService(userId: string, banId: string) {
-    const user = await this.findUserById(userId);
-    if (!(user.role === UserRole.OWNER || user.role === UserRole.MODERATOR)) {
-      throw new ForbiddenException('권한이 없습니다');
-    }
-    if (userId === banId) {
-      throw new BadRequestException('userId === blockId');
-    }
-    const banUser = await this.findUserById(banId);
-    if (!banUser) {
-      throw new BadRequestException('존재하지 않는 유저');
-    }
-    if (banUser.role === UserRole.OWNER) {
-      throw new ForbiddenException('권한이 없습니다');
-    } else if (banUser.role === UserRole.BAN) {
-      throw new BadRequestException('이미 정지된 유저입니다');
-    }
-    await this.userRepository.update(banUser.id, {
-      role: UserRole.BAN,
-    });
-    return { success: true };
-  }
-
   async findChannelByParticipant(userId: string) {
-    const user = await this.findUserById(userId);
-    if (user.role === UserRole.OWNER || user.role === UserRole.MODERATOR) {
-      return this.channelRepository.find();
-    }
+    // const user = await this.findUserById(userId);
     const joinChannels = await this.channelMemberRepository.find({
       relations: ['userId', 'channelId'],
       where: {

@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ChannelRepository } from '../../core/channel/channel.repository';
 import { ChannelMemberRepository } from '../../core/channel/channel-member.repository';
 import { Channel } from '../../core/channel/channel.entity';
-import { UserRole } from 'src/enum/user-role.enum';
 import { IsNull } from 'typeorm';
 import { ChannelMember } from '../../core/channel/channel-member.entity';
 import { User } from '../../core/user/user.entity';
@@ -25,13 +24,8 @@ export class ChannelService {
   ) {}
 
   async getChannels(userId: string): Promise<Channel[]> {
-    const user = await this.userRepository.findOneBy({ id: userId });
-    if (user.role === UserRole.OWNER || user.role === UserRole.MODERATOR) {
-      return this.channelRepository.find();
-    }
     const joinChannels =
       await this.channelMemberRepository.getChannelsJoinCurrently(userId);
-    // const time = new Date();
     const joinChannelsId = joinChannels.map((channel) => channel.channelId.id);
     return await this.channelRepository.getChannels(joinChannelsId);
   }
@@ -53,13 +47,6 @@ export class ChannelService {
     const isExistChannel = await this.channelRepository.findOneBy({
       id: channelId,
     });
-    const user = await this.userRepository.findOneBy({ id: userId });
-    if (user.role === UserRole.OWNER || user.role === UserRole.MODERATOR) {
-      await this.channelRepository.update(channelId, {
-        deletedAt: () => 'CURRENT_TIMESTAMP',
-      });
-      return { success: true };
-    }
     const isJoinChannel =
       await this.channelMemberRepository.findChannelJoinAsAdmin(
         userId,
@@ -238,16 +225,6 @@ export class ChannelService {
       throw new BadRequestException(
         '채널에 대한 권한이 없거나 해당 유저를 차단할 수 없습니다.',
       );
-    }
-
-    // website admin
-    const user = await this.userRepository.findOneBy({ id: userId });
-    const target = await this.userRepository.findOneBy({ id: targetId });
-    if (
-      user.role === UserRole.OWNER ||
-      (user.role === UserRole.MODERATOR && target.role !== UserRole.OWNER)
-    ) {
-      return targetIdJoinInChannel;
     }
 
     // channel admin
