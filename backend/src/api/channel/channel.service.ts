@@ -37,8 +37,11 @@ export class ChannelService {
   }
 
   async makeChannel(userId: string, createChannelData: CreateChannelDto) {
-    const isExistChannel = await this.channelRepository.findOneBy({
-      channelName: createChannelData.channelName,
+    const isExistChannel = await this.channelRepository.findOne({
+      where: {
+        channelName: createChannelData.channelName,
+        deletedAt: IsNull(),
+      },
     });
     if (isExistChannel) {
       throw new BadRequestException('채널 이름 중복');
@@ -109,6 +112,27 @@ export class ChannelService {
     return channelMember;
   }
 
+  async changeChannelOwner(channelId: string) {
+    let ownerCandidates =
+      await this.channelMemberRepository.getChannelAdministrators(channelId);
+    if (ownerCandidates.length == 0) {
+      ownerCandidates =
+        await this.channelMemberRepository.getChannelMembersExcludeOwner(
+          channelId,
+        );
+    }
+    if (ownerCandidates.length == 0) {
+      await this.channelRepository.update(channelId, {
+        deletedAt: () => 'CURRENT_TIMESTAMP',
+      });
+      return null;
+    }
+    await this.channelMemberRepository.update(ownerCandidates[0].id, {
+      roleInChannel: RoleInChannel.OWNER,
+    });
+    return ownerCandidates[0].id;
+  }
+
   async getOutChannel(
     userId: string,
     channelId: string,
@@ -129,7 +153,10 @@ export class ChannelService {
     await this.channelMemberRepository.update(joinChannels.id, {
       leftAt: () => 'CURRENT_TIMESTAMP',
     });
-    return channel;
+    if (joinChannels.roleInChannel === RoleInChannel.OWNER) {
+      await this.changeChannelOwner(channelId);
+    }
+    return await this.channelRepository.findOneBy({ id: channelId });
   }
 
   async getChannelMessages(userId: string, channelId: string) {
