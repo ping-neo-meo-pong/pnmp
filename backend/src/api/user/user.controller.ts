@@ -128,18 +128,6 @@ export class UserController {
     return this.userService.findChannelByParticipant(userId);
   }
 
-  @Get('/:banId/ban')
-  @ApiOperation({ summary: '어드민 권한을 가진 유저가 일반 사용자를 차단' })
-  @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
-  blockUserFromService(@Req() req, @Param('banId') banId: string) {
-    if (!isUUID(banId)) {
-      throw new BadRequestException('id가 uuid가 아님');
-    }
-    const userId = req.user.id;
-    return this.userService.blockUserFromService(userId, banId);
-  }
-
   @Get(':id')
   @ApiOperation({ summary: '특정 유저 프로필 조회' })
   @ApiParam({

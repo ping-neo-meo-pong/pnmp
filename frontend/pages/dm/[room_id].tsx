@@ -22,7 +22,7 @@ export default function Dm() {
     console.log(loginUser);
     if (roomId) {
       axios
-        .get(`/server/api/dm/msg?roomId=${roomId}`)
+        .get(`/server/api/dm/${roomId}`)
         .then(function (response) {
           const dmList = response.data;
           console.log(dmList);
@@ -31,10 +31,16 @@ export default function Dm() {
           dmSocket.emit("dmRoom", roomId);
           dmSocket.on(`drawDm`, (message) => {
             console.log(message);
-            setMsgList((current: any) => {
-              current.push(message);
-              return [...current];
-            });
+            if (
+              !(
+                loginUser.id !== message.sendUserId.id &&
+                message.isSendUserBlocked
+              )
+            )
+              setMsgList((current: any) => {
+                current.push(message);
+                return [...current];
+              });
           });
 
           router.events.on("routeChangeStart", () => {

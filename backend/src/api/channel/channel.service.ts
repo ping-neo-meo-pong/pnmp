@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ChannelRepository } from '../../core/channel/channel.repository';
 import { ChannelMemberRepository } from '../../core/channel/channel-member.repository';
 import { Channel } from '../../core/channel/channel.entity';
-import { UserRole } from 'src/enum/user-role.enum';
 import { IsNull } from 'typeorm';
 import { ChannelMember } from '../../core/channel/channel-member.entity';
 import { User } from '../../core/user/user.entity';
@@ -12,6 +11,8 @@ import { UserRepository } from '../../core/user/user.repository';
 import { ChannelPasswordDto } from './dto/channel-password.dto';
 import { RoleInChannel } from 'src/enum/role-in-channel.enum';
 import { ChangeRoleInChannelDto } from './dto/change-role-in-channel.dto';
+import { BlockRepository } from '../../core/block/block.repository';
+import { ChannelMessageRepository } from '../../core/channel/channel-message.repository';
 
 @Injectable()
 export class ChannelService {
@@ -20,25 +21,27 @@ export class ChannelService {
     private channelRepository: ChannelRepository,
     @InjectRepository(ChannelMemberRepository)
     private channelMemberRepository: ChannelMemberRepository,
+    @InjectRepository(ChannelMessageRepository)
+    private channelMessageRepository: ChannelMessageRepository,
     @InjectRepository(UserRepository)
     private userRepository: UserRepository,
+    @InjectRepository(BlockRepository)
+    private blockRepository: BlockRepository,
   ) {}
 
   async getChannels(userId: string): Promise<Channel[]> {
-    const user = await this.userRepository.findOneBy({ id: userId });
-    if (user.role === UserRole.OWNER || user.role === UserRole.MODERATOR) {
-      return this.channelRepository.find();
-    }
     const joinChannels =
       await this.channelMemberRepository.getChannelsJoinCurrently(userId);
-    // const time = new Date();
     const joinChannelsId = joinChannels.map((channel) => channel.channelId.id);
     return await this.channelRepository.getChannels(joinChannelsId);
   }
 
   async makeChannel(userId: string, createChannelData: CreateChannelDto) {
-    const isExistChannel = await this.channelRepository.findOneBy({
-      channelName: createChannelData.channelName,
+    const isExistChannel = await this.channelRepository.findOne({
+      where: {
+        channelName: createChannelData.channelName,
+        deletedAt: IsNull(),
+      },
     });
     if (isExistChannel) {
       throw new BadRequestException('채널 이름 중복');
@@ -53,13 +56,6 @@ export class ChannelService {
     const isExistChannel = await this.channelRepository.findOneBy({
       id: channelId,
     });
-    const user = await this.userRepository.findOneBy({ id: userId });
-    if (user.role === UserRole.OWNER || user.role === UserRole.MODERATOR) {
-      await this.channelRepository.update(channelId, {
-        deletedAt: () => 'CURRENT_TIMESTAMP',
-      });
-      return { success: true };
-    }
     const isJoinChannel =
       await this.channelMemberRepository.findChannelJoinAsAdmin(
         userId,
@@ -116,6 +112,27 @@ export class ChannelService {
     return channelMember;
   }
 
+  async changeChannelOwner(channelId: string) {
+    let ownerCandidates =
+      await this.channelMemberRepository.getChannelAdministrators(channelId);
+    if (ownerCandidates.length == 0) {
+      ownerCandidates =
+        await this.channelMemberRepository.getChannelMembersExcludeOwner(
+          channelId,
+        );
+    }
+    if (ownerCandidates.length == 0) {
+      await this.channelRepository.update(channelId, {
+        deletedAt: () => 'CURRENT_TIMESTAMP',
+      });
+      return null;
+    }
+    await this.channelMemberRepository.update(ownerCandidates[0].id, {
+      roleInChannel: RoleInChannel.OWNER,
+    });
+    return ownerCandidates[0].id;
+  }
+
   async getOutChannel(
     userId: string,
     channelId: string,
@@ -135,8 +152,25 @@ export class ChannelService {
     }
     await this.channelMemberRepository.update(joinChannels.id, {
       leftAt: () => 'CURRENT_TIMESTAMP',
+      roleInChannel: RoleInChannel.NORMAL,
     });
-    return channel;
+    if (joinChannels.roleInChannel === RoleInChannel.OWNER) {
+      await this.changeChannelOwner(channelId);
+    }
+    return await this.channelRepository.findOneBy({ id: channelId });
+  }
+
+  async getChannelMessages(userId: string, channelId: string) {
+    const channel = await this.channelRepository.findOneBy({ id: channelId });
+    if (!channel) {
+      throw new BadRequestException('채널 정보가 잘못됨');
+    }
+    const blockUsers = await this.blockRepository.getBlockUsers(userId);
+    return await this.channelMessageRepository.getChannelMessages(
+      userId,
+      channelId,
+      blockUsers,
+    );
   }
 
   async findParticipants(channelId: string): Promise<User[]> {
@@ -238,16 +272,6 @@ export class ChannelService {
       throw new BadRequestException(
         '채널에 대한 권한이 없거나 해당 유저를 차단할 수 없습니다.',
       );
-    }
-
-    // website admin
-    const user = await this.userRepository.findOneBy({ id: userId });
-    const target = await this.userRepository.findOneBy({ id: targetId });
-    if (
-      user.role === UserRole.OWNER ||
-      (user.role === UserRole.MODERATOR && target.role !== UserRole.OWNER)
-    ) {
-      return targetIdJoinInChannel;
     }
 
     // channel admin

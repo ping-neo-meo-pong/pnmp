@@ -1,4 +1,4 @@
-import { Repository, IsNull, LessThan } from 'typeorm';
+import { Repository, IsNull, LessThan, Not } from 'typeorm';
 import { ChannelMember } from './channel-member.entity';
 import { CustomRepository } from '../../typeorm-ex.decorator';
 import { User } from '../user/user.entity';
@@ -47,6 +47,36 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
       relations: ['userId', 'channelId'],
       where: {
         userId: { id: userId },
+        channelId: { id: channelId, deletedAt: IsNull() },
+      },
+    });
+  }
+
+  async getChannelAdministrators(channelId: string) {
+    return await this.find({
+      relations: ['userId', 'channelId'],
+      order: {
+        createdAt: 'ASC',
+      },
+      where: {
+        leftAt: IsNull(),
+        banEndAt: IsNull() || LessThan(new Date()),
+        roleInChannel: RoleInChannel.ADMINISTRATOR,
+        channelId: { id: channelId, deletedAt: IsNull() },
+      },
+    });
+  }
+
+  async getChannelMembersExcludeOwner(channelId: string) {
+    return await this.find({
+      relations: ['userId', 'channelId'],
+      order: {
+        createdAt: 'ASC',
+      },
+      where: {
+        leftAt: IsNull(),
+        banEndAt: IsNull() || LessThan(new Date()),
+        roleInChannel: Not(RoleInChannel.OWNER),
         channelId: { id: channelId, deletedAt: IsNull() },
       },
     });
