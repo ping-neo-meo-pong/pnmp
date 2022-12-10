@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { dmSocket } from "../../sockets/sockets";
 import { useSocketAuthorization } from "../../lib/socket";
 import { getLoginUser } from "../../lib/login";
+import Layout from "../../components/Layout";
 
 export default function Dm() {
   useSocketAuthorization();
@@ -60,7 +61,7 @@ export default function Dm() {
   }
 
   return (
-    <div>
+    <Layout>
       <h1>dm</h1>
       <form id="username" onSubmit={onSubmitMessage}>
         <input type="text" id="message" name="message" />
@@ -69,7 +70,7 @@ export default function Dm() {
       {msgList.map((msg: any) => (
         <DmMessage key={msg?.id} dm={msg} />
       ))}
-    </div>
+    </Layout>
   );
 }
 

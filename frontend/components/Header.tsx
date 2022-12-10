@@ -8,19 +8,10 @@ import Link from '@mui/material/Link';
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
+import Box from '@mui/material/Box';
 import MenuIcon from '@mui/icons-material/Menu';
 
-interface HeaderProps {
-  sections: ReadonlyArray<{
-    title: string;
-    url: string;
-  }>;
-  title: string;
-}
-
-export default function Header(props: HeaderProps) {
-  const { sections, title } = props;
-
+export default function Header({ title }) {
   return (
     <React.Fragment>
       <Toolbar sx={{ borderBottom: 1, borderColor: 'divider' }}>
@@ -35,22 +26,16 @@ export default function Header(props: HeaderProps) {
           {title}
         </Typography>
       </Toolbar>
-      <Grid container>
-        <Grid item xs={8}>
-          <Grid container>
-            <Grid item xs={2}>
-              <Button variant="contained">Find match</Button>
-            </Grid>
-            <Grid item xs={10}>
-              <Grid container direction="row-reverse">
-                <Button>leaderboard</Button>
-                <Button>live</Button>
-              </Grid>
-            </Grid>
-          </Grid>
+      <Grid container spacing={2} sx={{ py: 2 }}>
+        <Grid item xs={12} md={9} sx={{ display: "flex" }}>
+          <Box sx={{ display: "inline", flex: 1 }}>
+            <Button variant="contained">find match</Button>
+          </Box>
+          <Button>live</Button>
+          <Button>leaderboard</Button>
         </Grid>
-        <Grid item xs={4}>
-          <Stack direction="row" spacing={2}>
+        <Grid item xs={12} md={3}>
+          <Stack direction="row" spacing={2} alignItems="center">
             <Avatar>P</Avatar>
             <Typography
               component="h2"
@@ -61,7 +46,9 @@ export default function Header(props: HeaderProps) {
             >
               User
             </Typography>
-            <MenuIcon />
+            <IconButton>
+              <MenuIcon />
+            </IconButton>
           </Stack>
         </Grid>
       </Grid>

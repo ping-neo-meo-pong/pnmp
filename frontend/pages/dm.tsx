@@ -4,6 +4,7 @@ import axios from "axios";
 import { user_data } from "./login";
 import { dmSocket } from "../sockets/sockets";
 import Link from "next/link";
+import Layout from "../components/Layout";
 
 export default function Dm() {
   const router = useRouter();
@@ -111,39 +112,41 @@ const SearchBar = ({ setInvitedUser }: any) => {
   }, [searchWord]);
 
   return (
-    <form style={{ minHeight: "200px" }} onSubmit={onSubmit}>
-      <input
-        type="text"
-        autoComplete="off"
-        placeholder="username을 검색하세요"
-        value={searchWord}
-        onChange={onChange}
-        onFocus={displayOnFocus}
-        // onBlur={() => {
-        //   const timeEvent = setTimeout(() => {
-        //     displayNoneOnBlur();
-        //   }, 100);
-        //   return () => clearTimeout(timeEvent);
-        // }}
-      />
-      <button type="submit" onSubmit={onSubmit}>
-        검색
-      </button>
-      <div
-        id="auto-search-container"
-        style={{
-          border: "2px solid",
-          width: "max-content",
-          padding: "10px",
-          display: "none",
-        }}
-      >
-        {searchUser.map((user) => (
-          <AutoSearch searchResult={user} setInvitedUser={setInvitedUser} />
-        ))}
-      </div>
-      <br></br>
-    </form>
+    <Layout>
+      <form style={{ minHeight: "200px" }} onSubmit={onSubmit}>
+        <input
+          type="text"
+          autoComplete="off"
+          placeholder="username을 검색하세요"
+          value={searchWord}
+          onChange={onChange}
+          onFocus={displayOnFocus}
+          // onBlur={() => {
+          //   const timeEvent = setTimeout(() => {
+          //     displayNoneOnBlur();
+          //   }, 100);
+          //   return () => clearTimeout(timeEvent);
+          // }}
+        />
+        <button type="submit" onSubmit={onSubmit}>
+          검색
+        </button>
+        <div
+          id="auto-search-container"
+          style={{
+            border: "2px solid",
+            width: "max-content",
+            padding: "10px",
+            display: "none",
+          }}
+        >
+          {searchUser.map((user) => (
+            <AutoSearch searchResult={user} setInvitedUser={setInvitedUser} />
+          ))}
+        </div>
+        <br></br>
+      </form>
+    </Layout>
   );
 };
 

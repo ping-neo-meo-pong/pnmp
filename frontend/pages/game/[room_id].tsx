@@ -14,8 +14,9 @@ import {
   draw_ball,
   draw_countDown,
   draw_countDown2,
-} from "./sketch.js";
+} from "./sketch.ts";
 import { getLoginUser } from "../../lib/login";
+import Layout from "../../components/Layout";
 
 // Will only import `react-p5` on client-side
 const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
@@ -145,7 +146,11 @@ export default function GameRoom() {
 
     if (data.ball.x != 0) draw_ball(p5, data);
   };
-  return <Sketch setup={setup} draw={draw} />;
+  return (
+    <Layout>
+      <Sketch setup={setup} draw={draw} />
+    </Layout>
+  );
 }
 
 function dataInit() {
