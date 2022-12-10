@@ -1,7 +1,6 @@
-import * as React from 'react';
+import { useState, useEffect } from 'react';
 import Toolbar from '@mui/material/Toolbar';
 import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
 import SearchIcon from '@mui/icons-material/Search';
 import Typography from '@mui/material/Typography';
 import Link from '@mui/material/Link';
@@ -9,11 +8,18 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
-import MenuIcon from '@mui/icons-material/Menu';
+import UserMenu from './UserMenu';
+import { getLoginUser } from '../lib/login';
 
 export default function Header({ title }) {
+  const [userName, setUserName] = useState<string>(null);
+
+  useEffect(() => {
+    setUserName(getLoginUser().username);
+  }, []);
+
   return (
-    <React.Fragment>
+    <>
       <Toolbar sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Typography
           component="h2"
@@ -44,14 +50,12 @@ export default function Header({ title }) {
               noWrap
               sx={{ flex: 1 }}
             >
-              User
+              { userName }
             </Typography>
-            <IconButton>
-              <MenuIcon />
-            </IconButton>
+            <UserMenu />
           </Stack>
         </Grid>
       </Grid>
-    </React.Fragment>
+    </>
   );
 }
