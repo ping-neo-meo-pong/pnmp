@@ -4,7 +4,7 @@ import axios from "axios";
 import { user_data } from "./login";
 import { dmSocket } from "../sockets/sockets";
 import Link from "next/link";
-import Layout from "../components/Layout";
+import Layout from "../components/layout";
 
 export default function Dm() {
   const router = useRouter();

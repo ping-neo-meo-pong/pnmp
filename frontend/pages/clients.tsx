@@ -4,9 +4,9 @@ import axios from "axios";
 import { user_data } from "./login";
 import { socket, useSocketAuthorization } from "../lib/socket";
 import { logout, getLoginUser } from "../lib/login";
-import Layout from "../components/Layout";
+import Layout from "../components/layout";
 import { Button } from "@mui/material";
-import {InviteModal, InviteModalWithUserName} from "../components/InviteModal";
+import { InviteModal, InviteModalWithUserName, MatchingModal } from "../components/InviteModal";
 
 export default function Client() {
   useSocketAuthorization();
@@ -196,6 +196,7 @@ export default function Client() {
       >
         Maching Mode 2
       </button>
+      <MatchingModal />
     </Layout>
   );
 }

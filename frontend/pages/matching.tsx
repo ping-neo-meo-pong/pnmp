@@ -2,7 +2,7 @@ import { useRouter } from "next/router";
 import { user_data } from "./login";
 import { socket, useSocketAuthorization } from "../lib/socket";
 import { useEffect } from "react";
-import Layout from "../components/Layout";
+import Layout from "../components/layout";
 
 export default function matching() {
   useSocketAuthorization();
