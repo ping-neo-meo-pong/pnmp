@@ -7,67 +7,46 @@ import MenuList from '@mui/material/MenuList';
 import Stack from '@mui/material/Stack';
 import MenuIcon from '@mui/icons-material/Menu';
 import IconButton from '@mui/material/IconButton';
+import { useRouter } from 'next/router';
+import { logout } from '../lib/login';
 
 export default function UserMenu() {
-  const [open, setOpen] = React.useState(false);
-  const anchorRef = React.useRef<HTMLButtonElement>(null);
+  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const router = useRouter();
 
-  const handleToggle = () => {
-    setOpen((prevOpen) => !prevOpen);
+  const handleToggle = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(anchorEl ? null : event.currentTarget);
   };
 
-  const handleClose = (event: Event | React.SyntheticEvent) => {
-    if (
-      anchorRef.current &&
-      anchorRef.current.contains(event.target as HTMLElement)
-    ) {
-      return;
-    }
-
-    setOpen(false);
+  const handleClose = () => {
+    setAnchorEl(null);
   };
 
-  function handleListKeyDown(event: React.KeyboardEvent) {
-    if (event.key === 'Tab') {
-      event.preventDefault();
-      setOpen(false);
-    } else if (event.key === 'Escape') {
-      setOpen(false);
-    }
+  const handleLogout = async () => {
+    setAnchorEl(null);
+    await logout();
+    router.push("/login");
   }
 
-  // return focus to the button when we transitioned from !open -> open
-  const prevOpen = React.useRef(open);
-  React.useEffect(() => {
-    if (prevOpen.current === true && open === false) {
-      anchorRef.current!.focus();
-    }
-
-    prevOpen.current = open;
-  }, [open]);
+  const open = Boolean(anchorEl);
 
   return (
     <>
       <IconButton
-        ref={anchorRef}
         onClick={handleToggle}
       >
         <MenuIcon />
       </IconButton>
       <Popper
         open={open}
-        anchorEl={anchorRef.current}
+        anchorEl={anchorEl}
+        placement="bottom-end"
       >
         <Paper>
           <MenuList
-            autoFocusItem={open}
-            id="composition-menu"
-            aria-labelledby="composition-button"
-            onKeyDown={handleListKeyDown}
           >
             <MenuItem onClick={handleClose}>Profile</MenuItem>
-            <MenuItem onClick={handleClose}>My account</MenuItem>
-            <MenuItem onClick={handleClose}>Logout</MenuItem>
+            <MenuItem onClick={handleLogout}>Logout</MenuItem>
           </MenuList>
         </Paper>
       </Popper>
