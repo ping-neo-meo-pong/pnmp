@@ -275,6 +275,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         const user = await this.userRepository.findOneBy({
           id: que.leftUserId,
         });
+        if (user == null) {
+          console.log(`can not find user`);
+          return ;
+        }
         gameQueList.push({ inviterName: user.username, inviterId: user.id });
       }
     }

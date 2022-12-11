@@ -5,6 +5,8 @@ import { user_data } from "./login";
 import { socket, useSocketAuthorization } from "../lib/socket";
 import { logout, getLoginUser } from "../lib/login";
 import Layout from "../components/Layout";
+import { Button } from "@mui/material";
+import {InviteModal, InviteModalWithUserName} from "../components/InviteModal";
 
 export default function Client() {
   useSocketAuthorization();
@@ -14,6 +16,8 @@ export default function Client() {
   useEffect(getDmRooms, [router.isReady]);
   let [gameRoomList, setGameRoomList]: any = useState([]);
   useEffect(getGameRooms, [router.isReady]);
+  let [modal, setModal] = useState(<></>);
+  let [modalOpen, setModalOpen] = useState(false);
 
   console.log("clients page before useEffect");
   useEffect(() => {
@@ -167,10 +171,12 @@ export default function Client() {
       {dmRoomList}
 
       <h1>Game room list</h1>
-      <form onSubmit={onSubmitGameInvite}>
+      <InviteModal />
+      <InviteModalWithUserName userName="jw" />
+      {/* <form onSubmit={onSubmitGameInvite}>
         <button type="submit">create new Game room with </button>
         <input type="text" name="invitedUserId" />
-      </form>
+      </form> */}
       {gameRoomList}
 
       <h1>Random Maching</h1>
