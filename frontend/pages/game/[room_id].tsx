@@ -14,9 +14,9 @@ import {
   draw_ball,
   draw_countDown,
   draw_countDown2,
-} from "./sketch.ts";
+} from "./sketch";
 import { getLoginUser } from "../../lib/login";
-import Layout from "../../components/Layout";
+import Layout from "../../components/layout";
 
 // Will only import `react-p5` on client-side
 const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
@@ -57,6 +57,7 @@ let bar_loop: NodeJS.Timer;
 export default function GameRoom() {
   useSocketAuthorization();
   const router = useRouter();
+  const userId = getLoginUser().id;
   useEffect(() => {
     if (!router.isReady) return;
     function routeChangeHandler() {
@@ -134,8 +135,8 @@ export default function GameRoom() {
     draw_p2_bar(p5, data);
 
     if (
-      data.leftUser == getLoginUser().id ||
-      data.rightUser == getLoginUser().id
+      data.leftUser == userId ||
+      data.rightUser == userId
     ) {
       let send = {
         roomId: roomId,
