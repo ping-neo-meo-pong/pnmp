@@ -200,7 +200,6 @@ export class ChannelController {
   @ApiOperation({ summary: '특정 채널에 사용자 초대하기' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  @ApiBody({ type: ChangeRoleInChannelDto })
   inviteUser(
     @Req() req,
     @Param('channelId') channelId: string,
