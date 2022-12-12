@@ -138,6 +138,22 @@ export class UserController {
     return this.userService.findChannelByParticipant(userId);
   }
 
+  @Get('channel/:channelId')
+  @ApiOperation({ summary: '로그인한 유저가 초대받은 채널에 입장' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiParam({
+    name: 'channelId',
+    type: 'string',
+  })
+  @ApiBearerAuth()
+  acceptChannelInvite(@Req() req, @Param('channelId') channelId: string) {
+    if (!isUUID(channelId)) {
+      throw new BadRequestException('uuid가 아님');
+    }
+    const userId = req.user.id;
+    return this.userService.acceptChannelInvite(userId, channelId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: '특정 유저 프로필 조회' })
   @ApiParam({

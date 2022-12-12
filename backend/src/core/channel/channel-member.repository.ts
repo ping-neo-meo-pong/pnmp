@@ -7,6 +7,30 @@ import { RoleInChannel } from '../../enum/role-in-channel.enum';
 
 @CustomRepository(ChannelMember)
 export class ChannelMemberRepository extends Repository<ChannelMember> {
+  async getIniviteChannels(userId: string) {
+    return await this.find({
+      relations: ['userId', 'channelId'],
+      where: {
+        userId: { id: userId },
+        joinAt: IsNull(),
+        banEndAt: IsNull() || LessThan(new Date()),
+        channelId: { deletedAt: IsNull() },
+      },
+    });
+  }
+
+  async findIniviteChannel(userId: string, channelId: string) {
+    return await this.findOne({
+      relations: ['userId', 'channelId'],
+      where: {
+        userId: { id: userId },
+        joinAt: IsNull(),
+        banEndAt: IsNull() || LessThan(new Date()),
+        channelId: { id: channelId, deletedAt: IsNull() },
+      },
+    });
+  }
+
   async getChannelsJoinCurrently(userId: string) {
     return await this.find({
       relations: ['userId', 'channelId'],

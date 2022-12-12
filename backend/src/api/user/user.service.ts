@@ -14,6 +14,7 @@ import { GameHistory } from '../../core/game/game-history.entity';
 import { WinLose } from 'src/enum/win-lose.enum';
 import { FriendStatus } from '../../enum/friend-status';
 import { Block } from '../../core/block/block.entity';
+import { ChannelRepository } from '../../core/channel/channel.repository';
 
 @Injectable()
 export class UserService {
@@ -24,6 +25,8 @@ export class UserService {
     private friendRespository: FriendRespository,
     @InjectRepository(BlockRepository)
     private blockRepository: BlockRepository,
+    @InjectRepository(ChannelRepository)
+    private channelRepository: ChannelRepository,
     @InjectRepository(ChannelMemberRepository)
     private channelMemberRepository: ChannelMemberRepository,
     @InjectRepository(GameHistoryRepository)
@@ -200,26 +203,39 @@ export class UserService {
     return { success: true };
   }
 
+  async acceptChannelInvite(userId: string, channelId: string) {
+    const channel = await this.channelRepository.findOneBy({ id: channelId });
+    if (!channel) {
+      throw new BadRequestException('존재하지 않는 채널');
+    }
+    const iniviteChannel =
+      await this.channelMemberRepository.findIniviteChannel(userId, channelId);
+    if (!iniviteChannel) {
+      throw new BadRequestException('수락할 요청이 없습니다.');
+    }
+    await this.channelMemberRepository.update(iniviteChannel.id, {
+      joinAt: () => 'CURRENT_TIMESTAMP',
+      leftAt: null,
+    });
+    return iniviteChannel;
+  }
+
   async findChannelByParticipant(userId: string) {
     // const user = await this.findUserById(userId);
-    const joinChannels = await this.channelMemberRepository.find({
-      relations: ['userId', 'channelId'],
-      where: {
-        userId: { id: userId },
-        leftAt: IsNull(),
-        joinAt: Not(IsNull()),
-        channelId: { deletedAt: IsNull() },
-      },
-    });
+    const joinChannels =
+      await this.channelMemberRepository.getChannelsJoinCurrently(userId);
     const channels = joinChannels.map((channel) => {
       return {
         ...channel.channelId,
         userRoleInChannel: channel.roleInChannel,
-        userBan: channel.banEndAt < new Date() ? false : true,
+        // userBan: channel.banEndAt < new Date() ? false : true,
         userMute: channel.muteEndAt < new Date() ? false : true,
       };
     });
-    return channels;
+    const inviteChannels =
+      await this.channelMemberRepository.getIniviteChannels(userId);
+    const inivie = inviteChannels.map((channel) => channel.channelId);
+    return { channels: channels, invite: inivie };
   }
 
   async getFriendStatus(
