@@ -8,11 +8,11 @@ import { Like, IsNull, In, Not } from 'typeorm';
 import { FriendRespository } from '../../core/friend/friend.repository';
 import { Friend } from '../../core/friend/friend.entity';
 import { BlockRepository } from '../../core/block/block.repository';
-import { ChannelRepository } from '../../core/channel/channel.repository';
 import { ChannelMemberRepository } from '../../core/channel/channel-member.repository';
 import { GameHistoryRepository } from '../../core/game/game-history.repository';
 import { GameHistory } from '../../core/game/game-history.entity';
 import { WinLose } from 'src/enum/win-lose.enum';
+import { FriendStatus } from '../../enum/friend-status';
 
 @Injectable()
 export class UserService {
@@ -23,8 +23,6 @@ export class UserService {
     private friendRespository: FriendRespository,
     @InjectRepository(BlockRepository)
     private blockRepository: BlockRepository,
-    @InjectRepository(ChannelRepository)
-    private channelRepository: ChannelRepository,
     @InjectRepository(ChannelMemberRepository)
     private channelMemberRepository: ChannelMemberRepository,
     @InjectRepository(GameHistoryRepository)
@@ -199,7 +197,39 @@ export class UserService {
     return channels;
   }
 
-  async findUserProfile(userId: string) {
+  async getFriendStatus(
+    userId: string,
+    friendId: string,
+  ): Promise<FriendStatus> {
+    const friendship = await this.friendRespository.findFriendByUsers(
+      userId,
+      friendId,
+    );
+    if (friendship?.acceptAt) {
+      return FriendStatus.ALREADY;
+    } else if (!friendship?.acceptAt && friendship?.userId.id === userId) {
+      FriendStatus.SEND;
+    } else if (
+      !friendship?.acceptAt &&
+      friendship?.userFriendId.id === userId
+    ) {
+      return FriendStatus.RECEIVE;
+    }
+    return FriendStatus.NONE;
+  }
+
+  async getBlockStatus(userId: string, blockId: string) {
+    const block = await this.blockRepository.findOne({
+      relations: ['userId', 'blockedUserId'],
+      where: { userId: { id: userId }, blockedUserId: { id: blockId } },
+    });
+    if (block?.blockAt) {
+      return true;
+    }
+    return false;
+  }
+
+  async userProfile(loginId: string, userId: string) {
     const user = await this.findUserById(userId);
     const userGameHistory = await this.gameHistoryRepository.find({
       relations: ['userId', 'gameRoomId'],
@@ -254,8 +284,23 @@ export class UserService {
       }),
     );
     const gameHistories = Array.from(gameHistory.values());
+
+    if (loginId === userId) {
+      return {
+        ...user,
+        friendStatus: null,
+        blockStatus: null,
+        winLose: { allGames: userGameHistory.length, wins: userWins.length },
+        matchHistory: gameHistories,
+      };
+    }
+
+    const friendStatus = await this.getFriendStatus(loginId, userId);
+    const blockStatus = await this.getBlockStatus(loginId, userId);
     return {
       ...user,
+      friendStatus: friendStatus,
+      blockStatus: blockStatus,
       winLose: { allGames: userGameHistory.length, wins: userWins.length },
       matchHistory: gameHistories,
     };

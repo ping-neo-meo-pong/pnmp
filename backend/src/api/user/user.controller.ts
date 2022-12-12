@@ -134,10 +134,13 @@ export class UserController {
     name: 'id',
     type: 'string',
   })
-  findUserProfile(@Param('id') userId: string) {
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  findUserProfile(@Req() req, @Param('id') userId: string) {
     if (!isUUID(userId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
-    return this.userService.findUserProfile(userId);
+    const loginId = req.user.id;
+    return this.userService.userProfile(loginId, userId);
   }
 }
