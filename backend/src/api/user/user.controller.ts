@@ -96,7 +96,7 @@ export class UserController {
   deleteFriend(@Param('frined-id') friendId: string) {}
   */
 
-  @Get('/block/')
+  @Get('/block')
   @ApiOperation({ summary: '로그인한 유저의 차단 목록' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
@@ -138,7 +138,7 @@ export class UserController {
     return this.userService.findChannelByParticipant(userId);
   }
 
-  @Get('channel/:channelId')
+  @Patch('channel/:channelId')
   @ApiOperation({ summary: '로그인한 유저가 초대받은 채널에 입장' })
   @UseGuards(AuthGuard('jwt'))
   @ApiParam({
