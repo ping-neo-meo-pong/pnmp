@@ -85,11 +85,7 @@ export class ChannelService {
         userId,
         channelId,
       );
-    if (
-      joinChannels &&
-      (joinChannels.roleInChannel === RoleInChannel.BLOCK ||
-        joinChannels.banEndAt >= new Date())
-    ) {
+    if (joinChannels && joinChannels.banEndAt >= new Date()) {
       throw new BadRequestException('채널로부터 차단 당했습니다');
     }
     if (joinChannels && joinChannels.joinAt && !joinChannels.leftAt) {
@@ -319,26 +315,27 @@ export class ChannelService {
     );
     await this.channelMemberRepository.update(target.id, {
       banEndAt: banEndAt,
+      leftAt: () => 'CURRENT_TIMESTAMP',
     });
     return { success: true };
   }
 
-  async blockUserFromChannel(
-    userId: string,
-    channelId: string,
-    targetId: string,
-  ) {
-    const target = await this.restirctByChannelAdmin(
-      userId,
-      channelId,
-      targetId,
-    );
-    await this.channelMemberRepository.update(target.id, {
-      leftAt: () => 'CURRENT_TIMESTAMP',
-      roleInChannel: RoleInChannel.BLOCK,
-    });
-    return { success: true };
-  }
+  //   async blockUserFromChannel(
+  //     userId: string,
+  //     channelId: string,
+  //     targetId: string,
+  //   ) {
+  //     const target = await this.restirctByChannelAdmin(
+  //       userId,
+  //       channelId,
+  //       targetId,
+  //     );
+  //     await this.channelMemberRepository.update(target.id, {
+  //       leftAt: () => 'CURRENT_TIMESTAMP',
+  //       roleInChannel: RoleInChannel.BLOCK,
+  //     });
+  //     return { success: true };
+  //   }
 
   async changeRoleInChannel(
     userId: string,
@@ -371,11 +368,7 @@ export class ChannelService {
         targetId,
         channelId,
       );
-    if (
-      joinChannels &&
-      (joinChannels.roleInChannel === RoleInChannel.BLOCK ||
-        joinChannels.banEndAt >= new Date())
-    ) {
+    if (joinChannels && joinChannels.banEndAt >= new Date()) {
       throw new BadRequestException('채널로부터 차단 당했습니다');
     }
     if (joinChannels && (!joinChannels.leftAt || !joinChannels.joinAt)) {

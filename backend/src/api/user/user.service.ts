@@ -184,6 +184,7 @@ export class UserService {
       where: {
         userId: { id: userId },
         leftAt: IsNull(),
+        joinAt: Not(IsNull()),
         channelId: { deletedAt: IsNull() },
       },
     });

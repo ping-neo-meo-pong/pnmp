@@ -158,26 +158,26 @@ export class ChannelController {
     );
   }
 
-  @Patch(':channelId/block/:targetId')
-  @ApiOperation({ summary: '채널 어드민 유저가 특정 유저를 강퇴' })
-  @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
-  @ApiBody({ type: RestrictChannelDto })
-  blockUserFromChannel(
-    @Req() req,
-    @Param('channelId', ParseUUIDPipe) channelId: string,
-    @Param('targetId', ParseUUIDPipe) targetId: string,
-  ) {
-    const userId = req.user.id;
-    return this.channelService.blockUserFromChannel(
-      userId,
-      channelId,
-      targetId,
-    );
-  }
+  //   @Patch(':channelId/block/:targetId')
+  //   @ApiOperation({ summary: '채널 어드민 유저가 특정 유저를 강퇴' })
+  //   @UseGuards(AuthGuard('jwt'))
+  //   @ApiBearerAuth()
+  //   @ApiBody({ type: RestrictChannelDto })
+  //   blockUserFromChannel(
+  //     @Req() req,
+  //     @Param('channelId', ParseUUIDPipe) channelId: string,
+  //     @Param('targetId', ParseUUIDPipe) targetId: string,
+  //   ) {
+  //     const userId = req.user.id;
+  //     return this.channelService.blockUserFromChannel(
+  //       userId,
+  //       channelId,
+  //       targetId,
+  //     );
+  //   }
 
   @Patch(':channelId/role/:targetId')
-  @ApiOperation({ summary: '채널/웹 어드민 유저가 특정 유저 권한을 부여/제거' })
+  @ApiOperation({ summary: '채널 어드민 유저가 특정 유저 권한을 부여/제거' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiBody({ type: ChangeRoleInChannelDto })
