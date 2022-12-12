@@ -195,4 +195,18 @@ export class ChannelController {
       changeRole,
     );
   }
+
+  @Post(':channelId/invite/:targetId')
+  @ApiOperation({ summary: '특정 채널에 사용자 초대하기' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiBody({ type: ChangeRoleInChannelDto })
+  inviteUser(
+    @Req() req,
+    @Param('channelId') channelId: string,
+    @Param('targetId') targetId: string,
+  ) {
+    const userId = req.user.id;
+    return this.channelService.inviteUser(userId, channelId, targetId);
+  }
 }

@@ -80,10 +80,11 @@ export class ChannelService {
     if (!channel) {
       throw new BadRequestException('존재하지 않는 채널');
     }
-    const joinChannels = await this.channelMemberRepository.findChannelHaveJoin(
-      userId,
-      channelId,
-    );
+    const joinChannels =
+      await this.channelMemberRepository.findChannelHaveJoinOrInvite(
+        userId,
+        channelId,
+      );
     if (
       joinChannels &&
       (joinChannels.roleInChannel === RoleInChannel.BLOCK ||
@@ -91,15 +92,16 @@ export class ChannelService {
     ) {
       throw new BadRequestException('채널로부터 차단 당했습니다');
     }
-    if (joinChannels && !joinChannels.leftAt) {
+    if (joinChannels && joinChannels.joinAt && !joinChannels.leftAt) {
       throw new BadRequestException('이미 참여한 채널');
     }
     // 비밀번호 암호화 검증 추가
     if (channel.password && channel.password !== channelPassword.password) {
       throw new BadRequestException('비밀번호가 틀렸습니다');
     }
-    if (joinChannels && joinChannels.leftAt) {
+    if (joinChannels) {
       await this.channelMemberRepository.update(joinChannels.id, {
+        joinAt: () => 'CURRENT_TIMESTAMP',
         leftAt: null,
       });
       return joinChannels;
@@ -354,5 +356,45 @@ export class ChannelService {
       roleInChannel: changeRole.roleInChannel,
     });
     return { success: true };
+  }
+
+  async inviteUser(userId: string, channelId: string, targetId: string) {
+    const target = await this.userRepository.findOneBy({ id: targetId });
+    const channel = await this.channelRepository.findOneBy({ id: channelId });
+    if (!target && !channel) {
+      throw new BadRequestException(
+        '존재하지 않는 채널이거나 존재하지 않는 사용자',
+      );
+    }
+    const joinChannels =
+      await this.channelMemberRepository.findChannelHaveJoinOrInvite(
+        targetId,
+        channelId,
+      );
+    if (
+      joinChannels &&
+      (joinChannels.roleInChannel === RoleInChannel.BLOCK ||
+        joinChannels.banEndAt >= new Date())
+    ) {
+      throw new BadRequestException('채널로부터 차단 당했습니다');
+    }
+    if (joinChannels && (!joinChannels.leftAt || !joinChannels.joinAt)) {
+      throw new BadRequestException(
+        '이미 사용자가 채널에 있거나 초대된 상태입니다.',
+      );
+    }
+    if (joinChannels) {
+      await this.channelMemberRepository.update(joinChannels.id, {
+        joinAt: null,
+      });
+      return joinChannels;
+    }
+    const channelMember = this.channelMemberRepository.create({
+      userId: target,
+      channelId: channel,
+      joinAt: null,
+    });
+    await this.channelMemberRepository.save(channelMember);
+    return channelMember;
   }
 }

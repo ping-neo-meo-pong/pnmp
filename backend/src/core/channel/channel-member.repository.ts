@@ -12,6 +12,7 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
       relations: ['userId', 'channelId'],
       where: {
         userId: { id: userId },
+        joinAt: Not(IsNull()),
         leftAt: IsNull(),
         channelId: { deletedAt: IsNull() },
       },
@@ -23,6 +24,7 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
       relations: ['userId', 'channelId'],
       where: {
         userId: { id: userId },
+        joinAt: Not(IsNull()),
         leftAt: IsNull(),
         channelId: { id: channelId, deletedAt: IsNull() },
       },
@@ -34,6 +36,7 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
       relations: ['userId', 'channelId'],
       where: {
         userId: { id: userId },
+        joinAt: Not(IsNull()),
         leftAt: IsNull(),
         banEndAt: IsNull() || LessThan(new Date()),
         roleInChannel: RoleInChannel.OWNER || RoleInChannel.ADMINISTRATOR,
@@ -42,7 +45,7 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
     });
   }
 
-  async findChannelHaveJoin(userId: string, channelId: string) {
+  async findChannelHaveJoinOrInvite(userId: string, channelId: string) {
     return await this.findOne({
       relations: ['userId', 'channelId'],
       where: {
@@ -60,6 +63,7 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
       },
       where: {
         leftAt: IsNull(),
+        joinAt: Not(IsNull()),
         banEndAt: IsNull() || LessThan(new Date()),
         roleInChannel: RoleInChannel.ADMINISTRATOR,
         channelId: { id: channelId, deletedAt: IsNull() },
@@ -75,6 +79,7 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
       },
       where: {
         leftAt: IsNull(),
+        joinAt: Not(IsNull()),
         banEndAt: IsNull() || LessThan(new Date()),
         roleInChannel: Not(RoleInChannel.OWNER),
         channelId: { id: channelId, deletedAt: IsNull() },
@@ -87,6 +92,7 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
       relations: ['userId', 'channelId'],
       where: {
         leftAt: IsNull(),
+        joinAt: Not(IsNull()),
         channelId: { id: channelId },
       },
     });
