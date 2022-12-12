@@ -13,6 +13,7 @@ import { GameHistoryRepository } from '../../core/game/game-history.repository';
 import { GameHistory } from '../../core/game/game-history.entity';
 import { WinLose } from 'src/enum/win-lose.enum';
 import { FriendStatus } from '../../enum/friend-status';
+import { Block } from '../../core/block/block.entity';
 
 @Injectable()
 export class UserService {
@@ -138,6 +139,14 @@ export class UserService {
       acceptAt: () => 'CURRENT_TIMESTAMP',
     });
     return friendship;
+  }
+
+  async getblockUsers(userId: string): Promise<Block[]> {
+    const blocks = await this.blockRepository.find({
+      relations: ['userId', 'blockedUserId'],
+      where: { userId: { id: userId }, blockAt: Not(IsNull()) },
+    });
+    return blocks;
   }
 
   async blockUser(userId: string, blockId: string) {

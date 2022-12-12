@@ -24,6 +24,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { isUUID } from 'class-validator';
 import { BadRequestException } from '@nestjs/common';
 import { Friend } from '../../core/friend/friend.entity';
+import { Block } from '../../core/block/block.entity';
 
 @Controller('user')
 @ApiTags('user')
@@ -95,11 +96,20 @@ export class UserController {
   deleteFriend(@Param('frined-id') friendId: string) {}
   */
 
+  @Get('/block/')
+  @ApiOperation({ summary: '로그인한 유저의 차단 목록' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  getblockUsers(@Req() req): Promise<Block[]> {
+    const userId = req.user.id;
+    return this.userService.getblockUsers(userId);
+  }
+
   @Post('/block/:blockId')
   @ApiOperation({ summary: '로그인한 유저가 blockId를 차단' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  blockUser(@Req() req, @Param('blockId') blockId: string) {
+  blockUser(@Req() req, @Param('blockId') blockId: string): Promise<Block> {
     if (!isUUID(blockId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
