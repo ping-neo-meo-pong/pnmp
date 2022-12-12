@@ -358,7 +358,11 @@ export class ChannelService {
   async inviteUser(userId: string, channelId: string, targetId: string) {
     const target = await this.userRepository.findOneBy({ id: targetId });
     const channel = await this.channelRepository.findOneBy({ id: channelId });
-    if (!target && !channel) {
+    const userInChannel = this.channelMemberRepository.findChannelJoinCurrently(
+      userId,
+      channelId,
+    );
+    if (!target || !channel || !userInChannel) {
       throw new BadRequestException(
         '존재하지 않는 채널이거나 존재하지 않는 사용자',
       );
