@@ -70,11 +70,27 @@ export class UserService {
     return user;
   }
 
-  async findFriends(userId: string): Promise<Friend[]> {
-    return await this.friendRespository.find({
+  async findFriends(userId: string) {
+    const friends = await this.friendRespository.find({
       relations: ['userId', 'userFriendId'],
-      where: [{ userId: { id: userId } }, { userFriendId: { id: userId } }],
+      where: [
+        { userId: { id: userId }, acceptAt: Not(IsNull()) },
+        { userFriendId: { id: userId }, acceptAt: Not(IsNull()) },
+      ],
     });
+    const receiveRequest = await this.friendRespository.find({
+      relations: ['userId', 'userFriendId'],
+      where: { userFriendId: { id: userId }, acceptAt: IsNull() },
+    });
+    const sendRequest = await this.friendRespository.find({
+      relations: ['userId', 'userFriendId'],
+      where: { userId: { id: userId }, acceptAt: IsNull() },
+    });
+    return {
+      friends: friends,
+      receiveRequest: receiveRequest,
+      sendRequest: sendRequest,
+    };
   }
 
   async requestFriend(userId: string, friendId: string): Promise<Friend> {

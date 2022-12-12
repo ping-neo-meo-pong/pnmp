@@ -58,7 +58,7 @@ export class UserController {
   @ApiOperation({ summary: '로그인한 유저의 친구 목록' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  findFriends(@Req() req): Promise<Friend[]> {
+  findFriends(@Req() req) {
     const userId = req.user.id;
     return this.userService.findFriends(userId);
   }
