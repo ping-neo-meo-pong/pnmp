@@ -15,6 +15,8 @@ import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { request } from 'http';
 import { Any } from 'typeorm';
 import { CreateGameRoomDto } from 'src/api/game/dto/create-game-room.dto';
+import { GameHistory } from 'src/core/game/game-history.entity';
+import { ApiOperation } from '@nestjs/swagger';
 
 @Controller('game')
 @ApiTags('game')
@@ -44,5 +46,14 @@ export class GameController {
     const leftUserId = request.user.id;
     const rightUserId = gameRoomData.invitedUserId;
     return this.gameService.createGameRoom(leftUserId, rightUserId);
+  }
+
+  @Get('/history')
+  @ApiOperation({ summary: 'get dm과 같음' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  getHistorys(@Request() request): Promise<GameHistory[]> {
+    const userId = request.user.id;
+    return this.gameService.getHistorys(userId);
   }
 }

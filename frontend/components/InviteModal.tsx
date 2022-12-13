@@ -1,29 +1,39 @@
 import { socket } from "../lib/socket";
 import { useRouter } from "next/router";
 import { useState, useEffect, useRef } from "react";
-import { Button, Modal, Box, ToggleButtonGroup, ToggleButton, Typography, TextField, Fade } from "@mui/material";
-import BubbleChartIcon from '@mui/icons-material/BubbleChart';
-import CallSplitIcon from '@mui/icons-material/CallSplit';
-import CircularProgress from '@mui/material/CircularProgress';
+import {
+  Button,
+  Modal,
+  Box,
+  ToggleButtonGroup,
+  ToggleButton,
+  Typography,
+  TextField,
+  Fade,
+} from "@mui/material";
+import BubbleChartIcon from "@mui/icons-material/BubbleChart";
+import CallSplitIcon from "@mui/icons-material/CallSplit";
+import CircularProgress from "@mui/material/CircularProgress";
 
 /////// InviteModal, InviteModalWithUserName({ userName }) //////////
 
 const style = {
-  position: 'absolute' as 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
+  position: "absolute" as "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
   width: 400,
-  bgcolor: 'background.paper',
-  border: '2px solid #000',
+  bgcolor: "background.paper",
+  border: "2px solid #000",
   boxShadow: 24,
   p: 4,
 };
 
-export function InviteModal() { ///////////////////////////////////////////////////////////
+export function InviteModal() {
+  ///////////////////////////////////////////////////////////
   const [open, setOpen] = useState(false);
   const [finding, setFinding] = useState(false);
-  const [query, setQuery] = useState('idle');
+  const [query, setQuery] = useState("idle");
   const timerRef = useRef<number>();
 
   const handleClose = () => {
@@ -33,25 +43,22 @@ export function InviteModal() { ////////////////////////////////////////////////
       setFinding(false);
     }
     setOpen(false);
-  }
-
-  const [alignment, setAlignment] = useState<string>('NORMAL');
-  const handleAlignment = (
-    event: React.MouseEvent<HTMLElement>,
-    newAlignment: string,
-  ) => {
-    if (newAlignment != null)
-      setAlignment(newAlignment);
   };
 
+  const [alignment, setAlignment] = useState<string>("NORMAL");
+  const handleAlignment = (
+    event: React.MouseEvent<HTMLElement>,
+    newAlignment: string
+  ) => {
+    if (newAlignment != null) setAlignment(newAlignment);
+  };
 
   useEffect(
     () => () => {
       clearTimeout(timerRef.current);
     },
-    [],
+    []
   );
-
 
   function onSubmitGameInvite(event: React.FormEvent<HTMLFormElement>) {
     console.log(`cookie: ${document.cookie}`);
@@ -79,12 +86,14 @@ export function InviteModal() { ////////////////////////////////////////////////
   };
   function GameLoading() {
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Box
+        sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+      >
         <Box sx={{ height: 40 }}>
           <Fade
             in={finding}
             style={{
-              transitionDelay: finding ? '800ms' : '0ms',
+              transitionDelay: finding ? "800ms" : "0ms",
             }}
             unmountOnExit
           >
@@ -97,14 +106,27 @@ export function InviteModal() { ////////////////////////////////////////////////
 
   return (
     <div>
-      <Button variant="contained" onClick={() => { setOpen(true) }}> 게임 초대 </Button>
+      <Button
+        variant="contained"
+        onClick={() => {
+          setOpen(true);
+        }}
+      >
+        {" "}
+        게임 초대{" "}
+      </Button>
       <Modal
         open={open}
         onClose={handleClose}
         aria-labelledby="modal-modal-title"
         aria-describedby="modal-modal-description"
       >
-        <Box sx={style} component="form" noValidate onSubmit={onSubmitGameInvite}>
+        <Box
+          sx={style}
+          component="form"
+          noValidate
+          onSubmit={onSubmitGameInvite}
+        >
           <Typography id="modal-modal-title" variant="h6" component="h2">
             Invite User!
           </Typography>
@@ -116,16 +138,15 @@ export function InviteModal() { ////////////////////////////////////////////////
             aria-label="text alignment"
           >
             <ToggleButton value="NORMAL" aria-label="NORMAL">
-              NORMAL{' '}
-              <BubbleChartIcon />
+              NORMAL <BubbleChartIcon />
             </ToggleButton>
             <ToggleButton value="HARD" aria-label="HARD">
-              HARD{' '}
-              <CallSplitIcon />
+              HARD <CallSplitIcon />
             </ToggleButton>
           </ToggleButtonGroup>
           {alignment}
-          <br /><br />
+          <br />
+          <br />
           <TextField
             id="userName"
             name="userName"
@@ -133,17 +154,22 @@ export function InviteModal() { ////////////////////////////////////////////////
             label="userName"
             variant="outlined"
             sx={{ mt: 3, mb: 2 }}
+          ></TextField>
+          <Button
+            type="submit"
+            onClick={() => {
+              if (finding == true) {
+                console.log(`cencel matching`);
+                socket.emit(`cencelMatching`);
+              }
+            }}
+            fullWidth
+            variant="contained"
           >
-          </TextField>
-          <Button type="submit" onClick={() => {
-            if (finding == true) {
-              console.log(`cencel matching`);
-              socket.emit(`cencelMatching`);
-            }
-          }} fullWidth variant="contained">
-            {finding ? 'Stop finding' : 'finding'}
+            {finding ? "Stop finding" : "finding"}
           </Button>
-          <br /><br />
+          <br />
+          <br />
           <GameLoading />
         </Box>
       </Modal>
@@ -151,7 +177,8 @@ export function InviteModal() { ////////////////////////////////////////////////
   );
 }
 
-export function InviteModalWithUserName({ userName }: any) { ///////////////////////////////////////////////////////////
+export function InviteModalWithUserName({ userName }: any) {
+  ///////////////////////////////////////////////////////////
   const [open, setOpen] = useState(false);
   const [finding, setFinding] = useState(false);
   const timerRef = useRef<number>();
@@ -163,14 +190,13 @@ export function InviteModalWithUserName({ userName }: any) { ///////////////////
       setFinding(false);
     }
     setOpen(false);
-  }
-  const [alignment, setAlignment] = useState<string>('NORMAL');
+  };
+  const [alignment, setAlignment] = useState<string>("NORMAL");
   const handleAlignment = (
     event: React.MouseEvent<HTMLElement>,
-    newAlignment: string,
+    newAlignment: string
   ) => {
-    if (newAlignment != null)
-      setAlignment(newAlignment);
+    if (newAlignment != null) setAlignment(newAlignment);
   };
 
   function onClickGameInvite() {
@@ -193,12 +219,14 @@ export function InviteModalWithUserName({ userName }: any) { ///////////////////
   }
   function GameLoading() {
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Box
+        sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+      >
         <Box sx={{ height: 40 }}>
           <Fade
             in={finding}
             style={{
-              transitionDelay: finding ? '800ms' : '0ms',
+              transitionDelay: finding ? "800ms" : "0ms",
             }}
             unmountOnExit
           >
@@ -211,7 +239,15 @@ export function InviteModalWithUserName({ userName }: any) { ///////////////////
 
   return (
     <div>
-      <Button variant="contained" onClick={() => { setOpen(true) }}> {userName}에게 게임 초대 </Button>
+      <Button
+        variant="contained"
+        onClick={() => {
+          setOpen(true);
+        }}
+      >
+        {" "}
+        {userName}에게 게임 초대{" "}
+      </Button>
       <Modal
         open={open}
         onClose={handleClose}
@@ -230,26 +266,30 @@ export function InviteModalWithUserName({ userName }: any) { ///////////////////
             aria-label="text alignment"
           >
             <ToggleButton value="NORMAL" aria-label="NORMAL">
-              NORMAL{' '}
-              <BubbleChartIcon />
+              NORMAL <BubbleChartIcon />
             </ToggleButton>
             <ToggleButton value="HARD" aria-label="HARD">
-              HARD{' '}
-              <CallSplitIcon />
+              HARD <CallSplitIcon />
             </ToggleButton>
           </ToggleButtonGroup>
           {alignment}
-          <br /><br />
-          <Button onClick={() => {
-            onClickGameInvite();
-            if (finding == true) {
-              console.log(`cencel matching`);
-              socket.emit(`cencelMatching`);
-            }
-          }} fullWidth variant="contained">
-            {finding ? 'Stop finding' : 'finding'}
+          <br />
+          <br />
+          <Button
+            onClick={() => {
+              onClickGameInvite();
+              if (finding == true) {
+                console.log(`cencel matching`);
+                socket.emit(`cencelMatching`);
+              }
+            }}
+            fullWidth
+            variant="contained"
+          >
+            {finding ? "Stop finding" : "finding"}
           </Button>
-          <br /><br />
+          <br />
+          <br />
           <GameLoading />
         </Box>
       </Modal>
@@ -257,7 +297,8 @@ export function InviteModalWithUserName({ userName }: any) { ///////////////////
   );
 }
 
-export function MatchingModal() { ///////////////////////////////////////////////////////////
+export function MatchingModal() {
+  ///////////////////////////////////////////////////////////
   const [open, setOpen] = useState(false);
   const [finding, setFinding] = useState(false);
   const timerRef = useRef<number>();
@@ -275,14 +316,13 @@ export function MatchingModal() { //////////////////////////////////////////////
       setFinding(false);
     }
     setOpen(false);
-  }
-  const [alignment, setAlignment] = useState<string>('NORMAL');
+  };
+  const [alignment, setAlignment] = useState<string>("NORMAL");
   const handleAlignment = (
     event: React.MouseEvent<HTMLElement>,
-    newAlignment: string,
+    newAlignment: string
   ) => {
-    if (newAlignment != null)
-      setAlignment(newAlignment);
+    if (newAlignment != null) setAlignment(newAlignment);
   };
 
   function onClickMatching() {
@@ -294,12 +334,14 @@ export function MatchingModal() { //////////////////////////////////////////////
   }
   function GameLoading() {
     return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Box
+        sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+      >
         <Box sx={{ height: 40 }}>
           <Fade
             in={finding}
             style={{
-              transitionDelay: finding ? '800ms' : '0ms',
+              transitionDelay: finding ? "800ms" : "0ms",
             }}
             unmountOnExit
           >
@@ -312,7 +354,15 @@ export function MatchingModal() { //////////////////////////////////////////////
 
   return (
     <div>
-      <Button variant="contained" onClick={() => { setOpen(true) }}> Matching </Button>
+      <Button
+        variant="contained"
+        onClick={() => {
+          setOpen(true);
+        }}
+      >
+        {" "}
+        Find Match{" "}
+      </Button>
       <Modal
         open={open}
         onClose={handleClose}
@@ -331,26 +381,30 @@ export function MatchingModal() { //////////////////////////////////////////////
             aria-label="text alignment"
           >
             <ToggleButton value="NORMAL" aria-label="NORMAL">
-              NORMAL{' '}
-              <BubbleChartIcon />
+              NORMAL <BubbleChartIcon />
             </ToggleButton>
             <ToggleButton value="HARD" aria-label="HARD">
-              HARD{' '}
-              <CallSplitIcon />
+              HARD <CallSplitIcon />
             </ToggleButton>
           </ToggleButtonGroup>
           {alignment}
-          <br /><br />
-          <Button onClick={() => {
-            onClickMatching();
-            if (finding == true) {
-              console.log(`cencel matching`);
-              socket.emit(`cencelMatching`);
-            }
-          }} fullWidth variant="contained">
-            {finding ? 'Stop finding' : 'finding'}
+          <br />
+          <br />
+          <Button
+            onClick={() => {
+              onClickMatching();
+              if (finding == true) {
+                console.log(`cencel matching`);
+                socket.emit(`cencelMatching`);
+              }
+            }}
+            fullWidth
+            variant="contained"
+          >
+            {finding ? "Stop finding" : "finding"}
           </Button>
-          <br /><br />
+          <br />
+          <br />
           <GameLoading />
         </Box>
       </Modal>

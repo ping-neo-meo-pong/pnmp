@@ -6,7 +6,11 @@ import { socket, useSocketAuthorization } from "../lib/socket";
 import { logout, getLoginUser } from "../lib/login";
 import Layout from "../components/layout";
 import { Button } from "@mui/material";
-import { InviteModal, InviteModalWithUserName, MatchingModal } from "../components/InviteModal";
+import {
+  InviteModal,
+  InviteModalWithUserName,
+  MatchingModal,
+} from "../components/InviteModal";
 
 export default function Client() {
   useSocketAuthorization();
@@ -145,7 +149,7 @@ export default function Client() {
         HI {user_data._name}
         <button
           onClick={() => {
-            router.push("/profile");
+            router.push(`/profile/${user_data._name}`);
           }}
         >
           <h1> 프로필 </h1>

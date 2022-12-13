@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { dmSocket } from "../../sockets/sockets";
 import { useSocketAuthorization } from "../../lib/socket";
 import { getLoginUser } from "../../lib/login";
-import Layout from "../../components/Layout";
+import Layout from "../../components/layout";
 
 export default function Dm() {
   useSocketAuthorization();

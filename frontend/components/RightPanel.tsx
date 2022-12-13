@@ -1,18 +1,18 @@
-import { useState, SyntheticEvent } from 'react';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
-import { bodyHeight } from './constants';
-import ChatPanel from './ChatPanel';
+import { useState, SyntheticEvent } from "react";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import { bodyHeight } from "./constants";
+import ChatPanel from "./ChatPanel";
 
-function TabPanel({ children, value, index }) {
+function TabPanel({ children, value, index }: any) {
   return (
     <Box
       sx={{
         flex: 1,
         display: value === index ? "flex" : "none",
-        flexDirection: "column"
+        flexDirection: "column",
       }}
     >
       {value === index && (
@@ -33,12 +33,14 @@ export default function RightPanel() {
 
   return (
     <>
-      <Box sx={{
-        display: "flex",
-        flexDirection: "column",
-        height: bodyHeight
-      }}>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          height: bodyHeight,
+        }}
+      >
+        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
           <Tabs value={value} onChange={handleChange} variant="fullWidth">
             <Tab label="Chats" />
             <Tab label="Channels" />
