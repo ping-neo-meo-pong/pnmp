@@ -29,6 +29,7 @@ export class ChannelMember extends Base {
   @Column({
     type: 'timestamp',
     default: () => 'CURRENT_TIMESTAMP',
+    nullable: true,
   })
   joinAt: Date;
 

@@ -17,6 +17,8 @@ import { CreateChannelDto } from './dto/create-channel.dto';
 import { ChannelPasswordDto } from './dto/channel-password.dto';
 import { RestrictChannelDto } from './dto/restrict-channel.dto';
 import { ChangeRoleInChannelDto } from './dto/change-role-in-channel.dto';
+import { isUUID } from 'class-validator';
+import { BadRequestException } from '@nestjs/common';
 
 @Controller('channel')
 @ApiTags('channel')
@@ -49,6 +51,9 @@ export class ChannelController {
     @Req() req,
     @Param('channelId', ParseUUIDPipe) channelId: string,
   ) {
+    if (!isUUID(channelId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
     const userId = req.user.id;
     return this.channelService.deleteChannel(userId, channelId);
   }
@@ -62,6 +67,9 @@ export class ChannelController {
     @Param('channelId', ParseUUIDPipe) channelId: string,
     @Body() channelPassword: ChannelPasswordDto,
   ) {
+    if (!isUUID(channelId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
     const userId = req.user.id;
     return this.channelService.joinChannels(userId, channelId, channelPassword);
   }
@@ -74,6 +82,9 @@ export class ChannelController {
     @Req() req,
     @Param('channelId', ParseUUIDPipe) channelId: string,
   ) {
+    if (!isUUID(channelId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
     const userId = req.user.id;
     return this.channelService.getOutChannel(userId, channelId);
   }
@@ -86,6 +97,9 @@ export class ChannelController {
     @Req() req,
     @Param('channelId', ParseUUIDPipe) channelId: string,
   ) {
+    if (!isUUID(channelId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
     const userId = req.user.id;
     return this.channelService.getChannelMessages(userId, channelId);
   }
@@ -93,6 +107,9 @@ export class ChannelController {
   @Get(':channelId/member')
   @ApiOperation({ summary: '특정 채널에 참여한 멤버 보기' })
   findParticipants(@Param('channelId', ParseUUIDPipe) channelId: string) {
+    if (!isUUID(channelId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
     return this.channelService.findParticipants(channelId);
   }
 
@@ -106,6 +123,9 @@ export class ChannelController {
     @Param('channelId', ParseUUIDPipe) channelId: string,
     @Body() channelPassword: ChannelPasswordDto,
   ) {
+    if (!isUUID(channelId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
     const userId = req.user.id;
     return this.channelService.changePassword(
       userId,
@@ -127,6 +147,9 @@ export class ChannelController {
     @Param('targetId', ParseUUIDPipe) targetId: string,
     @Body() restrictChannelDto: RestrictChannelDto,
   ) {
+    if (!isUUID(channelId) || !isUUID(targetId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
     const userId = req.user.id;
     return this.channelService.muteUser(
       userId,
@@ -149,6 +172,9 @@ export class ChannelController {
     @Param('targetId', ParseUUIDPipe) targetId: string,
     @Body() restrictChannelDto: RestrictChannelDto,
   ) {
+    if (!isUUID(channelId) || !isUUID(targetId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
     const userId = req.user.id;
     return this.channelService.banUser(
       userId,
@@ -158,26 +184,8 @@ export class ChannelController {
     );
   }
 
-  @Patch(':channelId/block/:targetId')
-  @ApiOperation({ summary: '채널 어드민 유저가 특정 유저를 강퇴' })
-  @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
-  @ApiBody({ type: RestrictChannelDto })
-  blockUserFromChannel(
-    @Req() req,
-    @Param('channelId', ParseUUIDPipe) channelId: string,
-    @Param('targetId', ParseUUIDPipe) targetId: string,
-  ) {
-    const userId = req.user.id;
-    return this.channelService.blockUserFromChannel(
-      userId,
-      channelId,
-      targetId,
-    );
-  }
-
   @Patch(':channelId/role/:targetId')
-  @ApiOperation({ summary: '채널/웹 어드민 유저가 특정 유저 권한을 부여/제거' })
+  @ApiOperation({ summary: '채널 어드민 유저가 특정 유저 권한을 부여/제거' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiBody({ type: ChangeRoleInChannelDto })
@@ -187,6 +195,9 @@ export class ChannelController {
     @Param('targetId') targetId: string,
     @Body() changeRole: ChangeRoleInChannelDto,
   ) {
+    if (!isUUID(channelId) || !isUUID(targetId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
     const userId = req.user.id;
     return this.channelService.changeRoleInChannel(
       userId,
@@ -194,5 +205,21 @@ export class ChannelController {
       targetId,
       changeRole,
     );
+  }
+
+  @Post(':channelId/invite/:targetId')
+  @ApiOperation({ summary: '특정 채널에 사용자 초대하기' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  inviteUser(
+    @Req() req,
+    @Param('channelId') channelId: string,
+    @Param('targetId') targetId: string,
+  ) {
+    if (!isUUID(channelId) || !isUUID(targetId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
+    const userId = req.user.id;
+    return this.channelService.inviteUser(userId, channelId, targetId);
   }
 }

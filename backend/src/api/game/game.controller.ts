@@ -5,16 +5,14 @@ import {
   Body,
   Request,
   UseGuards,
-  Query,
-  Param,
 } from '@nestjs/common';
 import { GameService } from './game.service';
 import { GameRoomDto } from '../../core/game/dto/game-room.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { request } from 'http';
-import { Any } from 'typeorm';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { CreateGameRoomDto } from 'src/api/game/dto/create-game-room.dto';
+import { isUUID } from 'class-validator';
+import { BadRequestException } from '@nestjs/common';
 
 @Controller('game')
 @ApiTags('game')
@@ -23,7 +21,7 @@ export class GameController {
 
   @UseGuards(AuthGuard('jwt'))
   @Get()
-  getGames(@Request() request): Promise<GameRoomDto[]> {
+  getGames(): Promise<GameRoomDto[]> {
     return this.gameService.getGames();
   }
 
@@ -43,6 +41,9 @@ export class GameController {
   ): Promise<GameRoomDto> {
     const leftUserId = request.user.id;
     const rightUserId = gameRoomData.invitedUserId;
+    if (!isUUID(leftUserId) || !isUUID(rightUserId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
     return this.gameService.createGameRoom(leftUserId, rightUserId);
   }
 }

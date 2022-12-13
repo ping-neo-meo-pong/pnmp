@@ -27,7 +27,7 @@ export class AuthService {
 
     const newUser = this.userRepository.create({ username: username });
     const saveUser = await this.userRepository.save(newUser);
-    return { id: saveUser.id, firstLogin: true };
+    return { id: saveUser.id, username: saveUser.username, firstLogin: true };
   }
 
   verifyToken(jwt: string): any {

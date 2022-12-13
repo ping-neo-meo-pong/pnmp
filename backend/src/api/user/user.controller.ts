@@ -24,6 +24,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { isUUID } from 'class-validator';
 import { BadRequestException } from '@nestjs/common';
 import { Friend } from '../../core/friend/friend.entity';
+import { Block } from '../../core/block/block.entity';
 
 @Controller('user')
 @ApiTags('user')
@@ -58,7 +59,7 @@ export class UserController {
   @ApiOperation({ summary: '로그인한 유저의 친구 목록' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  findFriends(@Req() req): Promise<Friend[]> {
+  findFriends(@Req() req) {
     const userId = req.user.id;
     return this.userService.findFriends(userId);
   }
@@ -71,6 +72,9 @@ export class UserController {
     @Req() req,
     @Param('friendId') friendId: string,
   ): Promise<Friend> {
+    if (!isUUID(friendId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
     const userId = req.user.id;
     return this.userService.requestFriend(userId, friendId);
   }
@@ -95,11 +99,20 @@ export class UserController {
   deleteFriend(@Param('frined-id') friendId: string) {}
   */
 
+  @Get('/block')
+  @ApiOperation({ summary: '로그인한 유저의 차단 목록' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  getblockUsers(@Req() req): Promise<Block[]> {
+    const userId = req.user.id;
+    return this.userService.getblockUsers(userId);
+  }
+
   @Post('/block/:blockId')
   @ApiOperation({ summary: '로그인한 유저가 blockId를 차단' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  blockUser(@Req() req, @Param('blockId') blockId: string) {
+  blockUser(@Req() req, @Param('blockId') blockId: string): Promise<Block> {
     if (!isUUID(blockId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
@@ -128,16 +141,35 @@ export class UserController {
     return this.userService.findChannelByParticipant(userId);
   }
 
+  @Patch('channel/:channelId')
+  @ApiOperation({ summary: '로그인한 유저가 초대받은 채널에 입장' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiParam({
+    name: 'channelId',
+    type: 'string',
+  })
+  @ApiBearerAuth()
+  acceptChannelInvite(@Req() req, @Param('channelId') channelId: string) {
+    if (!isUUID(channelId)) {
+      throw new BadRequestException('uuid가 아님');
+    }
+    const userId = req.user.id;
+    return this.userService.acceptChannelInvite(userId, channelId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: '특정 유저 프로필 조회' })
   @ApiParam({
     name: 'id',
     type: 'string',
   })
-  findUserProfile(@Param('id') userId: string) {
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  findUserProfile(@Req() req, @Param('id') userId: string) {
     if (!isUUID(userId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
-    return this.userService.findUserProfile(userId);
+    const loginId = req.user.id;
+    return this.userService.userProfile(loginId, userId);
   }
 }

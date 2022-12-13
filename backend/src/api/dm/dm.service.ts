@@ -123,6 +123,11 @@ export class DmService {
     if (!dmRoom) {
       throw new BadRequestException('bad request');
     }
+    if (!(dmRoom.userId.id === userId || dmRoom.invitedUserId.id === userId)) {
+      throw new BadRequestException(
+        '해당 dm 목록을 볼 수 있는 권한이 없습니다',
+      );
+    }
     const otherId =
       userId === dmRoom.userId.id ? dmRoom.invitedUserId.id : dmRoom.userId.id;
     const isBlockUser = await this.blockRepository.didUserBlockOther(
