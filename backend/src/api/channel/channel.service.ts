@@ -91,6 +91,12 @@ export class ChannelService {
     if (joinChannels && joinChannels.joinAt && !joinChannels.leftAt) {
       throw new BadRequestException('이미 참여한 채널');
     }
+    if (
+      (joinChannels && !channel.isPublic && joinChannels.joinAt) ||
+      (!joinChannels && !channel.isPublic)
+    ) {
+      throw new BadRequestException('입장 권한이 없습니다');
+    }
     // 비밀번호 암호화 검증 추가
     if (channel.password && channel.password !== channelPassword.password) {
       throw new BadRequestException('비밀번호가 틀렸습니다');
