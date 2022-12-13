@@ -6,7 +6,7 @@ import { bodyHeight } from './constants';
 export default function Body({ children }) {
   return (
     <Grid container>
-      <Grid xs={9}>
+      <Grid item xs={9}>
         <Box sx={{
           border: 1,
           borderColor: 'divider',
@@ -16,7 +16,7 @@ export default function Body({ children }) {
           { children }
         </Box>
       </Grid>
-      <Grid xs={3}>
+      <Grid item xs={3}>
         <Box sx={{
           border: 1,
           borderColor: 'divider',

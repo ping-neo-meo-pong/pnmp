@@ -18,8 +18,9 @@ export default function UserMenu() {
     setAnchorEl(anchorEl ? null : event.currentTarget);
   };
 
-  const handleClose = () => {
+  const handleProfile = () => {
     setAnchorEl(null);
+    router.push("/clients");
   };
 
   const handleLogout = async () => {
@@ -45,7 +46,7 @@ export default function UserMenu() {
         <Paper>
           <MenuList
           >
-            <MenuItem onClick={handleClose}>Profile</MenuItem>
+            <MenuItem onClick={handleProfile}>Profile</MenuItem>
             <MenuItem onClick={handleLogout}>Logout</MenuItem>
           </MenuList>
         </Paper>

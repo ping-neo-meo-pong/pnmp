@@ -5,30 +5,29 @@ import Fab from '@mui/material/Fab';
 import AddIcon from '@mui/icons-material/Add';
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import ChatList from './ChatList';
-import AddChatDialog from './AddChatDialog';
+import FriendList from './FriendList';
+import AddFriendDialog from './AddFriendDialog';
 
-export default function ChatPanel() {
+export default function FriendPanel() {
   const [open, setOpen] = useState<boolean>(false);
-  const [chats, setChats] = useState([]);
+  const [friendships, setFriendships] = useState([]);
 
-  useEffect(() => getAndSetChats(), []);
+  useEffect(() => getAndSetFriends(), []);
 
-  function getAndSetChats() {
+  function getAndSetFriends() {
     axios
-      .get('/server/api/dm')
+      .get('/server/api/user/friend')
       .then((response) => {
-        setChats(response.data);
+        setFriendships(response.data);
       })
       .catch((error) => {
       })
   }
 
-  function addNewChat(invitedUserId: string) {
-    console.log(`invitedUserId: ${invitedUserId}`);
+  function addNewFriend(friendId: string) {
     axios
-      .post(`/server/api/dm/${invitedUserId}`).
-      then((response) => getAndSetChats())
+      .post(`/server/api/user/friend/${friendId}`).
+      then((response) => getAndSetFriends())
       .catch((error) => {
         alert(error.response.data.message);
       });
@@ -37,17 +36,17 @@ export default function ChatPanel() {
 
   return (
     <Box sx={{ flex: 1, position: "relative" }}>
-      <ChatList chats={chats}/>
+      <FriendList friendships={friendships}/>
       <Fab
         sx={{ position: "absolute", bottom: 10, right: 10 }}
         onClick={() => setOpen(true)}
       >
         <AddIcon />
       </Fab>
-      <AddChatDialog
+      <AddFriendDialog
         open={open}
         onClose={() => setOpen(false)}
-        onSelect={addNewChat}
+        onSelect={addNewFriend}
       />
     </Box>
   );

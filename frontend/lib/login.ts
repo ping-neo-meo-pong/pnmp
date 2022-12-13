@@ -17,7 +17,7 @@ export function useLoginGuard() {
 }
 
 export async function logout() {
-  await axios.post('server/api/auth/logout');
+  await axios.post('/server/api/auth/logout');
   window.localStorage.removeItem("loginUser");
 }
 
@@ -33,3 +33,5 @@ export function getLoginUser() {
   }
   return loginUser;
 }
+
+console.log('this is login.ts');
