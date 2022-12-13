@@ -34,3 +34,5 @@ export function getLoginUser() {
   }
   return loginUser;
 }
+
+console.log("this is login.ts");

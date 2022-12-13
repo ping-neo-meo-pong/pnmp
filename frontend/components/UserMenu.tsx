@@ -19,8 +19,9 @@ export default function UserMenu() {
     setAnchorEl(anchorEl ? null : event.currentTarget);
   };
 
-  const handleClose = () => {
+  const handleProfile = () => {
     setAnchorEl(null);
+    router.push(`/profile/${user.username}`);
   };
 
   const handleLogout = async () => {
@@ -39,13 +40,7 @@ export default function UserMenu() {
       <Popper open={open} anchorEl={anchorEl} placement="bottom-end">
         <Paper>
           <MenuList>
-            <MenuItem
-              onClick={() => {
-                router.push(`/profile/${user.username}`);
-              }}
-            >
-              Profile
-            </MenuItem>
+            <MenuItem onClick={handleProfile}>Profile</MenuItem>
             <MenuItem onClick={handleLogout}>Logout</MenuItem>
           </MenuList>
         </Paper>

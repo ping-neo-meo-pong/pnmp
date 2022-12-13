@@ -4,7 +4,7 @@ import axios from "axios";
 import { user_data } from "./login";
 import { socket, useSocketAuthorization } from "../lib/socket";
 import { logout, getLoginUser } from "../lib/login";
-import Layout from "../components/layout";
+import Layout from "../components/Layout";
 import { Button } from "@mui/material";
 import {
   InviteModal,

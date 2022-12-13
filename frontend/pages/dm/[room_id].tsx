@@ -18,10 +18,11 @@ export default function Dm() {
   let loginUser: any = getLoginUser();
 
   useEffect(() => {
+    console.log('useEffect in dm[room_id]');
     if (!router.isReady) return;
     loginUser = getLoginUser();
-    console.log(loginUser);
     if (roomId) {
+      console.log(`get dm from ${roomId}`);
       axios
         .get(`/server/api/dm/msg?roomId=${roomId}`)
         .then(function (response) {
@@ -46,7 +47,7 @@ export default function Dm() {
           // router.push("/login", );
         });
     }
-  }, [router.isReady]);
+  }, [router.isReady, router.query.room_id]);
 
   function onSubmitMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();

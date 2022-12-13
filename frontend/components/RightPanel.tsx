@@ -1,10 +1,14 @@
-import { useState, SyntheticEvent } from "react";
+import { useState, useEffect, SyntheticEvent } from "react";
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
+import AddIcon from "@mui/icons-material/Add";
 import { bodyHeight } from "./constants";
 import ChatPanel from "./ChatPanel";
+import ChannelPanel from "./ChannelPanel";
+import FriendPanel from "./FriendPanel";
+import axios from "axios";
 
 function TabPanel({ children, value, index }: any) {
   return (
@@ -51,10 +55,10 @@ export default function RightPanel() {
           <ChatPanel />
         </TabPanel>
         <TabPanel value={value} index={1}>
-          channels...
+          <ChannelPanel />
         </TabPanel>
         <TabPanel value={value} index={2}>
-          friends...
+          <FriendPanel />
         </TabPanel>
       </Box>
     </>
