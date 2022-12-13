@@ -11,9 +11,11 @@ import Box from "@mui/material/Box";
 import UserMenu from "./UserMenu";
 import { getLoginUser } from "../lib/login";
 import { MatchingModal } from "./InviteModal";
+import { useRouter } from "next/router";
 
-export default function Header({ title }) {
-  const [userName, setUserName] = useState<string>(null);
+export default function Header({ title }: any) {
+  const [userName, setUserName] = useState<string>("");
+  const router = useRouter();
 
   useEffect(() => {
     setUserName(getLoginUser().username);
@@ -23,6 +25,9 @@ export default function Header({ title }) {
     <>
       <Toolbar sx={{ borderBottom: 1, borderColor: "divider" }}>
         <Typography
+          onClick={() => {
+            router.push("/clients");
+          }}
           component="h2"
           variant="h5"
           color="inherit"

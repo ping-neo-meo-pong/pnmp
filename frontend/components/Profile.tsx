@@ -32,6 +32,9 @@ export default function Profile({ userName }: any) {
       .catch((e) => {
         console.error(e);
       });
+    console.log("user");
+    console.log(user);
+    // if (user.ladder == 0) router.push("/clients");
 
     axios
       .get(`/server/api/game/history`)
@@ -80,7 +83,7 @@ export default function Profile({ userName }: any) {
           Hi! {userName}
         </Typography>
         <Typography variant="h5" gutterBottom>
-          ladder: {user.ladder} <br /> <br /> History
+          {/* ladder: {user.ladder} <br /> <br /> History */}
         </Typography>
         {testHistory}
       </Box>
