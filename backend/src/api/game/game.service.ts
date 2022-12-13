@@ -47,6 +47,7 @@ export class GameService {
     console.log('history');
     for (const history of Historys) {
       console.log(history);
+      result.push(history);
       //   result.push({
       //     id: history.id,
       //     otherUser:
