@@ -72,6 +72,9 @@ export class UserController {
     @Req() req,
     @Param('friendId') friendId: string,
   ): Promise<Friend> {
+    if (!isUUID(friendId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
     const userId = req.user.id;
     return this.userService.requestFriend(userId, friendId);
   }
