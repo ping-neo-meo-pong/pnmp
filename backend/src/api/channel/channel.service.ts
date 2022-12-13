@@ -169,6 +169,16 @@ export class ChannelService {
     if (!channel) {
       throw new BadRequestException('채널 정보가 잘못됨');
     }
+    const joinChannel =
+      await this.channelMemberRepository.findChannelJoinCurrently(
+        userId,
+        channelId,
+      );
+    if (!joinChannel) {
+      throw new BadRequestException(
+        '해당 채널 메세지 목록을 볼 수 있는 권한이 없습니다',
+      );
+    }
     const blockUsers = await this.blockRepository.getBlockUsers(userId);
     return await this.channelMessageRepository.getChannelMessages(
       userId,
