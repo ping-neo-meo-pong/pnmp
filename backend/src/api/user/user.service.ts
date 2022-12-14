@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  BadRequestException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../core/user/user.entity';
 import { UserRepository } from '../../core/user/user.repository';
@@ -12,11 +8,13 @@ import { Like, IsNull, In, Not } from 'typeorm';
 import { FriendRespository } from '../../core/friend/friend.repository';
 import { Friend } from '../../core/friend/friend.entity';
 import { BlockRepository } from '../../core/block/block.repository';
-import { UserRole } from '../../enum/user-role.enum';
-import { ChannelRepository } from '../../core/channel/channel.repository';
 import { ChannelMemberRepository } from '../../core/channel/channel-member.repository';
 import { GameHistoryRepository } from '../../core/game/game-history.repository';
 import { GameHistory } from '../../core/game/game-history.entity';
+import { WinLose } from 'src/enum/win-lose.enum';
+import { FriendStatus } from '../../enum/friend-status';
+import { Block } from '../../core/block/block.entity';
+import { ChannelRepository } from '../../core/channel/channel.repository';
 
 @Injectable()
 export class UserService {
@@ -76,11 +74,27 @@ export class UserService {
     return user;
   }
 
-  async findFriends(userId: string): Promise<Friend[]> {
-    return await this.friendRespository.find({
+  async findFriends(userId: string) {
+    const friends = await this.friendRespository.find({
       relations: ['userId', 'userFriendId'],
-      where: [{ userId: { id: userId } }, { userFriendId: { id: userId } }],
+      where: [
+        { userId: { id: userId }, acceptAt: Not(IsNull()) },
+        { userFriendId: { id: userId }, acceptAt: Not(IsNull()) },
+      ],
     });
+    const receiveRequest = await this.friendRespository.find({
+      relations: ['userId', 'userFriendId'],
+      where: { userFriendId: { id: userId }, acceptAt: IsNull() },
+    });
+    const sendRequest = await this.friendRespository.find({
+      relations: ['userId', 'userFriendId'],
+      where: { userId: { id: userId }, acceptAt: IsNull() },
+    });
+    return {
+      friends: friends,
+      receiveRequest: receiveRequest,
+      sendRequest: sendRequest,
+    };
   }
 
   async requestFriend(userId: string, friendId: string): Promise<Friend> {
@@ -128,6 +142,14 @@ export class UserService {
       acceptAt: () => 'CURRENT_TIMESTAMP',
     });
     return friendship;
+  }
+
+  async getblockUsers(userId: string): Promise<Block[]> {
+    const blocks = await this.blockRepository.find({
+      relations: ['userId', 'blockedUserId'],
+      where: { userId: { id: userId }, blockAt: Not(IsNull()) },
+    });
+    return blocks;
   }
 
   async blockUser(userId: string, blockId: string) {
@@ -181,58 +203,82 @@ export class UserService {
     return { success: true };
   }
 
-  async blockUserFromService(userId: string, banId: string) {
-    const user = await this.findUserById(userId);
-    if (!(user.role === UserRole.OWNER || user.role === UserRole.MODERATOR)) {
-      throw new ForbiddenException('권한이 없습니다');
+  async acceptChannelInvite(userId: string, channelId: string) {
+    const channel = await this.channelRepository.findOneBy({ id: channelId });
+    if (!channel) {
+      throw new BadRequestException('존재하지 않는 채널');
     }
-    if (userId === banId) {
-      throw new BadRequestException('userId === blockId');
+    const iniviteChannel =
+      await this.channelMemberRepository.findIniviteChannel(userId, channelId);
+    if (!iniviteChannel) {
+      throw new BadRequestException('수락할 요청이 없습니다.');
     }
-    const banUser = await this.findUserById(banId);
-    if (!banUser) {
-      throw new BadRequestException('존재하지 않는 유저');
-    }
-    if (banUser.role === UserRole.OWNER) {
-      throw new ForbiddenException('권한이 없습니다');
-    } else if (banUser.role === UserRole.BAN) {
-      throw new BadRequestException('이미 정지된 유저입니다');
-    }
-    await this.userRepository.update(banUser.id, {
-      role: UserRole.BAN,
+    await this.channelMemberRepository.update(iniviteChannel.id, {
+      joinAt: () => 'CURRENT_TIMESTAMP',
+      leftAt: null,
     });
-    return { success: true };
+    return iniviteChannel;
   }
 
   async findChannelByParticipant(userId: string) {
-    const user = await this.findUserById(userId);
-    if (user.role === UserRole.OWNER || user.role === UserRole.MODERATOR) {
-      return this.channelRepository.find();
-    }
-    const joinChannels = await this.channelMemberRepository.find({
-      relations: ['userId', 'channelId'],
-      where: {
-        userId: { id: userId },
-        leftAt: IsNull(),
-        channelId: { deletedAt: IsNull() },
-      },
-    });
+    // const user = await this.findUserById(userId);
+    const joinChannels =
+      await this.channelMemberRepository.getChannelsJoinCurrently(userId);
     const channels = joinChannels.map((channel) => {
       return {
         ...channel.channelId,
         userRoleInChannel: channel.roleInChannel,
-        userBan: channel.banEndAt < new Date() ? false : true,
+        // userBan: channel.banEndAt < new Date() ? false : true,
         userMute: channel.muteEndAt < new Date() ? false : true,
       };
     });
-    return channels;
+    const inviteChannels =
+      await this.channelMemberRepository.getIniviteChannels(userId);
+    const inivie = inviteChannels.map((channel) => channel.channelId);
+    return { channels: channels, invite: inivie };
   }
 
-  async findUserProfile(userId: string) {
+  async getFriendStatus(
+    userId: string,
+    friendId: string,
+  ): Promise<FriendStatus> {
+    const friendship = await this.friendRespository.findFriendByUsers(
+      userId,
+      friendId,
+    );
+    if (friendship?.acceptAt) {
+      return FriendStatus.ALREADY;
+    } else if (!friendship?.acceptAt && friendship?.userId.id === userId) {
+      FriendStatus.SEND;
+    } else if (
+      !friendship?.acceptAt &&
+      friendship?.userFriendId.id === userId
+    ) {
+      return FriendStatus.RECEIVE;
+    }
+    return FriendStatus.NONE;
+  }
+
+  async getBlockStatus(userId: string, blockId: string) {
+    const block = await this.blockRepository.findOne({
+      relations: ['userId', 'blockedUserId'],
+      where: { userId: { id: userId }, blockedUserId: { id: blockId } },
+    });
+    if (block?.blockAt) {
+      return true;
+    }
+    return false;
+  }
+
+  async userProfile(loginId: string, userId: string) {
     const user = await this.findUserById(userId);
     const userGameHistory = await this.gameHistoryRepository.find({
       relations: ['userId', 'gameRoomId'],
       where: { userId: { id: userId } },
+    });
+    const userWins = await this.gameHistoryRepository.find({
+      relations: ['userId', 'gameRoomId'],
+      where: { userId: { id: userId }, win: WinLose.WIN },
     });
     const gameRooms = userGameHistory.map(
       (gameRoom) => gameRoom?.gameRoomId?.id,
@@ -279,6 +325,25 @@ export class UserService {
       }),
     );
     const gameHistories = Array.from(gameHistory.values());
-    return { ...user, matchHistory: gameHistories };
+
+    if (loginId === userId) {
+      return {
+        ...user,
+        friendStatus: null,
+        blockStatus: null,
+        winLose: { allGames: userGameHistory.length, wins: userWins.length },
+        matchHistory: gameHistories,
+      };
+    }
+
+    const friendStatus = await this.getFriendStatus(loginId, userId);
+    const blockStatus = await this.getBlockStatus(loginId, userId);
+    return {
+      ...user,
+      friendStatus: friendStatus,
+      blockStatus: blockStatus,
+      winLose: { allGames: userGameHistory.length, wins: userWins.length },
+      matchHistory: gameHistories,
+    };
   }
 }

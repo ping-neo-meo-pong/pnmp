@@ -1,4 +1,4 @@
-import { Repository, IsNull, LessThan } from 'typeorm';
+import { Repository, IsNull, LessThan, Not } from 'typeorm';
 import { ChannelMember } from './channel-member.entity';
 import { CustomRepository } from '../../typeorm-ex.decorator';
 import { User } from '../user/user.entity';
@@ -7,11 +7,36 @@ import { RoleInChannel } from '../../enum/role-in-channel.enum';
 
 @CustomRepository(ChannelMember)
 export class ChannelMemberRepository extends Repository<ChannelMember> {
+  async getIniviteChannels(userId: string) {
+    return await this.find({
+      relations: ['userId', 'channelId'],
+      where: {
+        userId: { id: userId },
+        joinAt: IsNull(),
+        banEndAt: IsNull() || LessThan(new Date()),
+        channelId: { deletedAt: IsNull() },
+      },
+    });
+  }
+
+  async findIniviteChannel(userId: string, channelId: string) {
+    return await this.findOne({
+      relations: ['userId', 'channelId'],
+      where: {
+        userId: { id: userId },
+        joinAt: IsNull(),
+        banEndAt: IsNull() || LessThan(new Date()),
+        channelId: { id: channelId, deletedAt: IsNull() },
+      },
+    });
+  }
+
   async getChannelsJoinCurrently(userId: string) {
     return await this.find({
       relations: ['userId', 'channelId'],
       where: {
         userId: { id: userId },
+        joinAt: Not(IsNull()),
         leftAt: IsNull(),
         channelId: { deletedAt: IsNull() },
       },
@@ -23,6 +48,7 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
       relations: ['userId', 'channelId'],
       where: {
         userId: { id: userId },
+        joinAt: Not(IsNull()),
         leftAt: IsNull(),
         channelId: { id: channelId, deletedAt: IsNull() },
       },
@@ -34,6 +60,7 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
       relations: ['userId', 'channelId'],
       where: {
         userId: { id: userId },
+        joinAt: Not(IsNull()),
         leftAt: IsNull(),
         banEndAt: IsNull() || LessThan(new Date()),
         roleInChannel: RoleInChannel.OWNER || RoleInChannel.ADMINISTRATOR,
@@ -42,11 +69,43 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
     });
   }
 
-  async findChannelHaveJoin(userId: string, channelId: string) {
+  async findChannelHaveJoinOrInvite(userId: string, channelId: string) {
     return await this.findOne({
       relations: ['userId', 'channelId'],
       where: {
         userId: { id: userId },
+        channelId: { id: channelId, deletedAt: IsNull() },
+      },
+    });
+  }
+
+  async getChannelAdministrators(channelId: string) {
+    return await this.find({
+      relations: ['userId', 'channelId'],
+      order: {
+        createdAt: 'ASC',
+      },
+      where: {
+        leftAt: IsNull(),
+        joinAt: Not(IsNull()),
+        banEndAt: IsNull() || LessThan(new Date()),
+        roleInChannel: RoleInChannel.ADMINISTRATOR,
+        channelId: { id: channelId, deletedAt: IsNull() },
+      },
+    });
+  }
+
+  async getChannelMembersExcludeOwner(channelId: string) {
+    return await this.find({
+      relations: ['userId', 'channelId'],
+      order: {
+        createdAt: 'ASC',
+      },
+      where: {
+        leftAt: IsNull(),
+        joinAt: Not(IsNull()),
+        banEndAt: IsNull() || LessThan(new Date()),
+        roleInChannel: Not(RoleInChannel.OWNER),
         channelId: { id: channelId, deletedAt: IsNull() },
       },
     });
@@ -57,6 +116,7 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
       relations: ['userId', 'channelId'],
       where: {
         leftAt: IsNull(),
+        joinAt: Not(IsNull()),
         channelId: { id: channelId },
       },
     });

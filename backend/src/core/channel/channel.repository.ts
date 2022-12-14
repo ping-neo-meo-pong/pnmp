@@ -1,4 +1,4 @@
-import { Repository, IsNull } from 'typeorm';
+import { Repository, IsNull, Not, In } from 'typeorm';
 import { Channel } from './channel.entity';
 import { CustomRepository } from '../../typeorm-ex.decorator';
 import { CreateChannelDto } from '../../api/channel/dto/create-channel.dto';
@@ -6,15 +6,21 @@ import { CreateChannelDto } from '../../api/channel/dto/create-channel.dto';
 @CustomRepository(Channel)
 export class ChannelRepository extends Repository<Channel> {
   async getChannels(joinChannelsId) {
-    return await this.createQueryBuilder('channel')
-      .where(
-        'channel.id NOT IN (:...ids) and channel.is_public = :isPublic and channel.deleted_at IS NULL',
-        {
-          ids: joinChannelsId,
+    if (joinChannelsId.length > 0) {
+      return await this.find({
+        where: {
+          id: Not(In(joinChannelsId)),
           isPublic: true,
+          deletedAt: IsNull(),
         },
-      )
-      .getMany();
+      });
+    }
+    return await this.find({
+      where: {
+        isPublic: true,
+        deletedAt: IsNull(),
+      },
+    });
   }
 
   async makeChannel(createChannelData: CreateChannelDto) {

@@ -10,6 +10,7 @@ import { DmRoomRepository } from '../../core/dm/dm-room.repository';
 import { UserRepository } from '../../core/user/user.repository';
 import { SocketModule } from '../../core/socket/socket.module';
 import { DmGateway } from './dm.gateway';
+import { BlockRepository } from '../../core/block/block.repository';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { DmGateway } from './dm.gateway';
       DmRepository,
       DmRoomRepository,
       UserRepository,
+      BlockRepository,
     ]),
   ],
   controllers: [DmController],
