@@ -20,7 +20,7 @@ export default function ChannelPanel() {
     axios
       .get('/server/api/user/channel')
       .then((response) => {
-        setChannels(response.data);
+        setChannels(response.data.channels);
       })
       .catch((error) => {
       })

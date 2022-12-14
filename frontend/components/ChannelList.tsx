@@ -19,7 +19,7 @@ export default function ChannelList({ channels }) {
             <ListItemAvatar>
               <Avatar>P</Avatar>
             </ListItemAvatar>
-            <ListItemText primary={channel.name} />
+            <ListItemText primary={channel.channelName} />
           </ListItemButton>
         );
       })}

@@ -18,7 +18,11 @@ export default function FriendPanel() {
     axios
       .get('/server/api/user/friend')
       .then((response) => {
-        setFriendships(response.data);
+        setFriendships([
+          ...response.data.friends,
+          ...response.data.receiveRequest,
+          ...response.data.sendRequest,
+        ]);
       })
       .catch((error) => {
       })
