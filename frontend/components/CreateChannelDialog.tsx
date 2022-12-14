@@ -33,8 +33,16 @@ export default function CreateChannelDialog({ open, onClose, onSubmit }) {
     onClose();
   }
 
+  function close() {
+    setName('');
+    setDescription('');
+    setPassword('');
+    setIsPrivate(false);
+    onClose();
+  }
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth>
+    <Dialog open={open} onClose={close} fullWidth>
       <DialogTitle>Create new channel</DialogTitle>
       <DialogContent>
         <TextField
@@ -69,7 +77,7 @@ export default function CreateChannelDialog({ open, onClose, onSubmit }) {
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={close}>Cancel</Button>
         <Button onClick={submit}>Create</Button>
       </DialogActions>
     </Dialog>

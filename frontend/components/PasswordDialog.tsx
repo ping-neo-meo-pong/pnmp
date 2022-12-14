@@ -9,8 +9,13 @@ import { useState } from 'react';
 export default function PasswordDialog({ open, onClose, onSubmit }) {
   const [password, setPassword] = useState('');
 
+  function close() {
+    setPassword('');
+    onClose();
+  }
+
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={close}>
       <DialogTitle>
         Enter password
       </DialogTitle>
@@ -25,7 +30,7 @@ export default function PasswordDialog({ open, onClose, onSubmit }) {
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={close}>Cancel</Button>
         <Button onClick={() => onSubmit(password)}>Enter</Button>
       </DialogActions>
     </Dialog>
