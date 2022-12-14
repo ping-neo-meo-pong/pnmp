@@ -16,7 +16,7 @@ import {
   draw_countDown2,
 } from "./sketch";
 import { getLoginUser } from "../../lib/login";
-import Layout from "../../components/layout";
+import Layout from "../../components/Layout";
 
 // Will only import `react-p5` on client-side
 const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {

@@ -16,9 +16,6 @@ export default function ChannelList({ channels }) {
           <ListItemButton
             key={channel.id}
           >
-            <ListItemAvatar>
-              <Avatar>P</Avatar>
-            </ListItemAvatar>
             <ListItemText primary={channel.channelName} />
           </ListItemButton>
         );

@@ -26,15 +26,15 @@ export default function JoinChannelDialog({
       .catch((error) => {
         console.error(error);
       });
-  }, []);
+  }, [open]);
 
   return (
     <Dialog onClose={onClose} open={open}>
       <DialogTitle>Join new channel</DialogTitle>
       <List sx={{ pt: 0 }}>
         {channels.map((channel) => (
-          <ListItemButton onClick={() => onSelect(channel.id)} key={channel.id}>
-            <ListItemText primary={channel.name} />
+          <ListItemButton onClick={() => onSelect(channel)} key={channel.id}>
+            <ListItemText primary={channel.channelName} />
           </ListItemButton>
         ))}
         <ListItemButton onClick={onCreateNew}>
