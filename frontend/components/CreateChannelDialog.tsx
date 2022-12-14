@@ -16,6 +16,13 @@ export default function CreateChannelDialog({ open, onClose, onSubmit }) {
   const [password, setPassword] = useState<string>('');
   const [isPrivate, setIsPrivate] = useState<boolean>(false);
 
+  function resetStates() {
+    setName('');
+    setDescription('');
+    setPassword('');
+    setIsPrivate(false);
+  }
+
   function submit() {
     axios
       .post(
@@ -30,14 +37,12 @@ export default function CreateChannelDialog({ open, onClose, onSubmit }) {
       .then((response) => onSubmit())
       .catch((error) => {
       });
+    resetStates();
     onClose();
   }
 
   function close() {
-    setName('');
-    setDescription('');
-    setPassword('');
-    setIsPrivate(false);
+    resetStates();
     onClose();
   }
 

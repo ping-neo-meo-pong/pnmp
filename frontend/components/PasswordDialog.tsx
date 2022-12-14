@@ -14,6 +14,11 @@ export default function PasswordDialog({ open, onClose, onSubmit }) {
     onClose();
   }
 
+  function submit(password) {
+    onSubmit(password)
+    setPassword('');
+  }
+
   return (
     <Dialog open={open} onClose={close}>
       <DialogTitle>
@@ -31,7 +36,7 @@ export default function PasswordDialog({ open, onClose, onSubmit }) {
       </DialogContent>
       <DialogActions>
         <Button onClick={close}>Cancel</Button>
-        <Button onClick={() => onSubmit(password)}>Enter</Button>
+        <Button onClick={() => submit(password)}>Enter</Button>
       </DialogActions>
     </Dialog>
   );
