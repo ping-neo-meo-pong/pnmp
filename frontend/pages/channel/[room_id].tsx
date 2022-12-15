@@ -8,21 +8,30 @@ import { useSocketAuthorization } from "../../lib/socket";
 import { getLoginUser } from "../../lib/login";
 import Layout from "../../components/Layout";
 
-export default function Dm() {
+export default function Channel() {
   useSocketAuthorization();
   const router = useRouter();
 
   const roomId = `${router.query.room_id}`;
+  const [roomName, setRoomName] = useState("default");
 
   const [msgList, setMsgList] = useState<any>([]);
   let loginUser: any = getLoginUser();
 
   useEffect(() => {
-    console.log("useEffect in cm[room_id]");
+    console.count("useEffect in cm[room_id]");
     if (!router.isReady) return;
     loginUser = getLoginUser();
     if (roomId) {
       console.log(`get cm from ${roomId}`);
+      axios.get(`/server/api/user/channel`).then(function (res) {
+        const chList = res.data.channels;
+        for (const ch of chList) {
+          if (ch.id == roomId) {
+            setRoomName(ch.channelName);
+          }
+        }
+      });
       axios
         .get(`/server/api/channel/${roomId}`)
         .then(function (response) {
@@ -34,21 +43,34 @@ export default function Dm() {
           channelSocket.on(`drawChannelMessage`, (message) => {
             console.log(`draw cm`);
             console.log(message);
-            if (
-              !(
-                loginUser.id !== message.sendUserId.id &&
-                message.isSendUserBlocked
-              )
-            )
-              setMsgList((current: any) => {
-                current.push(message);
-                return [...current];
-              });
+            let blockUsers: any[] = [];
+            let isSendUserBlocked: Boolean = false;
+            axios.get(`/server/api/user/block`).then(function (res) {
+              blockUsers = res.data;
+              console.log(blockUsers);
+              for (let block of blockUsers) {
+                console.log(
+                  `${message.sendUserId.id} vs ${block.blockedUserId.id}`
+                );
+                if (message.sendUserId.id == block.blockedUserId.id) {
+                  console.log(`blocked!!`);
+                  isSendUserBlocked = true;
+                }
+              }
+              if (
+                !(loginUser.id !== message.sendUserId.id && isSendUserBlocked)
+              ) {
+                setMsgList((current: any) => {
+                  current.push(message);
+                  return [...current];
+                });
+              }
+            });
           });
 
-          //   router.events.on("routeChangeStart", () => {
-          //     channelSocket.off(`drawChannelMessage`);
-          //   });
+          router.events.on("routeChangeStart", () => {
+            channelSocket.off(`drawChannelMessage`);
+          });
         })
         .catch(() => {
           // router.push("/login", );
@@ -70,7 +92,7 @@ export default function Dm() {
 
   return (
     <Layout>
-      <h1>Channel</h1>
+      <h1>{roomName}</h1>
       <form id="username" onSubmit={onSubmitMessage}>
         <input type="text" id="message" name="message" />
         <button type="submit">send_message</button>

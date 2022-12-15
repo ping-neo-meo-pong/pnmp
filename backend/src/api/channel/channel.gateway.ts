@@ -14,6 +14,7 @@ import { ChannelMessageRepository } from '../../core/channel/channel-message.rep
 import { ChannelMemberRepository } from 'src/core/channel/channel-member.repository';
 import { ChannelRepository } from '../../core/channel/channel.repository';
 import { BlockRepository } from '../../core/block/block.repository';
+import { UserRepository } from 'src/core/user/user.repository';
 
 @WebSocketGateway({ namespace: 'channel', transports: ['websocket'] })
 export class ChannelGateway
@@ -29,6 +30,8 @@ export class ChannelGateway
     private channelMemberRepository: ChannelMemberRepository,
     @InjectRepository(ChannelRepository)
     private channelRepository: ChannelRepository,
+    @InjectRepository(UserRepository)
+    private userRepository: UserRepository,
     @InjectRepository(BlockRepository)
     private blockRepository: BlockRepository,
   ) {}
@@ -78,26 +81,10 @@ export class ChannelGateway
         id: newChannelMessage.id,
       },
     });
-    // const channel = await this.channelRepository.getChannels(data.roomId); // 임시 주석
-    // const userId =
-    //   data.userId === channel.userId.id
-    //     ? channel.invitedUserId.id
-    //     : channel.userId.id;
-    // const isBlockUser = await this.blockRepository.didUserBlockOther(
-    //   userId,
-    //   data.userId,
-    // );
-    if (0) {
-      console.log(`cm room ${data.roomId}에 송구하오`);
-      this.server.in(data.roomId).emit(`drawChannelMessage`, {
-        ...newChannelMessageData,
-        isSendUserBlocked: true,
-      });
-    } else {
-      this.server.in(data.roomId).emit(`drawChannelMessage`, {
-        ...newChannelMessageData,
-        isSendUserBlocked: false,
-      });
-    }
+    // const blockUsers = await this.userRepository.findOneBy({ id: socket.id });
+    console.log(`cm room ${data.roomId}에 송구하오`);
+    this.server.in(data.roomId).emit(`drawChannelMessage`, {
+      ...newChannelMessageData, // 일단 block유저 찾지않음
+    });
   }
 }
