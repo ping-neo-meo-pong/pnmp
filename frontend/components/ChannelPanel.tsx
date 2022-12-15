@@ -1,14 +1,14 @@
-import Box from '@mui/material/Box';
-import InputBase from '@mui/material/InputBase';
-import TextField from '@mui/material/TextField';
-import Fab from '@mui/material/Fab';
-import AddIcon from '@mui/icons-material/Add';
-import { useState, useEffect } from 'react';
-import axios from 'axios';
-import ChannelList from './ChannelList';
-import JoinChannelDialog from './JoinChannelDialog';
-import CreateChannelDialog from './CreateChannelDialog';
-import PasswordDialog from './PasswordDialog';
+import Box from "@mui/material/Box";
+import InputBase from "@mui/material/InputBase";
+import TextField from "@mui/material/TextField";
+import Fab from "@mui/material/Fab";
+import AddIcon from "@mui/icons-material/Add";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import ChannelList from "./ChannelList";
+import JoinChannelDialog from "./JoinChannelDialog";
+import CreateChannelDialog from "./CreateChannelDialog";
+import PasswordDialog from "./PasswordDialog";
 
 export default function ChannelPanel() {
   const [joinDialogOpen, setJoinDialogOpen] = useState<boolean>(false);
@@ -21,28 +21,24 @@ export default function ChannelPanel() {
 
   function getAndSetChannels() {
     axios
-      .get('/server/api/user/channel')
+      .get("/server/api/user/channel")
       .then((response) => {
         setChannels(response.data.channels);
       })
-      .catch((error) => {
-      })
+      .catch((error) => {});
   }
 
   function joinChannelWithPassword(password: string) {
     axios
-      .post(
-        `/server/api/channel/${selectedChannel.id}`,
-        { password }
-      ).
-      then((response) => getAndSetChannels())
+      .post(`/server/api/channel/${selectedChannel.id}`, { password })
+      .then((response) => getAndSetChannels())
       .catch((error) => {
         alert(error.response.data.message);
       });
     setPasswordDialogOpen(false);
   }
 
-  function onSelectChannelToJoin(channel) {
+  function onSelectChannelToJoin(channel: any) {
     setSelectedChannel(channel);
     setJoinDialogOpen(false);
     setPasswordDialogOpen(true);
@@ -55,7 +51,7 @@ export default function ChannelPanel() {
 
   return (
     <Box sx={{ flex: 1, position: "relative" }}>
-      <ChannelList channels={channels}/>
+      <ChannelList channels={channels} />
       <Fab
         sx={{ position: "absolute", bottom: 10, right: 10 }}
         onClick={() => setJoinDialogOpen(true)}

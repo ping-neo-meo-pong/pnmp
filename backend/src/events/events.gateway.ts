@@ -277,7 +277,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         });
         if (user == null) {
           console.log(`can not find user`);
-          return ;
+          return;
         }
         gameQueList.push({ inviterName: user.username, inviterId: user.id });
       }

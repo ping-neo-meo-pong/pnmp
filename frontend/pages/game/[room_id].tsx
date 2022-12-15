@@ -134,10 +134,7 @@ export default function GameRoom() {
     draw_p1_bar(p5, data);
     draw_p2_bar(p5, data);
 
-    if (
-      data.leftUser == userId ||
-      data.rightUser == userId
-    ) {
+    if (data.leftUser == userId || data.rightUser == userId) {
       let send = {
         roomId: roomId,
         m_y: p5.mouseY,

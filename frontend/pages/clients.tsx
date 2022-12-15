@@ -128,6 +128,30 @@ export default function Client() {
       });
   }
 
+  function onSubmitChannelMessage(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    axios
+      .post(`/server/api/channel`, {
+        channelName: "string",
+        description: "string",
+        password: "string",
+        isPublic: true,
+      })
+      .then(function (response) {
+        const channelRoom = response.data;
+        console.log(channelRoom);
+        // setDmRoomList((current: JSX.Element[]) => {
+        //   current.push(
+        //     <GoToDmRoom key={channelRoom.id} channelRoom={channelRoom} />
+        //   );
+        //   return [...current];
+        // });
+      })
+      .catch((error) => {
+        alert(error.response.data.message);
+      });
+  }
+
   function onSubmitGameInvite(event: React.FormEvent<HTMLFormElement>) {
     console.log(`cookie: ${document.cookie}`);
     event.preventDefault();

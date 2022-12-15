@@ -1,24 +1,22 @@
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
-import Dialog from '@mui/material/Dialog';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogContent from '@mui/material/DialogContent';
-import DialogActions from '@mui/material/DialogActions';
-import { useState } from 'react';
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import Dialog from "@mui/material/Dialog";
+import DialogTitle from "@mui/material/DialogTitle";
+import DialogContent from "@mui/material/DialogContent";
+import DialogActions from "@mui/material/DialogActions";
+import { useState } from "react";
 
-export default function PasswordDialog({ open, onClose, onSubmit }) {
-  const [password, setPassword] = useState('');
+export default function PasswordDialog({ open, onClose, onSubmit }: any) {
+  const [password, setPassword] = useState("");
 
   function close() {
-    setPassword('');
+    setPassword("");
     onClose();
   }
 
   return (
     <Dialog open={open} onClose={close}>
-      <DialogTitle>
-        Enter password
-      </DialogTitle>
+      <DialogTitle>Enter password</DialogTitle>
       <DialogContent>
         <TextField
           autoFocus

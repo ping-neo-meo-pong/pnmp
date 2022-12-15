@@ -10,7 +10,7 @@ import { getLoginUser } from "../lib/login";
 
 export default function FriendList({ friendships }: any) {
   const router = useRouter();
-  const [loginUser, setLoginUser] = useState(null);
+  const [loginUser, setLoginUser]: any = useState(null);
 
   useEffect(() => {
     setLoginUser(getLoginUser());
