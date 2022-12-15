@@ -11,11 +11,16 @@ import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { LoginReqDto } from 'src/api/user/dto/login-req.dto';
+import { UserRepository } from 'src/core/user/user.repository';
+import { UserStatus } from 'src/enum/user-status';
 
 @Controller('auth')
 @ApiTags('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private userRepository: UserRepository,
+  ) {}
 
   @UseGuards(AuthGuard('local'))
   @Post('/login')
@@ -40,8 +45,16 @@ export class AuthController {
     return req.user;
   }
 
+  @UseGuards(AuthGuard('jwt'))
   @Post('/logout')
-  logout(@Res({ passthrough: true }) res) {
+  @ApiBearerAuth()
+  async logout(@Request() req, @Res({ passthrough: true }) res) {
+    const user = await this.userRepository.findOneBy({ id: req.user.id });
+    if (user && user.status != UserStatus.INGAME) {
+      await this.userRepository.update(req.user.id, {
+        status: UserStatus.OFFLINE,
+      });
+    }
     res.cookie('jwt', '', { httpOnly: true, maxAge: 0 });
     return { message: 'success' };
   }
