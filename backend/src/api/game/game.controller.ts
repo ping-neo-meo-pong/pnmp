@@ -9,8 +9,9 @@ import {
 import { GameService } from './game.service';
 import { GameRoomDto } from '../../core/game/dto/game-room.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { CreateGameRoomDto } from 'src/api/game/dto/create-game-room.dto';
+import { GameHistory } from 'src/core/game/game-history.entity';
 import { isUUID } from 'class-validator';
 import { BadRequestException } from '@nestjs/common';
 
@@ -45,5 +46,14 @@ export class GameController {
       throw new BadRequestException('id가 uuid가 아님');
     }
     return this.gameService.createGameRoom(leftUserId, rightUserId);
+  }
+
+  @Get('/history')
+  @ApiOperation({ summary: 'get dm과 같음' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  getHistorys(@Request() request): Promise<GameHistory[]> {
+    const userId = request.user.id;
+    return this.gameService.getHistorys(userId);
   }
 }

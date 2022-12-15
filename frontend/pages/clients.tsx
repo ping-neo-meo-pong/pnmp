@@ -4,6 +4,13 @@ import axios from "axios";
 import { user_data } from "./login";
 import { socket, useSocketAuthorization } from "../lib/socket";
 import { logout, getLoginUser } from "../lib/login";
+import Layout from "../components/Layout";
+import { Button } from "@mui/material";
+import {
+  InviteModal,
+  InviteModalWithUserName,
+  MatchingModal,
+} from "../components/InviteModal";
 
 export default function Client() {
   useSocketAuthorization();
@@ -13,6 +20,8 @@ export default function Client() {
   useEffect(getDmRooms, [router.isReady]);
   let [gameRoomList, setGameRoomList]: any = useState([]);
   useEffect(getGameRooms, [router.isReady]);
+  let [modal, setModal] = useState(<></>);
+  let [modalOpen, setModalOpen] = useState(false);
 
   console.log("clients page before useEffect");
   useEffect(() => {
@@ -119,6 +128,30 @@ export default function Client() {
       });
   }
 
+  function onSubmitChannelMessage(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    axios
+      .post(`/server/api/channel`, {
+        channelName: "string",
+        description: "string",
+        password: "string",
+        isPublic: true,
+      })
+      .then(function (response) {
+        const channelRoom = response.data;
+        console.log(channelRoom);
+        // setDmRoomList((current: JSX.Element[]) => {
+        //   current.push(
+        //     <GoToDmRoom key={channelRoom.id} channelRoom={channelRoom} />
+        //   );
+        //   return [...current];
+        // });
+      })
+      .catch((error) => {
+        alert(error.response.data.message);
+      });
+  }
+
   function onSubmitGameInvite(event: React.FormEvent<HTMLFormElement>) {
     console.log(`cookie: ${document.cookie}`);
     event.preventDefault();
@@ -135,12 +168,12 @@ export default function Client() {
   }
 
   return (
-    <div>
+    <Layout>
       <h1>
         HI {user_data._name}
         <button
           onClick={() => {
-            router.push("/profile");
+            router.push(`/profile/${user_data._name}`);
           }}
         >
           <h1> 프로필 </h1>
@@ -166,10 +199,12 @@ export default function Client() {
       {dmRoomList}
 
       <h1>Game room list</h1>
-      <form onSubmit={onSubmitGameInvite}>
+      <InviteModal />
+      <InviteModalWithUserName userName="jw" />
+      {/* <form onSubmit={onSubmitGameInvite}>
         <button type="submit">create new Game room with </button>
         <input type="text" name="invitedUserId" />
-      </form>
+      </form> */}
       {gameRoomList}
 
       <h1>Random Maching</h1>
@@ -189,7 +224,8 @@ export default function Client() {
       >
         Maching Mode 2
       </button>
-    </div>
+      <MatchingModal />
+    </Layout>
   );
 }
 

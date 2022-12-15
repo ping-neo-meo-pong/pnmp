@@ -1,0 +1,26 @@
+.header {
+	/* Frame 163 */
+
+box-sizing: border-box;
+
+/* Auto layout */
+
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+padding: 21.1696px;
+gap: 10.58px;
+
+width: 701.77px;
+height: 139.72px;
+
+background: linear-gradient(0deg, #FFFFFF, #FFFFFF), rgba(105, 201, 255, 0.2);
+border: 1px solid #D9D9D9;
+
+/* Inside auto layout */
+
+flex: none;
+order: 0;
+flex-grow: 0;
+}

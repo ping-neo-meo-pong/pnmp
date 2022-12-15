@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { user_data } from "./login";
 import { socket, useSocketAuthorization } from "../lib/socket";
 import { useEffect } from "react";
+import Layout from "../components/Layout";
 
 export default function matching() {
   useSocketAuthorization();
@@ -21,7 +22,7 @@ export default function matching() {
     };
   }, []);
   return (
-    <div>
+    <Layout>
       <h1>Matching...</h1>
       <button
         onClick={() => {
@@ -32,6 +33,6 @@ export default function matching() {
         {" "}
         Cancel Matching{" "}
       </button>
-    </div>
+    </Layout>
   );
 }

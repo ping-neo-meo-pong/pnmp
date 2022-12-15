@@ -10,6 +10,7 @@ import { UserRepository } from 'src/core/user/user.repository';
 import { SocketRepository } from 'src/core/socket/socket.repository';
 import { GameMode } from 'src/enum/game-mode.enum';
 import { GameQueueRepository } from 'src/core/game/game-queue.repository';
+import { GameHistory } from 'src/core/game/game-history.entity';
 
 @Injectable()
 export class GameService {
@@ -39,6 +40,23 @@ export class GameService {
       if (gameRooms[i]) ttt.push(gameRooms[i].gameRoomDto);
     }
     return ttt;
+  }
+  async getHistorys(userId: string): Promise<GameHistory[]> {
+    const Historys = await this.gameHistoryRepository.getHistorys(userId);
+    const result = [];
+    console.log('history');
+    for (const history of Historys) {
+      console.log(history);
+      result.push(history);
+      //   result.push({
+      //     id: history.id,
+      //     otherUser:
+      //       history.userId.id === userId
+      //         ? history.invitedUserId.username
+      //         : history.userId.username,
+      //   });
+    }
+    return result;
   }
 
   async createGameRoom(userId: string, invitedUserId: string) {
