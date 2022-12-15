@@ -18,7 +18,7 @@ export default function Dm() {
   let loginUser: any = getLoginUser();
 
   useEffect(() => {
-    console.log('useEffect in dm[room_id]');
+    console.log("useEffect in dm[room_id]");
     if (!router.isReady) return;
     loginUser = getLoginUser();
     if (roomId) {

@@ -2,6 +2,7 @@ import {
   Avatar,
   Box,
   Button,
+  Grid,
   ListItemAvatar,
   ListItemButton,
   ListItemText,
@@ -15,56 +16,78 @@ import { useRouter } from "next/router";
 export default function Profile({ userName }: any) {
   const router = useRouter();
   const me = getLoginUser();
-  const [user, setUser]: any = useState({ ladder: 0 });
+  //   const [user, setUser]: any = useState({});
   const [history, setHistory]: any = useState({});
   const [testHistory, setTestHistory]: any[] = useState([]);
 
   console.log(me);
   useEffect(() => {
     if (!router.isReady) return;
+    // let user: any = {};
     axios
       .get(`/server/api/user?username=${userName}`)
       .then(function (res) {
-        setUser(...res.data);
-        // console.log(`user:`);
-        // console.log(user);
+        // setUser(...res.data);
+        // setUser(res.data[0]);
+        const user = res.data[0];
+        console.log(`user:`);
+        console.log(user);
+
+        axios
+          .get(`/server/api/user/${user.id}`)
+          .then(function (res) {
+            let arr: any[] = [];
+            let brr: any = [];
+            const historys = res.data.matchHistory;
+            console.log(`history data`);
+            console.log(res.data);
+
+            for (let i in historys) {
+              arr.push(historys[i]);
+              let time = `${historys[i].gameRoom.createdAt}`;
+              brr.push(
+                <Box>
+                  <Grid container spacing={0}>
+                    <Grid item xs={3}></Grid>
+                    <Grid
+                      item
+                      xs={2}
+                      sx={{
+                        color: historys[i].user.win == "WIN" ? "blue" : "red",
+                      }}
+                    >
+                      {historys[i].user.win}
+                    </Grid>
+                    <Grid item xs={3}>
+                      {userName} {" VS"} {historys[i].other.profile.username}{" "}
+                    </Grid>
+                    <Grid item xs={4}></Grid>
+                    <Grid item xs={12}>
+                      {" score:"} {historys[i].user.score}
+                      {" Ladder:"} {historys[i].user.ladder}
+                      {" time:"} {time.slice(0, 10)}
+                    </Grid>
+                  </Grid>
+                  <br />
+                </Box>
+              );
+            }
+            setTestHistory(brr);
+            setHistory(arr);
+            console.log(`history:`);
+            console.log(arr);
+            console.log(`brr:`);
+            console.log(brr);
+          })
+          .catch((e) => {
+            console.error(e);
+          });
       })
       .catch((e) => {
         console.error(e);
       });
-    console.log("user");
-    console.log(user);
     // if (user.ladder == 0) router.push("/clients");
-
-    axios
-      .get(`/server/api/game/history`)
-      .then(function (res) {
-        let arr: any[] = [];
-        let brr: any = [];
-
-        for (let i in res.data) {
-          arr.push(res.data[i]);
-          let time = `${res.data[i].createdAt}`;
-          brr.push(
-            <div>
-              {res.data[i].win}
-              {" score:"} {res.data[i].score}
-              {" Ladder:"} {res.data[i].ladder}
-              {" time:"} {time.slice(0, 10)}
-            </div>
-          );
-        }
-        setTestHistory(brr);
-        setHistory(arr);
-        console.log(`history:`);
-        console.log(arr);
-        console.log(`brr:`);
-        console.log(brr);
-      })
-      .catch((e) => {
-        console.error(e);
-      });
-  }, [router.isReady]);
+  }, [router.isReady, userName]);
 
   if (!router.isReady) return <></>;
   return (
