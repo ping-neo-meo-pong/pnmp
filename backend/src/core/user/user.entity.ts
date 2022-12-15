@@ -43,7 +43,7 @@ export class User extends Base {
 
   @Column({
     comment: '유저 상태',
-    nullable: true,
+    default: UserStatus.OFFLINE,
   })
   status: UserStatus;
 
