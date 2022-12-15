@@ -136,7 +136,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log(`friend is already in the game`);
       return;
     }
-    const invitedSocket = await this.socketRepository.find(invitedUser.id);
+    const invitedSocket = this.socketRepository.find(invitedUser.id);
     if (invitedSocket) {
       this.server.sockets
         .to(invitedSocket.id)

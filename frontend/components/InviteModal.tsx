@@ -207,11 +207,9 @@ export function InviteModalWithUserName({ userName }: any) {
       if (userName) {
         socket.emit(`gameToFriend`, {
           invitedUserName: userName,
-          // invitedUserName: "jw",
           mode: alignment,
         });
         socket.off(`gameToFriend`);
-        // router.push(`/matching`);
       } else {
         alert(`please input name`);
       }
