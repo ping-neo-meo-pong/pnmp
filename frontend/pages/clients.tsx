@@ -249,13 +249,6 @@ function GoToGameRoom({ gameRoom }: any) {
     console.log(`come in room~`);
     console.log(gameRoom.leftUser.id);
     console.log(gameRoom.rightUser.id);
-    // console.log(user_data._id);
-    // if (
-    //   gameRoom.leftUser.id == user_data._id ||
-    //   gameRoom.rightUser.id == user_data._id
-    // ) {
-    //   user_data.is_player = 1;
-    // }
 
     router.push(`/game/${gameRoom.id}`);
   }

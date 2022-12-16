@@ -303,7 +303,6 @@ export function MatchingModal() {
   const router = useRouter();
 
   socket.on("goToGameRoom", (roomId) => {
-    // user_data.is_player = 1;
     router.push(`/game/${roomId}`);
   });
 
