@@ -274,7 +274,6 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
           room.gameLoop = setInterval(async () => {
             this.server.in(roomId).emit(`game[${roomId}]`, room.gameRoomDto);
             if (ball_engine(room.gameRoomDto, this.endScore) == false) {
-              await this.saveHistory(room.gameRoomDto, this.endScore);
               this.closeGame(roomId, room);
             }
           }, 1000 / 30);
@@ -387,7 +386,12 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: UserSocket,
     @MessageBody() mode: GameMode,
   ) {
-    // console.log(client.user.id);
+    console.log(`client.user`);
+    console.log(client.user);
+    if (!client.user) {
+      client.disconnect();
+      return;
+    }
     const is_join = await this.gameRoomRepository.findByUserId(client.user.id);
     if (is_join) {
       console.log(`already you game`);
@@ -458,27 +462,28 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     clearInterval(room.gameLoop);
     // game history
     // erase gameRoom
-    await this.userRepository.update(room.gameRoomDto.leftUser.id, {
-      status: UserStatus.OFFLINE,
-    });
-    await this.userRepository.update(room.gameRoomDto.rightUser.id, {
-      status: UserStatus.OFFLINE,
-    });
     this.gameRoomRepository.eraseGameRoom(roomId);
     setTimeout(() => {
       this.server.in(roomId).emit(`getOut!`);
       this.server.socketsLeave(roomId);
     }, 3000);
+    await this.saveHistory(room.gameRoomDto, this.endScore);
   }
 
   async saveHistory(room: GameRoomDto, endScore: number) {
     let leftWin, rightWin;
+    let leftLadder = room.leftUser.ladder;
+    let rightLadder = room.rightUser.ladder;
     if (room.gameData.p1.score == endScore) {
       leftWin = 'WIN';
+      leftLadder = room.leftUser.ladder + 1;
       rightWin = 'LOSE';
+      if (rightLadder > 0) rightLadder = room.rightUser.ladder - 1;
     } else {
       leftWin = 'LOSE';
+      if (leftLadder > 0) leftLadder = room.leftUser.ladder - 1;
       rightWin = 'WIN';
+      rightLadder = room.rightUser.ladder + 1;
     }
     const leftHistory: History = {
       win: leftWin,
@@ -498,6 +503,14 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     };
     await this.gameHistroyRepository.createHistory(leftHistory);
     await this.gameHistroyRepository.createHistory(rightHistory);
+    await this.userRepository.update(room.leftUser.id, {
+      status: UserStatus.OFFLINE,
+      ladder: leftLadder,
+    });
+    await this.userRepository.update(room.rightUser.id, {
+      status: UserStatus.OFFLINE,
+      ladder: rightLadder,
+    });
   }
 
   // sendToDB(roomId: string) {
