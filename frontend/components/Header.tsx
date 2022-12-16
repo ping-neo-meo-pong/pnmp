@@ -43,7 +43,13 @@ export default function Header({ title }: any) {
           <Box sx={{ display: "inline", flex: 1 }}>
             <MatchingModal />
           </Box>
-          <Button>live</Button>
+          <Button
+            onClick={() => {
+              router.push(`/live`);
+            }}
+          >
+            live
+          </Button>
           <Button>leaderboard</Button>
         </Grid>
         <Grid item xs={12} md={3}>
