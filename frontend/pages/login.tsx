@@ -9,14 +9,14 @@ import axios from "axios";
 import { io, Socket } from "socket.io-client";
 import { socket } from "../lib/socket";
 import { isLoggedIn } from "../lib/login";
+import { Box, Button, FormControl, TextField, Typography } from "@mui/material";
 
-export let user_data: any = {
+let user_data: any = {
   _name: "",
   _pass: "",
   _socket: "",
   _token: "",
   _room: [],
-  is_player: 0,
 };
 
 export default function Login() {
@@ -59,14 +59,22 @@ export default function Login() {
   }
 
   return (
-    <div>
-      <form onSubmit={onSubmitHandler}>
-        <input type="text" id="username" name="username" />
-        <br />
-        <input type="text" id="password" name="password" />
-        <br />
-        <button type="submit">Login</button>
-      </form>
-    </div>
+    <Box component="form" onSubmit={onSubmitHandler}>
+      <Typography>Login</Typography>
+      <FormControl>
+        <TextField variant="outlined" name="username"></TextField>
+        <TextField variant="outlined" name="password"></TextField>
+      </FormControl>
+      <Button type="submit">Login</Button>
+    </Box>
+    // <div>
+    //   <form onSubmit={onSubmitHandler}>
+    //     <input type="text" id="username" name="username" />
+    //     <br />
+    //     <input type="text" id="password" name="password" />
+    //     <br />
+    //     <button type="submit">Login</button>
+    //   </form>
+    // </div>
   );
 }

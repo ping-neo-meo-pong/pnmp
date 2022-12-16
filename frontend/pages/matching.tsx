@@ -1,5 +1,4 @@
 import { useRouter } from "next/router";
-import { user_data } from "./login";
 import { socket, useSocketAuthorization } from "../lib/socket";
 import { useEffect } from "react";
 import Layout from "../components/Layout";
@@ -13,7 +12,6 @@ export default function matching() {
     }
     router.events.on("routeChangeStart", routeChangeHandler);
     socket.on("goToGameRoom", (roomId) => {
-      user_data.is_player = 1;
       router.push(`/game/${roomId}`);
     });
 
