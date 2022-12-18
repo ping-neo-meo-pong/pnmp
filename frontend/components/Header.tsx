@@ -50,7 +50,13 @@ export default function Header({ title }: any) {
           >
             live
           </Button>
-          <Button>leaderboard</Button>
+          <Button
+            onClick={() => {
+              router.push(`/leaderboard`);
+            }}
+          >
+            leaderboard
+          </Button>
         </Grid>
         <Grid item xs={12} md={3}>
           <Stack direction="row" spacing={2} alignItems="center">
