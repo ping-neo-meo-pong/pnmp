@@ -10,24 +10,40 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
   async getIniviteChannels(userId: string) {
     return await this.find({
       relations: ['userId', 'channelId'],
-      where: {
-        userId: { id: userId },
-        joinAt: IsNull(),
-        banEndAt: IsNull() || LessThan(new Date()),
-        channelId: { deletedAt: IsNull() },
-      },
+      where: [
+        {
+          userId: { id: userId },
+          joinAt: IsNull(),
+          banEndAt: IsNull(),
+          channelId: { deletedAt: IsNull() },
+        },
+        {
+          userId: { id: userId },
+          joinAt: IsNull(),
+          banEndAt: LessThan(new Date()),
+          channelId: { deletedAt: IsNull() },
+        },
+      ],
     });
   }
 
   async findIniviteChannel(userId: string, channelId: string) {
     return await this.findOne({
       relations: ['userId', 'channelId'],
-      where: {
-        userId: { id: userId },
-        joinAt: IsNull(),
-        banEndAt: IsNull() || LessThan(new Date()),
-        channelId: { id: channelId, deletedAt: IsNull() },
-      },
+      where: [
+        {
+          userId: { id: userId },
+          joinAt: IsNull(),
+          banEndAt: IsNull(),
+          channelId: { id: channelId, deletedAt: IsNull() },
+        },
+        {
+          userId: { id: userId },
+          joinAt: IsNull(),
+          banEndAt: LessThan(new Date()),
+          channelId: { id: channelId, deletedAt: IsNull() },
+        },
+      ],
     });
   }
 
@@ -58,14 +74,40 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
   async findChannelJoinAsAdmin(userId: string, channelId: string) {
     return await this.findOne({
       relations: ['userId', 'channelId'],
-      where: {
-        userId: { id: userId },
-        joinAt: Not(IsNull()),
-        leftAt: IsNull(),
-        banEndAt: IsNull() || LessThan(new Date()),
-        roleInChannel: RoleInChannel.OWNER || RoleInChannel.ADMINISTRATOR,
-        channelId: { id: channelId, deletedAt: IsNull() },
-      },
+      where: [
+        {
+          userId: { id: userId },
+          joinAt: Not(IsNull()),
+          leftAt: IsNull(),
+          banEndAt: IsNull(),
+          roleInChannel: RoleInChannel.OWNER,
+          channelId: { id: channelId, deletedAt: IsNull() },
+        },
+        {
+          userId: { id: userId },
+          joinAt: Not(IsNull()),
+          leftAt: IsNull(),
+          banEndAt: IsNull(),
+          roleInChannel: RoleInChannel.ADMINISTRATOR,
+          channelId: { id: channelId, deletedAt: IsNull() },
+        },
+        {
+          userId: { id: userId },
+          joinAt: Not(IsNull()),
+          leftAt: IsNull(),
+          banEndAt: LessThan(new Date()),
+          roleInChannel: RoleInChannel.OWNER,
+          channelId: { id: channelId, deletedAt: IsNull() },
+        },
+        {
+          userId: { id: userId },
+          joinAt: Not(IsNull()),
+          leftAt: IsNull(),
+          banEndAt: LessThan(new Date()),
+          roleInChannel: RoleInChannel.ADMINISTRATOR,
+          channelId: { id: channelId, deletedAt: IsNull() },
+        },
+      ],
     });
   }
 
@@ -85,13 +127,22 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
       order: {
         createdAt: 'ASC',
       },
-      where: {
-        leftAt: IsNull(),
-        joinAt: Not(IsNull()),
-        banEndAt: IsNull() || LessThan(new Date()),
-        roleInChannel: RoleInChannel.ADMINISTRATOR,
-        channelId: { id: channelId, deletedAt: IsNull() },
-      },
+      where: [
+        {
+          leftAt: IsNull(),
+          joinAt: Not(IsNull()),
+          banEndAt: IsNull(),
+          roleInChannel: RoleInChannel.ADMINISTRATOR,
+          channelId: { id: channelId, deletedAt: IsNull() },
+        },
+        {
+          leftAt: IsNull(),
+          joinAt: Not(IsNull()),
+          banEndAt: LessThan(new Date()),
+          roleInChannel: RoleInChannel.ADMINISTRATOR,
+          channelId: { id: channelId, deletedAt: IsNull() },
+        },
+      ],
     });
   }
 
@@ -101,13 +152,22 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
       order: {
         createdAt: 'ASC',
       },
-      where: {
-        leftAt: IsNull(),
-        joinAt: Not(IsNull()),
-        banEndAt: IsNull() || LessThan(new Date()),
-        roleInChannel: Not(RoleInChannel.OWNER),
-        channelId: { id: channelId, deletedAt: IsNull() },
-      },
+      where: [
+        {
+          leftAt: IsNull(),
+          joinAt: Not(IsNull()),
+          banEndAt: IsNull(),
+          roleInChannel: Not(RoleInChannel.OWNER),
+          channelId: { id: channelId, deletedAt: IsNull() },
+        },
+        {
+          leftAt: IsNull(),
+          joinAt: Not(IsNull()),
+          banEndAt: LessThan(new Date()),
+          roleInChannel: Not(RoleInChannel.OWNER),
+          channelId: { id: channelId, deletedAt: IsNull() },
+        },
+      ],
     });
   }
 
