@@ -1,5 +1,4 @@
 import { socket, useSocketAuthorization } from "../../lib/socket";
-import { user_data } from "../login";
 import axios from "axios";
 import { Router, useRouter } from "next/router";
 import React, { useEffect } from "react";

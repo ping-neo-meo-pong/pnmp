@@ -18,6 +18,7 @@ export default function Profile({ userName }: any) {
   const router = useRouter();
   const me = getLoginUser();
   //   const [user, setUser]: any = useState({});
+  const [userLadder, setUserLadder]: any = useState(0);
   const [history, setHistory]: any = useState({});
   const [testHistory, setTestHistory]: any[] = useState([]);
   const [inviteModal, setInviteModal] = useState(<></>);
@@ -32,6 +33,7 @@ export default function Profile({ userName }: any) {
         // setUser(...res.data);
         // setUser(res.data[0]);
         const user = res.data[0];
+        setUserLadder(user.ladder);
         console.log(`user:`);
         console.log(user);
         console.log(`${me.username} vs ${userName}`);
@@ -116,7 +118,7 @@ export default function Profile({ userName }: any) {
         {inviteModal}
         <br />
         <Typography variant="h5" gutterBottom>
-          {/* ladder: {user.ladder} <br /> <br /> History */}
+          ladder: {userLadder} <br /> <br /> History
         </Typography>
         {testHistory}
       </Box>
