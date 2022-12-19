@@ -1,8 +1,7 @@
-import { Column, Entity, Unique } from 'typeorm';
+import { Column, Entity } from 'typeorm';
 import { Base } from '../Base.entity';
 
 @Entity()
-@Unique(['channelName'])
 export class Channel extends Base {
   @Column({
     type: 'varchar',

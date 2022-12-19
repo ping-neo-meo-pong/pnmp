@@ -1,28 +1,29 @@
 import {
-  Controller, Post, Get, Body,
+  Controller,
+  Post,
+  Get,
+  Body,
   Request,
   UseGuards,
-  Query,
-  Param,
 } from '@nestjs/common';
 import { GameService } from './game.service';
-import { GameRoom } from '../../core/game/game-room.entity';
+import { GameRoomDto } from '../../core/game/dto/game-room.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { request } from 'http';
-import { Any } from 'typeorm';
+import { ApiBearerAuth, ApiBody, ApiTags, ApiOperation } from '@nestjs/swagger';
 import { CreateGameRoomDto } from 'src/api/game/dto/create-game-room.dto';
+import { GameHistory } from 'src/core/game/game-history.entity';
+import { isUUID } from 'class-validator';
+import { BadRequestException } from '@nestjs/common';
 
 @Controller('game')
 @ApiTags('game')
 export class GameController {
-  constructor(private readonly gameService: GameService) { }
+  constructor(private readonly gameService: GameService) {}
 
   @UseGuards(AuthGuard('jwt'))
   @Get()
-  getGames(@Request() request): Promise<GameRoom[]> {
-    const userToken = request.user;
-    return this.gameService.getGames(userToken);
+  getGames(): Promise<GameRoomDto[]> {
+    return this.gameService.getGames();
   }
 
   // @UseGuards(AuthGuard('jwt'))
@@ -34,14 +35,25 @@ export class GameController {
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @Post()
-  @ApiBody({type: CreateGameRoomDto})
+  @ApiBody({ type: CreateGameRoomDto })
   createGameRoom(
     @Request() request,
     @Body() gameRoomData: any,
-  ) : Promise<GameRoom>
-  {
+  ): Promise<GameRoomDto> {
     const leftUserId = request.user.id;
-    const rightUserId = gameRoomData.invitedUserName;
+    const rightUserId = gameRoomData.invitedUserId;
+    if (!isUUID(leftUserId) || !isUUID(rightUserId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
     return this.gameService.createGameRoom(leftUserId, rightUserId);
+  }
+
+  @Get('/history')
+  @ApiOperation({ summary: 'get dm과 같음' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  getHistorys(@Request() request): Promise<GameHistory[]> {
+    const userId = request.user.id;
+    return this.gameService.getHistorys(userId);
   }
 }

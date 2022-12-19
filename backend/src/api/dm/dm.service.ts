@@ -5,7 +5,7 @@ import { DmRepository } from '../../core/dm/dm.repository';
 import { DmRoom } from '../../core/dm/dm-room.entity';
 import { Dm } from '../../core/dm/dm.entity';
 import { UserRepository } from '../../core/user/user.repository';
-import { SocketRepository } from '../../core/socket/socket.repository';
+import { BlockRepository } from '../../core/block/block.repository';
 
 @Injectable()
 export class DmService {
@@ -16,11 +16,11 @@ export class DmService {
     private dmRepository: DmRepository,
     @InjectRepository(UserRepository)
     private userRepository: UserRepository,
-    private socketRepository: SocketRepository,
+    @InjectRepository(BlockRepository)
+    private blockRepository: BlockRepository,
   ) {}
 
-  /*
-  async createDmRoom(userId: string, invitedUserId: string): Promise<DmRoom> {
+  async createDmRoom(userId: string, invitedUserId: string) {
     const invitedUser = await this.userRepository.findOneBy({
       id: invitedUserId,
     });
@@ -38,10 +38,20 @@ export class DmService {
       return dmRoom;
     }
     const user = await this.userRepository.findOneBy({ id: userId });
-    return await this.dmRoomRepository.createDmRoom(user, invitedUser);
+    const newDmRoom = await this.dmRoomRepository.createDmRoom(
+      user,
+      invitedUser,
+    );
+    return {
+      id: newDmRoom.id,
+      otherUser:
+        newDmRoom.userId.id === userId
+          ? newDmRoom.invitedUserId.username
+          : newDmRoom.userId.username,
+    };
   }
-  */
 
+  /*
   async createDmRoom(userId: string, invitedUserName: string): Promise<any> {
     const invitedUser = await this.userRepository.findOneBy({
       username: invitedUserName,
@@ -87,9 +97,10 @@ export class DmService {
       };
     }
   }
+  */
 
-  async getDmRooms(userId: string): Promise<DmRoom[]> {
-    const dmRooms = await this.dmRoomRepository.getDmRooms(userId);
+  async getDmRoomsByParticipant(userId: string): Promise<DmRoom[]> {
+    const dmRooms = await this.dmRoomRepository.getDmRoomsByParticipant(userId);
     const result = [];
     for (const dmRoom of dmRooms) {
       result.push({
@@ -107,13 +118,27 @@ export class DmService {
     this.dmRepository.save(dmData);
   }
 
-  async getDms(roomId: any): Promise<Dm[]> {
-    return await this.dmRepository.find({
-      where: {
-        dmRoomId: {
-          id: roomId,
-        },
-      },
-    });
+  async getDms(roomId: string, userId: string): Promise<Dm[]> {
+    const dmRoom = await this.dmRoomRepository.getDmRoomByRoomId(roomId);
+    if (!dmRoom) {
+      throw new BadRequestException('bad request');
+    }
+    if (!(dmRoom.userId.id === userId || dmRoom.invitedUserId.id === userId)) {
+      throw new BadRequestException(
+        '해당 dm 목록을 볼 수 있는 권한이 없습니다',
+      );
+    }
+    const otherId =
+      userId === dmRoom.userId.id ? dmRoom.invitedUserId.id : dmRoom.userId.id;
+    const isBlockUser = await this.blockRepository.didUserBlockOther(
+      userId,
+      otherId,
+    );
+    return await this.dmRepository.getDms(
+      roomId,
+      userId,
+      otherId,
+      isBlockUser?.blockAt ?? null,
+    );
   }
 }

@@ -25,11 +25,11 @@ export class GameRoom extends Base {
   })
   endAt: Date;
 
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User, (user) => user.id, { eager: true })
   @JoinColumn({ name: 'left_user_id' })
   leftUserId: User;
 
-  @ManyToOne(() => User, (user) => user.id)
+  @ManyToOne(() => User, (user) => user.id, { eager: true })
   @JoinColumn({ name: 'right_user_id' })
   rightUserId: User;
 }

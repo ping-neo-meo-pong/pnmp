@@ -18,12 +18,16 @@ export class AuthService {
     });
 
     if (existUser) {
-      return { id: existUser.id, firstLogin: false };
+      return {
+        id: existUser.id,
+        username: existUser.username,
+        firstLogin: false,
+      };
     }
 
     const newUser = this.userRepository.create({ username: username });
     const saveUser = await this.userRepository.save(newUser);
-    return { id: saveUser.id, firstLogin: true };
+    return { id: saveUser.id, username: saveUser.username, firstLogin: true };
   }
 
   verifyToken(jwt: string): any {

@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { GameRoom } from '../../core/game/game-room.entity';
+import { GameRoomDto } from '../../core/game/dto/game-room.dto';
 import { GameRoomRepository } from '../../core/game/game-room.repository';
 import { GameHistoryRepository } from '../../core/game/game-history.repository';
 import { CreateGameRoomDto } from 'src/api/game/dto/create-game-room.dto';
@@ -8,82 +8,74 @@ import { IsNull } from 'typeorm';
 import { DmRoom } from 'src/core/dm/dm-room.entity';
 import { UserRepository } from 'src/core/user/user.repository';
 import { SocketRepository } from 'src/core/socket/socket.repository';
+import { GameMode } from 'src/enum/game-mode.enum';
+import { GameQueueRepository } from 'src/core/game/game-queue.repository';
+import { GameHistory } from 'src/core/game/game-history.entity';
 
 @Injectable()
 export class GameService {
   constructor(
-    @InjectRepository(GameRoomRepository)
     private gameRoomRepository: GameRoomRepository,
     @InjectRepository(GameHistoryRepository)
     private gameHistoryRepository: GameHistoryRepository,
     @InjectRepository(UserRepository)
     private userRepository: UserRepository,
     private socketRepository: SocketRepository,
+    private gameQueueRepository: GameQueueRepository,
   ) {}
 
   //   createGame() {}
 
-  async getGames(userToken): Promise<GameRoom[]> {
-    const gameRooms = await this.gameRoomRepository.getGameRooms(userToken);
+  async getGames(): Promise<GameRoomDto[]> {
+    const gameRooms = await this.gameRoomRepository.findAll();
+    console.log('getGames');
+    console.log(gameRooms);
+    if (!gameRooms) {
+      console.log(`cant get games`);
+      return null;
+    }
+    const ttt = [];
+    for (const i in gameRooms) {
+      console.count(`hi`);
+      if (gameRooms[i]) ttt.push(gameRooms[i].gameRoomDto);
+    }
+    return ttt;
+  }
+  async getHistorys(userId: string): Promise<GameHistory[]> {
+    const Historys = await this.gameHistoryRepository.getHistorys(userId);
     const result = [];
-    for (const gameRoom of gameRooms) {
-      result.push({
-        id: gameRoom.id,
-        otherUser:
-          gameRoom.leftUserId.id === userToken.id
-          ? gameRoom.rightUserId.username
-          : gameRoom.leftUserId.username,
-      });
+    console.log('history');
+    for (const history of Historys) {
+      console.log(history);
+      result.push(history);
+      //   result.push({
+      //     id: history.id,
+      //     otherUser:
+      //       history.userId.id === userId
+      //         ? history.invitedUserId.username
+      //         : history.userId.username,
+      //   });
     }
     return result;
   }
 
-  async createGameRoom(leftUserId: string, rightUserIdName: string): Promise<any> {
+  async createGameRoom(userId: string, invitedUserId: string) {
+    const user = await this.userRepository.findOneBy({
+      id: userId,
+    });
     const invitedUser = await this.userRepository.findOneBy({
-      username: rightUserIdName
+      id: invitedUserId,
     });
-    if (!invitedUser)
-    throw new BadRequestException('invited user does not exist');
-    if (leftUserId === invitedUser.id) {
-      throw new BadRequestException('cannot create Game room with yourself');
-    }
-    console.log(`invitedUser:`);
-    console.log(invitedUser.id);
-    const gameRoom = await this.gameRoomRepository.findOne({
-      relations: ['leftUserId', 'rightUserId'],
-      where: [
-        {
-          leftUserId: { id: leftUserId },
-          rightUserId: { id: invitedUser.id },
-        },
-        {
-          leftUserId: { id: invitedUser.id },
-          rightUserId: { id: leftUserId },
-        },
-      ],
-    });
+    return (
+      await this.gameRoomRepository.createGame(
+        user,
+        invitedUser,
+        GameMode.NORMAL,
+      )
+    ).gameRoomDto;
+  }
 
-    if (gameRoom) {
-      throw new BadRequestException('Game room already exists');
-    } else {
-      await this.gameRoomRepository.save({
-        leftUserId: leftUserId,
-        rightUserId: invitedUser.id,
-      } as any);
-      const createdGameRoom = await this.gameRoomRepository.findOneBy({
-        leftUserId: { id: leftUserId },
-        rightUserId: { id: invitedUser.id },
-      }); ////////////////// help /////////////////////
-      console.log(`leftUserId:`);
-      console.log(createdGameRoom);
-      this.socketRepository.find(leftUserId)?.join(createdGameRoom.id);
-      this.socketRepository.find(invitedUser.id)?.join(createdGameRoom.id);
-      return {
-        id: createdGameRoom.id,
-        otherUser: createdGameRoom.leftUserId.id === leftUserId ?
-          createdGameRoom.rightUserId.username :
-          createdGameRoom.leftUserId.username,
-      };
-    }
+  async addQue(userId: string, rating: number, mode: GameMode) {
+    this.gameQueueRepository.addQue(userId, rating, mode);
   }
 }

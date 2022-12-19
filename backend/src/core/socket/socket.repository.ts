@@ -1,7 +1,7 @@
 import { UserSocket } from './dto/user-socket.dto';
 
 export class SocketRepository {
-  private map: Map<string, UserSocket>
+  private map: Map<string, UserSocket>;
 
   constructor() {
     this.map = new Map<string, UserSocket>();
@@ -13,6 +13,8 @@ export class SocketRepository {
 
   save(userId: string, socket: UserSocket): void {
     this.map.set(userId, socket);
+    console.log('socket save');
+    console.log(userId);
   }
 
   delete(userId: string): void {

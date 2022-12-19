@@ -1,15 +1,7 @@
-import type { AppProps } from 'next/app'
-import { CssBaseline } from "@mui/material"; // CSS Global Normalization 
+// erimport '../styles/globals.css'
+import type { AppProps } from "next/app";
+import React from "react";
 
-const App = (props: AppProps) => {
-  const { Component, pageProps } = props;
-
-  return (
-    <>
-      <CssBaseline />
-      <Component {...pageProps} />
-    </>
-  );
-};
-
-export default App;
+export default function App({ Component, pageProps }: AppProps) {
+  return <Component {...pageProps} />;
+}

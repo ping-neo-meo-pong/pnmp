@@ -1,55 +1,145 @@
 import Router, { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { user_data, socket } from "./login";
+import { socket, useSocketAuthorization } from "../lib/socket";
+import { logout, getLoginUser } from "../lib/login";
+import Layout from "../components/Layout";
+import { Button } from "@mui/material";
+import {
+  InviteModal,
+  InviteModalWithUserName,
+  MatchingModal,
+} from "../components/InviteModal";
 
 export default function Client() {
+  useSocketAuthorization();
   const router = useRouter();
+  let myName: any;
+  let dmRooms: any[] = [];
+  let gameRooms: any[] = [];
 
   let [dmRoomList, setDmRoomList]: any = useState([]);
-  useEffect(getDmRooms, []);
+  useEffect(getDmRooms, [router.isReady]);
   let [gameRoomList, setGameRoomList]: any = useState([]);
-  useEffect(getGameRooms, []);
+  useEffect(getGameRooms, [router.isReady]);
+  let [modal, setModal] = useState(<></>);
+  let [modalOpen, setModalOpen] = useState(false);
+
+  console.log("clients page before useEffect");
+  useEffect(() => {
+    if (!router.isReady) return;
+
+    myName = getLoginUser().username;
+    console.log(myName);
+    function goToGameRoom(roomId: number) {
+      router.push(`/game/${roomId}`);
+    }
+    function gameInvited(inviterId: string) {
+      console.log(`you got mail~`);
+    }
+    socket.on("goToGameRoom", goToGameRoom);
+    socket.on("gameInvited", gameInvited);
+
+    return () => {
+      socket.off("gameInvited", gameInvited);
+      socket.off("goToGameRoom", goToGameRoom);
+    };
+  }, [router.isReady]);
+
+  function reset() {
+    getDmRooms();
+    getGameRooms();
+  }
 
   function getDmRooms() {
+    if (!router.isReady) return;
     axios
-      .get("http://localhost/server/api/dm")
+      .get("/server/api/dm")
       .then(function (response) {
-        user_data._room = response.data;
+        dmRooms = response.data;
         let newDmRoomList = [];
-        for (let dmRoom of user_data._room)
+        for (let dmRoom of dmRooms)
           newDmRoomList.push(<GoToDmRoom key={dmRoom.id} dmRoom={dmRoom} />);
         setDmRoomList(newDmRoomList);
       })
       .catch(() => {
-        router.push("/login");
+        // router.push("/login");
       });
   }
   function getGameRooms() {
+    if (!router.isReady) return;
+    let newGameRoomList: any[] = [];
     axios
-      .get("http://localhost/server/api/game", { withCredentials: true })
+      .get("/server/api/game")
       .then(function (response) {
-        user_data.game_room = response.data;
-        let newGameRoomList = [];
-        for (let gameRoom of user_data.game_room)
-          newGameRoomList.push(<GoToGameRoom key={gameRoom.id} gameRoom={gameRoom}/>)
+        gameRooms = response.data;
+        for (let gameRoom of gameRooms)
+          newGameRoomList.push(
+            <GoToGameRoom key={gameRoom.id} gameRoom={gameRoom} />
+          );
         setGameRoomList(newGameRoomList);
       })
-  }
-  function onClickGameRoom() {
-    router.push(`/game/test`); //${user_data._name}`);
+      .catch(() => {
+        // router.push("/login");
+      });
+    socket.emit("giveMeInvited");
+    socket.on(`invitedQue`, (ques) => {
+      for (let que of ques) {
+        newGameRoomList.push(
+          <button
+            key={que.inviterId}
+            onClick={() => {
+              socket.emit("acceptFriendQue", que.inviterId);
+              socket.off(`acceptFriendQue`);
+            }}
+          >
+            {" "}
+            {que.inviterName}{" "}
+          </button>
+        );
+      }
+      setGameRoomList(...newGameRoomList);
+    });
+
+    return () => {
+      socket.off(`invitedQue`);
+    };
   }
 
   function onSubmitMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     axios
-      .post(`http://localhost/server/api/dm/${event.currentTarget.invitedUserName.value}`)
+      .post(`/server/api/dm/${event.currentTarget.invitedUserName.value}`)
       .then(function (response) {
         const dmRoom = response.data;
-        setDmRoomList((current : JSX.Element[]) => {
+        setDmRoomList((current: JSX.Element[]) => {
           current.push(<GoToDmRoom key={dmRoom.id} dmRoom={dmRoom} />);
           return [...current];
         });
+      })
+      .catch((error) => {
+        alert(error.response.data.message);
+      });
+  }
+
+  function onSubmitChannelMessage(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    axios
+      .post(`/server/api/channel`, {
+        channelName: "string",
+        description: "string",
+        password: "string",
+        isPublic: true,
+      })
+      .then(function (response) {
+        const channelRoom = response.data;
+        console.log(channelRoom);
+        // setDmRoomList((current: JSX.Element[]) => {
+        //   current.push(
+        //     <GoToDmRoom key={channelRoom.id} channelRoom={channelRoom} />
+        //   );
+        //   return [...current];
+        // });
       })
       .catch((error) => {
         alert(error.response.data.message);
@@ -57,42 +147,79 @@ export default function Client() {
   }
 
   function onSubmitGameInvite(event: React.FormEvent<HTMLFormElement>) {
+    console.log(`cookie: ${document.cookie}`);
     event.preventDefault();
-    axios
-      .post(`http://localhost/server/api/game`, {
-        invitedUserName: event.currentTarget.invitedUserName.value,
-      })
-      .then(function (response) {
-        const dmRoom = response.data;
-        setDmRoomList((current : JSX.Element[]) => {
-          current.push(<GoToDmRoom key={dmRoom.id} dmRoom={dmRoom} />);
-          return [...current];
-        });
-      })
-      .catch((error) => {
-        alert(error.response.data.message);
+    if (event.currentTarget.invitedUserId.value) {
+      socket.emit(`gameToFriend`, {
+        invitedUserName: event.currentTarget.invitedUserId.value,
+        mode: "HARD",
       });
+      socket.off(`gameToFriend`);
+      router.push(`/matching`);
+    } else {
+      alert(`please input name`);
+    }
   }
 
   return (
-    <div>
-      <h1>HI {user_data._name}</h1>
+    <Layout>
+      <h1>
+        HI {myName}
+        <button
+          onClick={() => {
+            router.push(`/profile/${myName}`);
+          }}
+        >
+          <h1> 프로필 </h1>
+        </button>
+      </h1>
+      <button
+        onClick={async () => {
+          await logout();
+          router.push("/login");
+        }}
+      >
+        logout
+      </button>
+      <button onClick={reset}>
+        {" "}
+        <h1>list 다시 불러오기</h1>{" "}
+      </button>
       <h1>DM room list</h1>
       <form onSubmit={onSubmitMessage}>
         <button type="submit">create new DM room with </button>
         <input type="text" name="invitedUserName" />
       </form>
       {dmRoomList}
+
       <h1>Game room list</h1>
-      <form onSubmit={onSubmitGameInvite}>
-        <button type="submit">create new DM room with </button>
-        <input type="text" name="invitedUserName" />
-      </form>
+      <InviteModal />
+      <InviteModalWithUserName userName="jw" />
+      {/* <form onSubmit={onSubmitGameInvite}>
+        <button type="submit">create new Game room with </button>
+        <input type="text" name="invitedUserId" />
+      </form> */}
       {gameRoomList}
-      {/* <button onClick={onClickGameRoom}>
-        <h2>Game</h2>
-      </button> */}
-    </div>
+
+      <h1>Random Maching</h1>
+      <button
+        onClick={async () => {
+          await router.push(`/matching`);
+          socket.emit("gameMatching", "NOMAL");
+        }}
+      >
+        Maching Mode 1
+      </button>
+      <button
+        onClick={async () => {
+          await router.push(`/matching`);
+          socket.emit("gameMatching", "HARD");
+        }}
+      >
+        Maching Mode 2
+      </button>
+      <MatchingModal />
+    </Layout>
   );
 }
 
@@ -119,12 +246,18 @@ function GoToGameRoom({ gameRoom }: any) {
   let result: JSX.Element[] = [];
 
   function onClickGameRoom() {
+    console.log(`come in room~`);
+    console.log(gameRoom.leftUser.id);
+    console.log(gameRoom.rightUser.id);
+
     router.push(`/game/${gameRoom.id}`);
   }
 
   return (
     <div>
-      <button onClick={onClickGameRoom}>GAME with {gameRoom.otherUser}</button>
+      <button onClick={onClickGameRoom}>
+        {gameRoom.leftUser.username} VS {gameRoom.rightUser.username}
+      </button>
     </div>
   );
 }

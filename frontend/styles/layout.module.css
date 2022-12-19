@@ -1,0 +1,98 @@
+.container {
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 0px;
+  position: absolute;
+  width: 1280px;
+  height: 733px;
+}
+
+.header {
+  width: 1280px;
+  height: 50px;
+
+  flex: none;
+  order: 0;
+  flex-grow: 0;
+
+  text-align: center;
+  font-size: 35px;
+  line-height: 50px;
+}
+
+.body {
+  width: 1050px;
+  height: 682px;
+
+  flex: none;
+  order: 1;
+  flex-grow: 0;
+}
+
+.navBar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 0px 10px;
+  gap: 20px;
+
+  width: 1050px;
+  height: 110px;
+
+
+  /* Inside auto layout */
+
+  flex: none;
+  order: 0;
+  flex-grow: 0;
+}
+
+.navBar1 {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0px;
+  gap: 268px;
+
+  width: 661px;
+  height: 46px;
+
+
+  /* Inside auto layout */
+
+  flex: none;
+  order: 0;
+  flex-grow: 0;
+}
+
+.buttonWrapper {
+  width: 192px;
+  height: 36px;
+
+
+  /* Inside auto layout */
+
+  flex: none;
+  order: 0;
+  flex-grow: 0;
+}
+
+.matchButton {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0px;
+  gap: 10px;
+
+  position: absolute;
+  width: 118px;
+  height: 46px;
+  left: 18px;
+  top: -10px;
+
+  background: rgba(10, 10, 10, 0.9);
+}
