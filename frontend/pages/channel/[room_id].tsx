@@ -7,13 +7,18 @@ import { channelSocket } from "../../sockets/sockets";
 import { useSocketAuthorization } from "../../lib/socket";
 import { getLoginUser } from "../../lib/login";
 import Layout from "../../components/Layout";
+import ChannelInfoDialog from "../../components/ChannelInfoDialog";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
+import IconButton from "@mui/material/IconButton";
+import InfoIcon from '@mui/icons-material/Info';
 
 export default function Channel() {
   useSocketAuthorization();
   const router = useRouter();
 
   const roomId = `${router.query.room_id}`;
-  const [roomName, setRoomName] = useState("default");
+  const [channel, setChannel] = useState(null);
 
   const [msgList, setMsgList] = useState<any>([]);
   let loginUser: any = getLoginUser();
@@ -28,7 +33,7 @@ export default function Channel() {
         const chList = res.data.channels;
         for (const ch of chList) {
           if (ch.id == roomId) {
-            setRoomName(ch.channelName);
+            setChannel(ch);
           }
         }
       });
@@ -90,8 +95,38 @@ export default function Channel() {
     channelSocket.emit(`channelMessage`, msgData);
   }
 
+  const [open, setOpen] = useState<boolean>(false);
+
   return (
     <Layout>
+      <Toolbar
+        disableGutters
+        variant="dense"
+        sx={{ borderBottom: 1, borderColor: "divider", pl: 2 }}
+      >
+        <Typography
+          component="h2"
+          variant="h6"
+          color="inherit"
+          noWrap
+          sx={{ flex: 1 }}
+        >
+          {channel?.channelName}
+        </Typography>
+        <IconButton onClick={() => setOpen(true)}>
+          <InfoIcon />
+        </IconButton>
+      </Toolbar>
+      {channel && (
+        <ChannelInfoDialog
+          channel={channel}
+          open={open}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </Layout>
+  );
+  /*
       <h1>{roomName}</h1>
       <form id="username" onSubmit={onSubmitMessage}>
         <input type="text" id="message" name="message" />
@@ -100,8 +135,7 @@ export default function Channel() {
       {msgList.map((msg: any) => (
         <ChannelMessage key={msg?.id} channelMessage={msg} />
       ))}
-    </Layout>
-  );
+  */
 }
 
 function ChannelMessage({ channelMessage }: any) {
