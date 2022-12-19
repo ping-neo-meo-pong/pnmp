@@ -3,10 +3,10 @@ import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Button from "@mui/material/Button";
-import CloseIcon from '@mui/icons-material/Close';
+import CloseIcon from "@mui/icons-material/Close";
 import IconButton from "@mui/material/IconButton";
-import VolumeUpIcon from '@mui/icons-material/VolumeUp';
-import VolumeOffIcon from '@mui/icons-material/VolumeOff';
+import VolumeUpIcon from "@mui/icons-material/VolumeUp";
+import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -16,14 +16,15 @@ import FormControl from "@mui/material/FormControl";
 import InputLabel from "@mui/material/InputLabel";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
+import axios from "axios";
 
-function ChangeRoleDialog({ open, onClose, onSelect }) {
+function ChangeRoleDialog({ open, onClose, onSelect }: any) {
   return (
     <Dialog open={open} onClose={onClose}>
       <DialogTitle>Change role</DialogTitle>
       <List>
-        {["ADMIN", "NORMAL"].map((role) => (
+        {["ADMINISTRATOR", "NORMAL"].map((role) => (
           <ListItemButton key={role} onClick={() => onSelect(role)}>
             <ListItemText primary={role} />
           </ListItemButton>
@@ -33,21 +34,39 @@ function ChangeRoleDialog({ open, onClose, onSelect }) {
   );
 }
 
-function RoleButton({ initialRole, myRole }) {
+function RoleButton({
+  initialRole,
+  myRole,
+  channelId,
+  targetId,
+}: {
+  initialRole: string;
+  myRole: string;
+  channelId: string;
+  targetId: string;
+}) {
   const [role, setRole] = useState(initialRole);
   const [open, setOpen] = useState(false);
 
   function changeRole(role: string) {
-    setRole(role);
     setOpen(false);
+    console.log(`role: ${role}`);
+    axios
+      .patch(`/server/api/channel/${channelId}/role/${targetId}`, {
+        roleInChannel: role,
+      })
+      .then((res) => {
+        console.log(res.data);
+        setRole(role);
+      })
+      .catch((e) => {
+        console.error(e);
+      });
   }
 
   return (
     <>
-      <Button onClick={ myRole === "NORMAL"
-        ? () => {}
-        : () => setOpen(true)
-      }>
+      <Button onClick={myRole === "NORMAL" ? () => {} : () => setOpen(true)}>
         {role}
       </Button>
       <ChangeRoleDialog
@@ -69,10 +88,10 @@ function SetTimeDialog({ title, open, onClose, onSelect }) {
       }
   ];
   */
-  const [setTime, setSetTime] = useState();
+  const [time, setTime] = useState(1);
 
   const handleChange = (event: SelectChangeEvent) => {
-    setSetTime(event.target.value);
+    setTime(event.target.value);
   };
 
   return (
@@ -81,17 +100,11 @@ function SetTimeDialog({ title, open, onClose, onSelect }) {
       <DialogContent>
         <Box sx={{ minWidth: 200 }}>
           <FormControl fullWidth>
-            <Select
-              onChange={handleChange}
-              value={setTime}
-            >
-              <MenuItem value={1}>One day</MenuItem>
-              <MenuItem value={2}>Two days</MenuItem>
-              <MenuItem value={3}>Three days</MenuItem>
-              <MenuItem value={4}>Four days</MenuItem>
-              <MenuItem value={5}>Five days</MenuItem>
-              <MenuItem value={6}>Six days</MenuItem>
-              <MenuItem value={7}>One week</MenuItem>
+            <Select onChange={handleChange} value={time}>
+              <MenuItem value={1}>1분</MenuItem>
+              <MenuItem value={60}>1 시간</MenuItem>
+              <MenuItem value={60 * 24}>One day</MenuItem>
+              <MenuItem value={60 * 24 * 7}>One week</MenuItem>
               <MenuItem value={14}>Two weeks</MenuItem>
               <MenuItem value={21}>Three weeks</MenuItem>
             </Select>
@@ -100,44 +113,47 @@ function SetTimeDialog({ title, open, onClose, onSelect }) {
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={onSelect}>Ok</Button>
+        <Button onClick={() => onSelect(time)}>Ok</Button>
       </DialogActions>
     </Dialog>
   );
 }
 
-function MuteButton({ initialIsMuted, myRole }) {
+function MuteButton({ initialIsMuted, myRole, channelId, targetId }) {
   const [isMuted, setIsMuted] = useState(initialIsMuted);
   const [open, setOpen] = useState(false);
 
   if (myRole === "NORMAL") {
     return (
-      <IconButton>
-        { isMuted
-          ? <VolumeOffIcon />
-          : <VolumeUpIcon />
-        }
-      </IconButton>
+      <IconButton>{isMuted ? <VolumeOffIcon /> : <VolumeUpIcon />}</IconButton>
     );
   } else {
     return (
       <>
-        <IconButton onClick={ isMuted
-          ? () => setIsMuted(false)
-          : () => setOpen(true)
-        }>
-          { isMuted
-            ? <VolumeOffIcon />
-            : <VolumeUpIcon />
-          }
+        <IconButton
+          onClick={isMuted ? () => setIsMuted(false) : () => setOpen(true)}
+        >
+          {isMuted ? <VolumeOffIcon /> : <VolumeUpIcon />}
         </IconButton>
         <SetTimeDialog
           title="Mute for"
           open={open}
           onClose={() => setOpen(false)}
-          onSelect={() => {
-            setIsMuted(!isMuted);
+          onSelect={(time: number) => {
             setOpen(false);
+            const dt = new Date();
+            dt.setMinutes(dt.getMinutes() + time);
+            axios
+              .patch(`/server/api/channel/${channelId}/mute/${targetId}`, {
+                limitedTime: dt.toJSON(),
+              })
+              .then((res) => {
+                console.log(res.data);
+                setIsMuted(!isMuted);
+              })
+              .catch((e) => {
+                console.error(e);
+              });
           }}
         />
       </>
@@ -145,11 +161,10 @@ function MuteButton({ initialIsMuted, myRole }) {
   }
 }
 
-function BanButton({ myRole }) {
+function BanButton({ myRole, channelId, targetId, onBan }) {
   const [open, setOpen] = useState(false);
 
-  if (myRole === "NORMAL")
-    return;
+  if (myRole === "NORMAL") return <></>;
 
   return (
     <>
@@ -160,24 +175,67 @@ function BanButton({ myRole }) {
         title="Ban for"
         open={open}
         onClose={() => setOpen(false)}
-        onSelect={() => setOpen(false)}
+        onSelect={(time: number) => {
+          setOpen(false);
+          const dt = new Date();
+          dt.setMinutes(dt.getMinutes() + time);
+          axios
+            .patch(`/server/api/channel/${channelId}/ban/${targetId}`, {
+              limitedTime: dt.toJSON(),
+            })
+            .then((res) => {
+              console.log(res.data);
+              onBan();
+            })
+            .catch((e) => {
+              console.error(e);
+            });
+        }}
       />
     </>
   );
 }
 
-export default function ChannelMemberList({ initialMembers, myRole }: any) {
+export default function ChannelMemberList({
+  initialMembers,
+  myRole,
+  channelId,
+}: any) {
   const [members, setMembers] = useState(initialMembers);
+
+  useEffect(() => console.count("ChannelMemberList mounted"), []);
 
   return (
     <>
       <List dense>
-        {members.map((member) => (
-          <ListItem key={member.id} sx={{ borderTop: 1, borderColor: "divider"}}>
+        {members.map((member: any) => (
+          <ListItem
+            key={member.id}
+            sx={{ borderTop: 1, borderColor: "divider" }}
+          >
             <ListItemText primary={member.username} />
-            <RoleButton initialRole={member.userRoleInChannel} myRole={myRole}/>
-            <MuteButton initialIsMuted={member.userMute} myRole={myRole} />
-            <BanButton myRole={myRole} />
+            <RoleButton
+              initialRole={member.userRoleInChannel}
+              myRole={myRole}
+              channelId={channelId}
+              targetId={member.id}
+            />
+            <MuteButton
+              initialIsMuted={member.userMute}
+              myRole={myRole}
+              channelId={channelId}
+              targetId={member.id}
+            />
+            <BanButton
+              myRole={myRole}
+              channelId={channelId}
+              targetId={member.id}
+              onBan={() => {
+                const newMembers = [...members];
+                newMembers.splice(members.indexOf(member), 1);
+                setMembers(newMembers);
+              }}
+            />
           </ListItem>
         ))}
       </List>
