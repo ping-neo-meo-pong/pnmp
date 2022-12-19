@@ -187,8 +187,8 @@ export class ChannelService {
     );
   }
 
-  async findParticipants(channelId: string): Promise<User[]> {
-    const channel = await this.channelRepository.find({
+  async findParticipants(userId: string, channelId: string): Promise<User[]> {
+    const channel = await this.channelRepository.findOne({
       where: { id: channelId, deletedAt: IsNull() },
     });
     if (!channel) {
@@ -204,7 +204,19 @@ export class ChannelService {
         userMute: channel.muteEndAt < new Date() ? false : true,
       };
     });
-    return channelMembers;
+    if (channel.isPublic) {
+      return channelMembers;
+    } else {
+      const joinChannel =
+        await this.channelMemberRepository.findChannelJoinCurrently(
+          userId,
+          channelId,
+        );
+      if (!joinChannel) {
+        throw new BadRequestException('채널 멤버를 볼 수 있는 권한이 없습니다');
+      }
+      return channelMembers;
+    }
   }
 
   async changePassword(
