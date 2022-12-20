@@ -4,9 +4,11 @@ import ListItemButton from "@mui/material/ListItemButton";
 import ListItemText from "@mui/material/ListItemText";
 import Button from "@mui/material/Button";
 import CloseIcon from "@mui/icons-material/Close";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import IconButton from "@mui/material/IconButton";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
+import AddIcon from "@mui/icons-material/Add";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
@@ -18,6 +20,10 @@ import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { getLoginUser } from "../lib/login";
+import { FiberNew } from "@mui/icons-material";
+import { Router, useRouter } from "next/router";
+import { Avatar, ListItemAvatar } from "@mui/material";
 
 function ChangeRoleDialog({ open, onClose, onSelect }: any) {
   return (
@@ -103,10 +109,8 @@ function SetTimeDialog({ title, open, onClose, onSelect }) {
             <Select onChange={handleChange} value={time}>
               <MenuItem value={1}>1분</MenuItem>
               <MenuItem value={60}>1 시간</MenuItem>
-              <MenuItem value={60 * 24}>One day</MenuItem>
-              <MenuItem value={60 * 24 * 7}>One week</MenuItem>
-              <MenuItem value={14}>Two weeks</MenuItem>
-              <MenuItem value={21}>Three weeks</MenuItem>
+              <MenuItem value={60 * 24}>하루</MenuItem>
+              <MenuItem value={60 * 24 * 7}>일주일</MenuItem>
             </Select>
           </FormControl>
         </Box>
@@ -119,56 +123,76 @@ function SetTimeDialog({ title, open, onClose, onSelect }) {
   );
 }
 
-function MuteButton({ initialIsMuted, myRole, channelId, targetId }) {
+function MuteButton({ initialIsMuted, channelId, targetId }: any) {
   const [isMuted, setIsMuted] = useState(initialIsMuted);
   const [open, setOpen] = useState(false);
 
-  if (myRole === "NORMAL") {
-    return (
-      <IconButton>{isMuted ? <VolumeOffIcon /> : <VolumeUpIcon />}</IconButton>
-    );
-  } else {
-    return (
-      <>
-        <IconButton
-          onClick={isMuted ? () => setIsMuted(false) : () => setOpen(true)}
-        >
-          {isMuted ? <VolumeOffIcon /> : <VolumeUpIcon />}
-        </IconButton>
-        <SetTimeDialog
-          title="Mute for"
-          open={open}
-          onClose={() => setOpen(false)}
-          onSelect={(time: number) => {
-            setOpen(false);
-            const dt = new Date();
-            dt.setMinutes(dt.getMinutes() + time);
-            axios
-              .patch(`/server/api/channel/${channelId}/mute/${targetId}`, {
-                limitedTime: dt.toJSON(),
-              })
-              .then((res) => {
-                console.log(res.data);
-                setIsMuted(!isMuted);
-              })
-              .catch((e) => {
-                console.error(e);
-              });
-          }}
-        />
-      </>
-    );
-  }
+  //   if (isIf == 1 || isIf == 2) {
+  //     return (
+  //       <IconButton>{isMuted ? <VolumeOffIcon /> : <VolumeUpIcon />}</IconButton>
+  //     );
+  //   } else {
+  return (
+    <>
+      <IconButton
+        onClick={
+          isMuted
+            ? () => {
+                const dt = new Date();
+                axios
+                  .patch(`/server/api/channel/${channelId}/mute/${targetId}`, {
+                    limitedTime: dt.toJSON(),
+                  })
+                  .then((res) => {
+                    console.log(res.data);
+                    setIsMuted(false);
+                  })
+                  .catch((e) => {
+                    console.error(e);
+                  });
+              }
+            : () => {
+                setOpen(true);
+              }
+        }
+      >
+        {isMuted ? (
+          <VolumeOffIcon color="primary" />
+        ) : (
+          <VolumeUpIcon color="primary" />
+        )}
+      </IconButton>
+      <SetTimeDialog
+        title="Mute for"
+        open={open}
+        onClose={() => setOpen(false)}
+        onSelect={(time: number) => {
+          setOpen(false);
+          const dt = new Date();
+          dt.setMinutes(dt.getMinutes() + time);
+          axios
+            .patch(`/server/api/channel/${channelId}/mute/${targetId}`, {
+              limitedTime: dt.toJSON(),
+            })
+            .then((res) => {
+              console.log(res.data);
+              setIsMuted(!isMuted);
+            })
+            .catch((e) => {
+              console.error(e);
+            });
+        }}
+      />
+    </>
+  );
 }
 
-function BanButton({ myRole, channelId, targetId, onBan }) {
+function BanButton({ channelId, targetId, onBan }) {
   const [open, setOpen] = useState(false);
-
-  if (myRole === "NORMAL") return <></>;
 
   return (
     <>
-      <IconButton onClick={() => setOpen(true)}>
+      <IconButton onClick={() => setOpen(true)} color="primary">
         <CloseIcon />
       </IconButton>
       <SetTimeDialog
@@ -196,12 +220,51 @@ function BanButton({ myRole, channelId, targetId, onBan }) {
   );
 }
 
+function OutButton({ channelId }) {
+  const [open, setOpen] = useState(false);
+  const router = useRouter();
+
+  return (
+    <>
+      <IconButton onClick={() => setOpen(true)} color="primary">
+        <ExitToAppIcon />
+      </IconButton>
+      <Dialog
+        open={open}
+        onClose={() => {
+          setOpen(false);
+        }}
+      >
+        <DialogTitle>나가시겠습니까?</DialogTitle>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              axios
+                .patch(`/server/api/channel/${channelId}`)
+                .then((res) => {
+                  console.log(res.data);
+                  router.push(`/clients`);
+                })
+                .catch((e) => {
+                  console.error(e);
+                });
+            }}
+          >
+            확인
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+}
+
 export default function ChannelMemberList({
   initialMembers,
   myRole,
   channelId,
 }: any) {
   const [members, setMembers] = useState(initialMembers);
+  const me = getLoginUser();
 
   useEffect(() => console.count("ChannelMemberList mounted"), []);
 
@@ -220,22 +283,39 @@ export default function ChannelMemberList({
               channelId={channelId}
               targetId={member.id}
             />
-            <MuteButton
-              initialIsMuted={member.userMute}
-              myRole={myRole}
-              channelId={channelId}
-              targetId={member.id}
-            />
-            <BanButton
-              myRole={myRole}
-              channelId={channelId}
-              targetId={member.id}
-              onBan={() => {
-                const newMembers = [...members];
-                newMembers.splice(members.indexOf(member), 1);
-                setMembers(newMembers);
-              }}
-            />
+            {myRole == "NORMAL" ||
+            me.id == member.id ||
+            member.userRoleInChannel == "OWNER" ? (
+              <IconButton>
+                <VolumeOffIcon />
+              </IconButton>
+            ) : (
+              <MuteButton
+                initialIsMuted={member.userMute}
+                channelId={channelId}
+                targetId={member.id}
+              />
+            )}
+            {me.id == member.id ? (
+              <OutButton channelId={channelId} />
+            ) : myRole == "NORMAL" || member.userRoleInChannel == "OWNER" ? (
+              <IconButton>
+                <CloseIcon />
+              </IconButton>
+            ) : (
+              <BanButton
+                channelId={channelId}
+                targetId={member.id}
+                onBan={() => {
+                  const newMembers = [...members];
+                  newMembers.splice(members.indexOf(member), 1);
+                  setMembers(newMembers);
+                }}
+              />
+            )}
+            {/* <IconButton color="primary">
+              <ExitToAppIcon></ExitToAppIcon>
+            </IconButton> */}
           </ListItem>
         ))}
       </List>

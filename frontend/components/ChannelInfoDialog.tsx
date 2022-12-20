@@ -9,11 +9,15 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { getLoginUser } from "../lib/login";
 import ChannelMemberList from "./ChannelMemberList";
+import { Avatar, IconButton, ListItemAvatar } from "@mui/material";
+import Add from "@mui/icons-material/Add";
+import InviteMemberDialog from "./InviteMemberDialog";
 
 export default function ChannelInfoDialog({ channel, open, onClose }: any) {
   const [members, setMembers] = useState([]);
   const [me, setMe]: any = useState(null);
   const [password, setPassword] = useState<string>("");
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   console.log("members in ChannelInfoDialog");
   console.log(members);
@@ -35,6 +39,17 @@ export default function ChannelInfoDialog({ channel, open, onClose }: any) {
         console.error(error);
       });
   }, [channel, open]);
+
+  function inviteUser(invitedUserId: string) {
+    console.log(`invitedUserId: ${invitedUserId}`);
+    axios
+      .post(`/server/api/channel/${channel.id}/invite/${invitedUserId}`)
+      .then((response) => console.log(response.data))
+      .catch((error) => {
+        alert(error.response.data.message);
+      });
+    setInviteOpen(false);
+  }
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth>
@@ -81,6 +96,12 @@ export default function ChannelInfoDialog({ channel, open, onClose }: any) {
         </>
       )}
       <DialogTitle>Members</DialogTitle>
+      <Button onClick={() => setInviteOpen(true)}>초대하기</Button>
+      <InviteMemberDialog
+        open={inviteOpen}
+        onClose={() => setInviteOpen(false)}
+        onSelect={inviteUser}
+      />
       <DialogContent>
         {me && (
           <ChannelMemberList

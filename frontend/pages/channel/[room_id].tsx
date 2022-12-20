@@ -11,7 +11,7 @@ import ChannelInfoDialog from "../../components/ChannelInfoDialog";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
-import InfoIcon from '@mui/icons-material/Info';
+import InfoIcon from "@mui/icons-material/Info";
 
 export default function Channel() {
   useSocketAuthorization();
@@ -29,14 +29,19 @@ export default function Channel() {
     loginUser = getLoginUser();
     if (roomId) {
       console.log(`get cm from ${roomId}`);
-      axios.get(`/server/api/user/channel`).then(function (res) {
-        const chList = res.data.channels;
-        for (const ch of chList) {
-          if (ch.id == roomId) {
-            setChannel(ch);
+      axios
+        .get(`/server/api/user/channel`)
+        .then(function (res) {
+          const chList = res.data.channels;
+          for (const ch of chList) {
+            if (ch.id == roomId) {
+              setChannel(ch);
+            }
           }
-        }
-      });
+        })
+        .catch((e) => {
+          console.error(e);
+        });
       axios
         .get(`/server/api/channel/${roomId}`)
         .then(function (response) {
@@ -77,7 +82,8 @@ export default function Channel() {
             channelSocket.off(`drawChannelMessage`);
           });
         })
-        .catch(() => {
+        .catch((e) => {
+          console.error(e);
           // router.push("/login", );
         });
     }

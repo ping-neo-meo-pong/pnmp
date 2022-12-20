@@ -12,6 +12,9 @@ import UserMenu from "./UserMenu";
 import { getLoginUser } from "../lib/login";
 import { MatchingModal } from "./InviteModal";
 import { useRouter } from "next/router";
+import Notifications from "@mui/icons-material/Notifications";
+import IconButton from "@mui/material/IconButton";
+import NotificationMenu from "./NotificationMenu";
 
 export default function Header({ title }: any) {
   const [userName, setUserName] = useState<string>("");
@@ -37,6 +40,7 @@ export default function Header({ title }: any) {
         >
           {title}
         </Typography>
+        <NotificationMenu />
       </Toolbar>
       <Grid container spacing={2} sx={{ py: 2 }}>
         <Grid item xs={12} md={9} sx={{ display: "flex" }}>
