@@ -26,10 +26,14 @@ export default function ChannelInfoDialog({ channel, open, onClose }: any) {
       .get(`/server/api/channel/${channel.id}/member`)
       .then((response) => {
         const members = response.data;
+        console.log("members");
+        console.log(members);
         setMembers(members);
         setMe(members.find((member: any) => member.id === loginUser.id));
       })
-      .catch((error) => {});
+      .catch((error) => {
+        console.error(error);
+      });
   }, [channel, open]);
 
   return (
