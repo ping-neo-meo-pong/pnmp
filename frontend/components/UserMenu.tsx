@@ -9,6 +9,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import IconButton from "@mui/material/IconButton";
 import { useRouter } from "next/router";
 import { getLoginUser, logout } from "../lib/login";
+import { Menu } from "@mui/material";
 
 export default function UserMenu() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -37,14 +38,12 @@ export default function UserMenu() {
       <IconButton onClick={handleToggle}>
         <MenuIcon />
       </IconButton>
-      <Popper open={open} anchorEl={anchorEl} placement="bottom-end">
-        <Paper>
-          <MenuList>
-            <MenuItem onClick={handleProfile}>Profile</MenuItem>
-            <MenuItem onClick={handleLogout}>Logout</MenuItem>
-          </MenuList>
-        </Paper>
-      </Popper>
+      <Menu open={open} onClose={() => setAnchorEl(null)} anchorEl={anchorEl}>
+        <MenuList>
+          <MenuItem onClick={handleProfile}>Profile</MenuItem>
+          <MenuItem onClick={handleLogout}>Logout</MenuItem>
+        </MenuList>
+      </Menu>
     </>
   );
 }

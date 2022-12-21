@@ -136,14 +136,14 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log(`friend is already in the game`);
       return;
     }
-    const invitedSocket = this.socketRepository.find(invitedUser.id);
-    if (invitedSocket) {
-      this.server.sockets
-        .to(invitedSocket.id)
-        .emit(`gameInvited`, client.user.id);
-    } else {
-      console.log(`friend not login`);
-    }
+    // const invitedSocket = this.socketRepository.find(invitedUser.id);
+    // if (invitedSocket) {
+    //   this.server.sockets
+    //     .to(invitedSocket.id)
+    //     .emit(`gameInvited`, { id: client.user.id, mode: data.mode });
+    // } else {
+    //   console.log(`friend not login: cant emit to socket`);
+    // }
 
     for (const que of this.friendQue) {
       if (que.leftUserId == client.user.id) {
@@ -298,8 +298,13 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
           console.log(`can not find user`);
           return;
         }
-        gameQueList.push({ inviterName: user.username, inviterId: user.id });
+        gameQueList.push({
+          inviterName: user.username,
+          inviterId: user.id,
+          mode: que.mode,
+        });
       }
+      console.count(que);
     }
     if (gameQueList.length) {
       client.emit(`invitedQue`, gameQueList);

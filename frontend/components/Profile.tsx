@@ -84,10 +84,6 @@ export default function Profile({ userName }: any) {
             }
             setTestHistory(brr);
             setHistory(arr);
-            // console.log(`history:`);
-            // console.log(arr);
-            // console.log(`brr:`);
-            // console.log(brr);
           })
           .catch((e) => {
             console.error(e);
