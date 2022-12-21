@@ -12,13 +12,16 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { getLoginUser } from "../lib/login";
 import { useRouter } from "next/router";
+import { InviteModalWithUserName } from "./InviteModal";
 
 export default function Profile({ userName }: any) {
   const router = useRouter();
   const me = getLoginUser();
   //   const [user, setUser]: any = useState({});
+  const [userLadder, setUserLadder]: any = useState(0);
   const [history, setHistory]: any = useState({});
   const [testHistory, setTestHistory]: any[] = useState([]);
+  const [inviteModal, setInviteModal] = useState(<></>);
 
   console.log(me);
   useEffect(() => {
@@ -30,8 +33,15 @@ export default function Profile({ userName }: any) {
         // setUser(...res.data);
         // setUser(res.data[0]);
         const user = res.data[0];
+        setUserLadder(user.ladder);
         console.log(`user:`);
         console.log(user);
+        console.log(`${me.username} vs ${userName}`);
+        if (me.username != userName) {
+          setInviteModal(<InviteModalWithUserName userName={userName} />);
+        } else {
+          setInviteModal(<></>);
+        }
 
         axios
           .get(`/server/api/user/${user.id}`)
@@ -39,8 +49,8 @@ export default function Profile({ userName }: any) {
             let arr: any[] = [];
             let brr: any = [];
             const historys = res.data.matchHistory;
-            console.log(`history data`);
-            console.log(res.data);
+            // console.log(`history data`);
+            // console.log(res.data);
 
             for (let i in historys) {
               arr.push(historys[i]);
@@ -74,10 +84,10 @@ export default function Profile({ userName }: any) {
             }
             setTestHistory(brr);
             setHistory(arr);
-            console.log(`history:`);
-            console.log(arr);
-            console.log(`brr:`);
-            console.log(brr);
+            // console.log(`history:`);
+            // console.log(arr);
+            // console.log(`brr:`);
+            // console.log(brr);
           })
           .catch((e) => {
             console.error(e);
@@ -105,8 +115,10 @@ export default function Profile({ userName }: any) {
         <Typography variant="h4" gutterBottom>
           Hi! {userName}
         </Typography>
+        {inviteModal}
+        <br />
         <Typography variant="h5" gutterBottom>
-          {/* ladder: {user.ladder} <br /> <br /> History */}
+          ladder: {userLadder} <br /> <br /> History
         </Typography>
         {testHistory}
       </Box>

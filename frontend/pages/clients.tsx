@@ -1,7 +1,6 @@
 import Router, { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { user_data } from "./login";
 import { socket, useSocketAuthorization } from "../lib/socket";
 import { logout, getLoginUser } from "../lib/login";
 import Layout from "../components/Layout";
@@ -15,6 +14,9 @@ import {
 export default function Client() {
   useSocketAuthorization();
   const router = useRouter();
+  let myName: any;
+  let dmRooms: any[] = [];
+  let gameRooms: any[] = [];
 
   let [dmRoomList, setDmRoomList]: any = useState([]);
   useEffect(getDmRooms, [router.isReady]);
@@ -27,21 +29,14 @@ export default function Client() {
   useEffect(() => {
     if (!router.isReady) return;
 
-    user_data._name = getLoginUser().username;
-    console.log(user_data._name);
+    myName = getLoginUser().username;
+    console.log(myName);
     function goToGameRoom(roomId: number) {
       router.push(`/game/${roomId}`);
     }
     function gameInvited(inviterId: string) {
       console.log(`you got mail~`);
-      // if (confirm(`invited by ${inviterId}\nplaying?`) == true) {
-      //   user_data.is_player = 1;
-      //   socket.emit('acceptFriendQue', inviterId);
-      //   socket.off(`acceptFriendQue`,);
-      // }
-      // else {}
     }
-    user_data.is_player = 0;
     socket.on("goToGameRoom", goToGameRoom);
     socket.on("gameInvited", gameInvited);
 
@@ -61,9 +56,9 @@ export default function Client() {
     axios
       .get("/server/api/dm")
       .then(function (response) {
-        user_data._room = response.data;
+        dmRooms = response.data;
         let newDmRoomList = [];
-        for (let dmRoom of user_data._room)
+        for (let dmRoom of dmRooms)
           newDmRoomList.push(<GoToDmRoom key={dmRoom.id} dmRoom={dmRoom} />);
         setDmRoomList(newDmRoomList);
       })
@@ -77,8 +72,8 @@ export default function Client() {
     axios
       .get("/server/api/game")
       .then(function (response) {
-        user_data.game_room = response.data;
-        for (let gameRoom of user_data.game_room)
+        gameRooms = response.data;
+        for (let gameRoom of gameRooms)
           newGameRoomList.push(
             <GoToGameRoom key={gameRoom.id} gameRoom={gameRoom} />
           );
@@ -96,7 +91,6 @@ export default function Client() {
             onClick={() => {
               socket.emit("acceptFriendQue", que.inviterId);
               socket.off(`acceptFriendQue`);
-              user_data.is_player = 1;
             }}
           >
             {" "}
@@ -170,10 +164,10 @@ export default function Client() {
   return (
     <Layout>
       <h1>
-        HI {user_data._name}
+        HI {myName}
         <button
           onClick={() => {
-            router.push(`/profile/${user_data._name}`);
+            router.push(`/profile/${myName}`);
           }}
         >
           <h1> 프로필 </h1>
@@ -255,13 +249,6 @@ function GoToGameRoom({ gameRoom }: any) {
     console.log(`come in room~`);
     console.log(gameRoom.leftUser.id);
     console.log(gameRoom.rightUser.id);
-    console.log(user_data._id);
-    if (
-      gameRoom.leftUser.id == user_data._id ||
-      gameRoom.rightUser.id == user_data._id
-    ) {
-      user_data.is_player = 1;
-    }
 
     router.push(`/game/${gameRoom.id}`);
   }

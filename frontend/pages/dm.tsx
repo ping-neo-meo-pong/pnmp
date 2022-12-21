@@ -1,7 +1,6 @@
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { user_data } from "./login";
 import { dmSocket } from "../sockets/sockets";
 import Link from "next/link";
 import Layout from "../components/Layout";
@@ -9,6 +8,7 @@ import Layout from "../components/Layout";
 export default function Dm() {
   const router = useRouter();
   const [invitedUser, setInvitedUser] = useState({ id: null, username: null });
+  let dmRooms: any[] = [];
 
   const [dmRoomList, setDmRoomList]: any = useState([]);
   useEffect(getDmRooms, []);
@@ -17,7 +17,7 @@ export default function Dm() {
     axios
       .get("/server/api/dm")
       .then(function (response) {
-        user_data._room = response.data;
+        dmRooms = response.data;
         const newDmRoomList = response.data;
         setDmRoomList(newDmRoomList);
         dmSocket.emit("dmRooms", newDmRoomList);

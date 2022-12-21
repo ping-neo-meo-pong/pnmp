@@ -32,6 +32,7 @@ import { GameHistoryRepository } from 'src/core/game/game-history.repository';
 import { History } from 'src/core/game/dto/game-history.dto';
 import { GameRoom } from 'src/core/game/game-room.entity';
 import { Side, WinLose } from '../enum/win-lose.enum';
+import { UserStatus } from 'src/enum/user-status';
 
 function wsGuard(socket: UserSocket) {
   if (!socket.hasOwnProperty('user')) {
@@ -58,14 +59,21 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private gameHistroyRepository: GameHistoryRepository,
   ) {}
 
-  handleConnection(socket: Socket) {
+  async handleConnection(socket: Socket) {
     console.log('connected');
   }
 
-  handleDisconnect(socket: UserSocket) {
+  async handleDisconnect(socket: UserSocket) {
     console.log('disconnected');
-    if (socket.hasOwnProperty('user'))
+    if (socket.hasOwnProperty('user')) {
+      const user = await this.userRepository.findOneBy({ id: socket.user.id });
+      if (user && user.status != UserStatus.INGAME) {
+        await this.userRepository.update(socket.user.id, {
+          status: UserStatus.OFFLINE,
+        });
+      }
       this.socketRepository.delete(socket.user.id);
+    }
   }
 
   @SubscribeMessage('authorize')
@@ -78,8 +86,14 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log(jwt);
       socket.user = this.jwtService.verify(jwt);
       this.socketRepository.save(socket.user.id, socket);
-      //   const dmRooms = await this.dmRoomRepository.getDmRooms(socket.user.id);
-      //   for (const dmRoom of dmRooms) socket.join(dmRoom.id);
+      if (
+        (await this.userRepository.findOneBy({ id: socket.user.id })).status !=
+        UserStatus.INGAME
+      ) {
+        await this.userRepository.update(socket.user.id, {
+          status: UserStatus.ONLINE,
+        });
+      }
     } catch (err) {
       socket.disconnect();
       console.log('disconnect in authorize()');
@@ -122,7 +136,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log(`friend is already in the game`);
       return;
     }
-    const invitedSocket = await this.socketRepository.find(invitedUser.id);
+    const invitedSocket = this.socketRepository.find(invitedUser.id);
     if (invitedSocket) {
       this.server.sockets
         .to(invitedSocket.id)
@@ -170,13 +184,13 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         );
         client.join(room.gameRoomDto.id);
         if (room.gameRoomDto.leftUser.id == client.user.id) {
-          console.log('rightUser emit!');
+          console.log('leftUser emit!');
           console.log(room.gameRoomDto.rightUser.id);
           this.socketRepository
             .find(room.gameRoomDto.rightUser.id)
             .join(room.gameRoomDto.id);
         } else {
-          console.log('leftUser');
+          console.log('rightUser');
           console.log(room.gameRoomDto.leftUser.id);
           this.socketRepository
             .find(room.gameRoomDto.leftUser.id)
@@ -225,6 +239,12 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
     client.join(roomId);
     console.log(`client ${client.user.id} joined in ${roomId}`);
+    await this.userRepository.update(room.gameRoomDto.leftUser.id, {
+      status: UserStatus.INGAME,
+    });
+    await this.userRepository.update(room.gameRoomDto.rightUser.id, {
+      status: UserStatus.INGAME,
+    });
 
     //   if user == L ? R
     if (room.gameRoomDto.leftUser.id == client.user.id) {
@@ -254,7 +274,6 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
           room.gameLoop = setInterval(async () => {
             this.server.in(roomId).emit(`game[${roomId}]`, room.gameRoomDto);
             if (ball_engine(room.gameRoomDto, this.endScore) == false) {
-              await this.saveHistory(room.gameRoomDto, this.endScore);
               this.closeGame(roomId, room);
             }
           }, 1000 / 30);
@@ -285,7 +304,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     if (gameQueList.length) {
       client.emit(`invitedQue`, gameQueList);
     } else {
-      console.log(`GMIQ: no invited Que`);
+      console.log(`GameInvitedQ: no invited Que`);
     }
   }
 
@@ -367,7 +386,12 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: UserSocket,
     @MessageBody() mode: GameMode,
   ) {
-    // console.log(client.user.id);
+    console.log(`client.user`);
+    console.log(client.user);
+    if (!client.user) {
+      client.disconnect();
+      return;
+    }
     const is_join = await this.gameRoomRepository.findByUserId(client.user.id);
     if (is_join) {
       console.log(`already you game`);
@@ -375,9 +399,6 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
     const user = await this.userRepository.findOneBy({ id: client.user.id });
     if (user) {
-      // await this.userRepository.update(client.user.id, {
-      //   ladder: user.ladder,
-      // });
       this.gameQueueRepository.addQue(client.user.id, user.ladder, mode);
       const wait = 0;
       await this.func(10000, client, wait);
@@ -410,6 +431,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log(client.user.id);
       console.log(room);
       client.join(room.gameRoomDto.id);
+      console.log(`really ${room.gameRoomDto.leftUser.id}`);
       if (room.gameRoomDto.leftUser.id == client.user.id) {
         console.log('rightUser emit!');
         console.log(room.gameRoomDto.rightUser.id);
@@ -434,7 +456,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  closeGame(roomId: string, room: Game) {
+  async closeGame(roomId: string, room: Game) {
     this.server.in(roomId).emit(`game[${roomId}]`, room.gameRoomDto);
     console.log('game OVER!!!');
     clearInterval(room.gameLoop);
@@ -445,16 +467,23 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       this.server.in(roomId).emit(`getOut!`);
       this.server.socketsLeave(roomId);
     }, 3000);
+    await this.saveHistory(room.gameRoomDto, this.endScore);
   }
 
   async saveHistory(room: GameRoomDto, endScore: number) {
     let leftWin, rightWin;
+    let leftLadder = room.leftUser.ladder;
+    let rightLadder = room.rightUser.ladder;
     if (room.gameData.p1.score == endScore) {
       leftWin = 'WIN';
+      leftLadder = room.leftUser.ladder + 1;
       rightWin = 'LOSE';
+      if (rightLadder > 0) rightLadder = room.rightUser.ladder - 1;
     } else {
       leftWin = 'LOSE';
+      if (leftLadder > 0) leftLadder = room.leftUser.ladder - 1;
       rightWin = 'WIN';
+      rightLadder = room.rightUser.ladder + 1;
     }
     const leftHistory: History = {
       win: leftWin,
@@ -474,6 +503,14 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     };
     await this.gameHistroyRepository.createHistory(leftHistory);
     await this.gameHistroyRepository.createHistory(rightHistory);
+    await this.userRepository.update(room.leftUser.id, {
+      status: UserStatus.OFFLINE,
+      ladder: leftLadder,
+    });
+    await this.userRepository.update(room.rightUser.id, {
+      status: UserStatus.OFFLINE,
+      ladder: rightLadder,
+    });
   }
 
   // sendToDB(roomId: string) {

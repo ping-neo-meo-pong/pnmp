@@ -207,11 +207,9 @@ export function InviteModalWithUserName({ userName }: any) {
       if (userName) {
         socket.emit(`gameToFriend`, {
           invitedUserName: userName,
-          // invitedUserName: "jw",
           mode: alignment,
         });
         socket.off(`gameToFriend`);
-        // router.push(`/matching`);
       } else {
         alert(`please input name`);
       }
@@ -305,7 +303,6 @@ export function MatchingModal() {
   const router = useRouter();
 
   socket.on("goToGameRoom", (roomId) => {
-    // user_data.is_player = 1;
     router.push(`/game/${roomId}`);
   });
 

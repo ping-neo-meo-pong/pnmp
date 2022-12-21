@@ -18,7 +18,9 @@ export function useLoginGuard() {
 }
 
 export async function logout() {
-  await axios.post("/server/api/auth/logout");
+  await axios.post("/server/api/auth/logout").catch((e) => {
+    console.error(e);
+  });
   window.localStorage.removeItem("loginUser");
 }
 

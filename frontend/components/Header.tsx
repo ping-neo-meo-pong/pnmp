@@ -47,8 +47,20 @@ export default function Header({ title }: any) {
           <Box sx={{ display: "inline", flex: 1 }}>
             <MatchingModal />
           </Box>
-          <Button>live</Button>
-          <Button>leaderboard</Button>
+          <Button
+            onClick={() => {
+              router.push(`/live`);
+            }}
+          >
+            live
+          </Button>
+          <Button
+            onClick={() => {
+              router.push(`/leaderboard`);
+            }}
+          >
+            leaderboard
+          </Button>
         </Grid>
         <Grid item xs={12} md={3}>
           <Stack direction="row" spacing={2} alignItems="center">

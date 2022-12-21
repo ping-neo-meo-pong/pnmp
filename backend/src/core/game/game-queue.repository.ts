@@ -82,11 +82,11 @@ export class GameQueueRepository {
   }
 
   async checkQue(myId: string, _wait: number): Promise<Game> {
-    let myLadder = -1;
+    let myLevel = -1;
     let myidx = 0;
     for (let i = 0; this.gameQue[i]; i++) {
       if (myId == this.gameQue[i].userId) {
-        myLadder = this.gameQue[i].ladder;
+        myLevel = this.gameQue[i].ladder / 10;
         myidx = i;
       }
     }
@@ -95,9 +95,12 @@ export class GameQueueRepository {
         continue;
       if (
         this.gameQue[myidx].mode == this.gameQue[idx].mode &&
-        _wait >= Math.abs(myLadder - this.gameQue[idx].ladder) &&
-        this.gameQue[idx].wait >= Math.abs(myLadder - this.gameQue[idx].ladder)
+        _wait > Math.abs(myLevel - this.gameQue[idx].ladder / 10) - 1 &&
+        this.gameQue[idx].wait >
+          Math.abs(myLevel - this.gameQue[idx].ladder / 10) - 1
       ) {
+        // Matching!!
+        console.log(`me:${myLevel} vs ${this.gameQue[idx].ladder / 10}`);
         clearTimeout(this.getQueLoop(myidx));
         clearTimeout(this.getQueLoop(idx));
         const leftUser = await this.userRepository.findOneBy({
