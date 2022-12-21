@@ -3,6 +3,7 @@ import {
   Box,
   Button,
   Grid,
+  IconButton,
   ListItemAvatar,
   ListItemButton,
   ListItemText,
@@ -19,14 +20,15 @@ export default function Profile({ userName }: any) {
   const me = getLoginUser();
   //   const [user, setUser]: any = useState({});
   const [userLadder, setUserLadder]: any = useState(0);
-  const [history, setHistory]: any = useState({});
   const [testHistory, setTestHistory]: any[] = useState([]);
   const [inviteModal, setInviteModal] = useState(<></>);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [userId, setUserId] = useState("");
 
   console.log(me);
   useEffect(() => {
     if (!router.isReady) return;
-    // let user: any = {};
+
     axios
       .get(`/server/api/user?username=${userName}`)
       .then(function (res) {
@@ -34,6 +36,7 @@ export default function Profile({ userName }: any) {
         // setUser(res.data[0]);
         const user = res.data[0];
         setUserLadder(user.ladder);
+        setUserId(user.id);
         console.log(`user:`);
         console.log(user);
         console.log(`${me.username} vs ${userName}`);
@@ -42,18 +45,27 @@ export default function Profile({ userName }: any) {
         } else {
           setInviteModal(<></>);
         }
+        axios
+          .get(`/server/api/user/block`)
+          .then((res) => {
+            console.log(res.data);
+            const blocks = res.data;
+            if (blocks.find((block: any) => block.blockedUserId.id === user.id))
+              setIsBlocked(true);
+          })
+          .catch((e) => {
+            console.error(e);
+          });
 
         axios
           .get(`/server/api/user/${user.id}`)
           .then(function (res) {
-            let arr: any[] = [];
             let brr: any = [];
             const historys = res.data.matchHistory;
             // console.log(`history data`);
             // console.log(res.data);
 
             for (let i in historys) {
-              arr.push(historys[i]);
               let time = `${historys[i].gameRoom.createdAt}`;
               brr.push(
                 <Box>
@@ -83,7 +95,6 @@ export default function Profile({ userName }: any) {
               );
             }
             setTestHistory(brr);
-            setHistory(arr);
           })
           .catch((e) => {
             console.error(e);
@@ -96,6 +107,30 @@ export default function Profile({ userName }: any) {
   }, [router.isReady, userName]);
 
   if (!router.isReady) return <></>;
+
+  function blockUser() {
+    axios
+      .post(`/server/api/user/block/${userId}`)
+      .then((res) => {
+        console.log(res.data);
+        setIsBlocked(true);
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+  }
+  function unBlock() {
+    axios
+      .patch(`/server/api/user/block/${userId}`)
+      .then((res) => {
+        console.log(res.data);
+        setIsBlocked(false);
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+  }
+
   return (
     <Box>
       <ListItemButton sx={{ justifyContent: "center" }}>
@@ -111,10 +146,24 @@ export default function Profile({ userName }: any) {
         <Typography variant="h4" gutterBottom>
           Hi! {userName}
         </Typography>
-        {inviteModal}
         <br />
         <Typography variant="h5" gutterBottom>
-          ladder: {userLadder} <br /> <br /> History
+          ladder: {userLadder}
+        </Typography>
+        {inviteModal}{" "}
+        {isBlocked ? (
+          <Button color="inherit" variant="outlined" onClick={unBlock}>
+            차단 해제
+          </Button>
+        ) : (
+          <Button color="warning" variant="outlined" onClick={blockUser}>
+            유저 차단
+          </Button>
+        )}
+        <br />
+        <br />
+        <Typography variant="h5" gutterBottom>
+          History
         </Typography>
         {testHistory}
       </Box>
