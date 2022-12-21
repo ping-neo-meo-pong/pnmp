@@ -12,6 +12,9 @@ import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
 import InfoIcon from "@mui/icons-material/Info";
+import { Box, InputAdornment, List, TextField } from "@mui/material";
+import SendIcon from "@mui/icons-material/Send";
+import { bodyHeight } from "../../components/constants";
 
 export default function Channel() {
   useSocketAuthorization();
@@ -89,47 +92,74 @@ export default function Channel() {
     }
   }, [router.isReady, router.query.room_id]);
 
-  function onSubmitMessage(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function onSubmitMessage(message: string) {
     const msgData = {
       roomId: router.query.room_id,
       userId: loginUser.id,
       username: loginUser.username,
-      msg: event.currentTarget.message.value,
+      msg: message,
     };
     console.log(msgData);
     channelSocket.emit(`channelMessage`, msgData);
   }
 
   const [open, setOpen] = useState<boolean>(false);
+  const [msgToSend, setMsgToSend] = useState("");
 
   return (
     <Layout>
-      <Toolbar
-        disableGutters
-        variant="dense"
-        sx={{ borderBottom: 1, borderColor: "divider", pl: 2 }}
+      <Box
+        sx={{ display: "flex", flexDirection: "column", height: bodyHeight }}
       >
-        <Typography
-          component="h2"
-          variant="h6"
-          color="inherit"
-          noWrap
-          sx={{ flex: 1 }}
+        <Toolbar
+          disableGutters
+          variant="dense"
+          sx={{ borderBottom: 1, borderColor: "divider", pl: 2 }}
         >
-          {channel?.channelName}
-        </Typography>
-        <IconButton onClick={() => setOpen(true)}>
-          <InfoIcon />
-        </IconButton>
-      </Toolbar>
-      {channel && (
-        <ChannelInfoDialog
-          channel={channel}
-          open={open}
-          onClose={() => setOpen(false)}
+          <Typography
+            component="h2"
+            variant="h6"
+            color="inherit"
+            noWrap
+            sx={{ flex: 1 }}
+          >
+            {channel?.channelName}
+          </Typography>
+          <IconButton onClick={() => setOpen(true)}>
+            <InfoIcon />
+          </IconButton>
+        </Toolbar>
+        {channel && (
+          <ChannelInfoDialog
+            channel={channel}
+            open={open}
+            onClose={() => setOpen(false)}
+          />
+        )}
+        <MessageList messages={msgList} />
+        <TextField
+          size="small"
+          label="send message..."
+          onChange={(event) => {
+            setMsgToSend(event.target.value);
+          }}
+          value={msgToSend}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={() => {
+                    setMsgToSend("");
+                    onSubmitMessage(msgToSend);
+                  }}
+                >
+                  <SendIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
         />
-      )}
+      </Box>
     </Layout>
   );
   /*
@@ -155,5 +185,30 @@ function ChannelMessage({ channelMessage }: any) {
       <div style={{ fontSize: "x-large" }}>{channelMessage?.message}</div>
       <br></br>
     </div>
+  );
+}
+
+function MessageList({ messages }: any) {
+  // const date = new Date(message?.createdAt);
+  return (
+    <List sx={{ flex: 1, overflowY: "scroll" }}>
+      {messages.map((message) => (
+        // <ListItem>
+        //   <ListItemText
+        //     primaryTypographyProps={{ variant: "h6" }}
+        //     primary={`${message?.sendUserId?.username}: ${message?.message}`}
+        //   ></ListItemText>
+        //   <ListItemText
+        //     secondary={new Date(message?.createdAt).toLocaleString()}
+        //   ></ListItemText>
+        // </ListItem>
+        <>
+          <h2 style={{ display: "inline" }}>{message?.sendUserId?.username}</h2>
+          <span> {new Date(message?.createdAt).toLocaleString()}</span>
+          <div style={{ fontSize: "x-large" }}>{message?.message}</div>
+          <br></br>
+        </>
+      ))}
+    </List>
   );
 }
