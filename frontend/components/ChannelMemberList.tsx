@@ -265,6 +265,7 @@ export default function ChannelMemberList({
 }: any) {
   const [members, setMembers] = useState(initialMembers);
   const me = getLoginUser();
+  const router = useRouter();
 
   useEffect(() => console.count("ChannelMemberList mounted"), []);
 
@@ -276,7 +277,12 @@ export default function ChannelMemberList({
             key={member.id}
             sx={{ borderTop: 1, borderColor: "divider" }}
           >
-            <ListItemText primary={member.username} />
+            <ListItemText
+              onClick={() => {
+                router.push(`/profile/${member.username}`);
+              }}
+              primary={member.username}
+            />
             <RoleButton
               initialRole={member.userRoleInChannel}
               myRole={myRole}
