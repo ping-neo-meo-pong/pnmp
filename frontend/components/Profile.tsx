@@ -151,15 +151,16 @@ export default function Profile({ userName }: any) {
           ladder: {userLadder}
         </Typography>
         {inviteModal}{" "}
-        {isBlocked ? (
-          <Button color="inherit" variant="outlined" onClick={unBlock}>
-            차단 해제
-          </Button>
-        ) : (
-          <Button color="warning" variant="outlined" onClick={blockUser}>
-            유저 차단
-          </Button>
-        )}
+        {me.id !== userId &&
+          (isBlocked ? (
+            <Button color="inherit" variant="outlined" onClick={unBlock}>
+              차단 해제
+            </Button>
+          ) : (
+            <Button color="warning" variant="outlined" onClick={blockUser}>
+              유저 차단
+            </Button>
+          ))}
         <br />
         <br />
         <Typography variant="h5" gutterBottom>
