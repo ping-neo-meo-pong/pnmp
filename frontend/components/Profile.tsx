@@ -2,8 +2,11 @@ import {
   Avatar,
   Box,
   Button,
+  Dialog,
+  DialogTitle,
   Grid,
   IconButton,
+  List,
   ListItemAvatar,
   ListItemButton,
   ListItemText,
@@ -24,6 +27,9 @@ export default function Profile({ userName }: any) {
   const [inviteModal, setInviteModal] = useState(<></>);
   const [isBlocked, setIsBlocked] = useState(false);
   const [userId, setUserId] = useState("");
+  const [userStatus, setUserStatus] = useState("OFFLINE");
+  const [userImage, setUserImage] = useState("");
+  const [open, setOpen] = useState(false);
 
   console.log(me);
   useEffect(() => {
@@ -37,6 +43,8 @@ export default function Profile({ userName }: any) {
         const user = res.data[0];
         setUserLadder(user.ladder);
         setUserId(user.id);
+        setUserStatus(user.status);
+        setUserImage(user.profileImage)
         console.log(`user:`);
         console.log(user);
         console.log(`${me.username} vs ${userName}`);
@@ -45,7 +53,7 @@ export default function Profile({ userName }: any) {
         } else {
           setInviteModal(<></>);
         }
-        axios
+        axios // isBlock?
           .get(`/server/api/user/block`)
           .then((res) => {
             console.log(res.data);
@@ -57,7 +65,7 @@ export default function Profile({ userName }: any) {
             console.error(e);
           });
 
-        axios
+        axios // history
           .get(`/server/api/user/${user.id}`)
           .then(function (res) {
             let brr: any = [];
@@ -130,27 +138,47 @@ export default function Profile({ userName }: any) {
         console.error(e);
       });
   }
+  function ImageDialog() {
+    return (
+      <Dialog onClose={()=>setOpen(false)} open={open}>
+        <DialogTitle>select Image..</DialogTitle>
+        <List sx={{ pt: 0 }}>
+          <input type="file" id="fileInput"/>
+        </List>
+      </Dialog>
+    );
+  }
 
   return (
     <Box>
-      <ListItemButton sx={{ justifyContent: "center" }}>
-        <ListItemAvatar>
+      {/* <ListItemButton sx={{ justifyContent: "center" }}> */}
+      <ImageDialog />
+      <Box display="flex" justifyContent="center" sx={{py: 2}} >
+        <Button onClick={()=>{setOpen(true)}}>
           <Avatar
             sx={{ width: 100, height: 100 }}
-            // alt={`Avatar n°${value + 1}`}
-            // src={`/static/images/avatar/${value + 1}.jpg`}
+            src={userImage}
           />
-        </ListItemAvatar>
-      </ListItemButton>
+        </Button>
+      </Box>
       <Box textAlign={"center"}>
         <Typography variant="h4" gutterBottom>
-          Hi! {userName}
+          Hi! {userName} <Button color={userStatus === "ONLINE" ? "primary" : ( userStatus === "INGAME" ? "success" : "inherit")} variant="outlined">{userStatus}</Button>
         </Typography>
         <br />
         <Typography variant="h5" gutterBottom>
           ladder: {userLadder}
         </Typography>
         {inviteModal}{" "}
+        {userStatus === "INGAME" && <Button color="success" variant="outlined" onClick={
+          ()=>{axios.get('/server/api/game')
+          .then((res)=>{
+            const gameId = res.data.find((game: any)=>game.leftUser.id === userId || game.rightUser.id === userId).id;
+            router.push(`/game/${gameId}`);
+          })
+          .catch((e)=>{console.error(e)})
+        }}>관전하기</Button>}
+        {" "}
         {me.id !== userId &&
           (isBlocked ? (
             <Button color="inherit" variant="outlined" onClick={unBlock}>

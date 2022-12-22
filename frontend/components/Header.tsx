@@ -15,13 +15,21 @@ import { useRouter } from "next/router";
 import Notifications from "@mui/icons-material/Notifications";
 import IconButton from "@mui/material/IconButton";
 import NotificationMenu from "./NotificationMenu";
+import axios from "axios";
 
 export default function Header({ title }: any) {
   const [userName, setUserName] = useState<string>("");
+  const [userImage, setUserImage] = useState<string>("");
   const router = useRouter();
 
   useEffect(() => {
-    setUserName(getLoginUser().username);
+    const me = getLoginUser();
+    setUserName(me.username);
+    axios.get(`/server/api/user/${me.id}`)
+    .then((res)=>{console.log("res.data");
+      console.log(res.data);
+      setUserImage(res.data.profileImage)})
+    .catch((e)=>{console.error(e)});
   }, []);
 
   return (
@@ -64,7 +72,7 @@ export default function Header({ title }: any) {
         </Grid>
         <Grid item xs={12} md={3}>
           <Stack direction="row" spacing={2} alignItems="center">
-            <Avatar>P</Avatar>
+            <Avatar src={userImage}>P</Avatar>
             <Typography
               component="h2"
               variant="h6"
