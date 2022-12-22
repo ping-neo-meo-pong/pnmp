@@ -23,7 +23,7 @@ export default function Dm() {
         dmSocket.emit("dmRooms", newDmRoomList);
       })
       .catch(() => {
-        router.push("/login");
+        router.replace("clients", "/");
       });
   }
 
@@ -39,6 +39,7 @@ export default function Dm() {
         });
       })
       .catch((error) => {
+        router.replace("clients", "/");
         alert(error.response.data.message);
       });
   }

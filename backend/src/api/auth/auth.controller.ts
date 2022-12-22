@@ -28,8 +28,10 @@ export class AuthController {
   @ApiBody({ type: LoginReqDto })
   async login(@Req() req, @Res({ passthrough: true }) res) {
     console.log(`auth.controller login`);
+    console.log(req);
     const user = req.user;
-    const token = await this.authService.getToken(user);
+    // const token = await this.authService.getToken(user);
+    const token = req.body.accessToken;
     // res.setHeader('Authorization', 'Bearer ' + token.accessToken);
     res.cookie('jwt', token.accessToken, {
       httpOnly: true,
