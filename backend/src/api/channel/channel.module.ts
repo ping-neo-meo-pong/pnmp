@@ -11,7 +11,7 @@ import { ChannelMemberRepository } from '../../core/channel/channel-member.repos
 import { ChannelMessageRepository } from '../../core/channel/channel-message.repository';
 import { UserRepository } from '../../core/user/user.repository';
 import { BlockRepository } from '../../core/block/block.repository';
-import { ChannelGateway } from './channel.gateway';
+// import { ChannelGateway } from './channel.gateway';
 
 @Module({
   imports: [
@@ -25,6 +25,6 @@ import { ChannelGateway } from './channel.gateway';
     ]),
   ],
   controllers: [ChannelController],
-  providers: [ChannelService, ChannelGateway],
+  providers: [ChannelService],
 })
 export class ChannelModule {}

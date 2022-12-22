@@ -3,7 +3,6 @@ import { Socket, io } from "socket.io-client";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { channelSocket } from "../../sockets/sockets";
 import { useSocketAuthorization } from "../../lib/socket";
 import { getLoginUser } from "../../lib/login";
 import Layout from "../../components/Layout";
@@ -15,6 +14,7 @@ import InfoIcon from "@mui/icons-material/Info";
 import { Box, InputAdornment, List, TextField } from "@mui/material";
 import SendIcon from "@mui/icons-material/Send";
 import { bodyHeight } from "../../components/constants";
+import { socket } from "../../lib/socket";
 
 export default function Channel() {
   useSocketAuthorization();
@@ -52,8 +52,8 @@ export default function Channel() {
           console.log(messageList);
           setMsgList(messageList);
 
-          channelSocket.emit("channelRoom", roomId);
-          channelSocket.on(`drawChannelMessage`, (message) => {
+          socket.emit("channelRoom", roomId);
+          socket.on(`drawChannelMessage`, (message) => {
             console.log(`draw cm`);
             console.log(message);
             let blockUsers: any[] = [];
@@ -82,7 +82,7 @@ export default function Channel() {
           });
 
           router.events.on("routeChangeStart", () => {
-            channelSocket.off(`drawChannelMessage`);
+            socket.off(`drawChannelMessage`);
           });
         })
         .catch((e) => {
@@ -100,7 +100,7 @@ export default function Channel() {
       msg: message,
     };
     console.log(msgData);
-    channelSocket.emit(`channelMessage`, msgData);
+    socket.emit(`channelMessage`, msgData);
   }
 
   const [open, setOpen] = useState<boolean>(false);

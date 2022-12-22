@@ -16,6 +16,11 @@ import { GameQueueRepository } from 'src/core/game/game-queue.repository';
 import { UserRepository } from 'src/core/user/user.repository';
 import { GameHistoryRepository } from 'src/core/game/game-history.repository';
 
+import { ChannelMessageRepository } from 'src/core/channel/channel-message.repository'; // added
+import { ChannelMemberRepository } from 'src/core/channel/channel-member.repository';
+import { ChannelRepository } from 'src/core/channel/channel.repository';
+import { BlockRepository } from 'src/core/block/block.repository';
+
 @Module({
   imports: [
     SocketModule,
@@ -26,6 +31,10 @@ import { GameHistoryRepository } from 'src/core/game/game-history.repository';
       DmRepository,
       UserRepository,
       GameHistoryRepository,
+      ChannelMessageRepository,
+      ChannelMemberRepository,
+      ChannelRepository,
+      BlockRepository,
     ]),
     JwtModule.register({
       secret: process.env.JWT_SECRET,

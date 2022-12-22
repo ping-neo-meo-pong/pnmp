@@ -34,6 +34,11 @@ import { GameRoom } from 'src/core/game/game-room.entity';
 import { Side, WinLose } from '../enum/win-lose.enum';
 import { UserStatus } from 'src/enum/user-status';
 
+import { ChannelMessageRepository } from 'src/core/channel/channel-message.repository'; // added
+import { ChannelMemberRepository } from 'src/core/channel/channel-member.repository';
+import { ChannelRepository } from 'src/core/channel/channel.repository';
+import { BlockRepository } from 'src/core/block/block.repository';
+
 function wsGuard(socket: UserSocket) {
   if (!socket.hasOwnProperty('user')) {
     // socket.disconnect();
@@ -57,6 +62,11 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private gameQueueRepository: GameQueueRepository,
     private userRepository: UserRepository,
     private gameHistroyRepository: GameHistoryRepository,
+
+    private channelMessageRepository: ChannelMessageRepository,
+    private channelMemberRepository: ChannelMemberRepository,
+    private channelRepository: ChannelRepository,
+    private blockRepository: BlockRepository,
   ) {}
 
   async handleConnection(socket: Socket) {
@@ -538,6 +548,47 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
     console.log(`there is no Friend Que`);
+  }
+
+  @SubscribeMessage('channelRoom') /////////////////// Channel Room ////////////////
+  async joinChannelRoom(
+    @ConnectedSocket() socket: UserSocket,
+    @MessageBody() channelRoomId: string,
+  ) {
+    try {
+      // 지금은 그냥 조인
+      console.log(`join	하오`);
+      console.log(channelRoomId);
+      socket.join(channelRoomId);
+    } catch (err) {
+      socket.disconnect();
+    }
+  }
+
+  @SubscribeMessage('channelMessage')
+  async onChannelMessage(
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() data: any,
+  ) {
+    console.log(`c message`);
+    const newChannelMessage = this.channelMessageRepository.create({
+      message: data.msg,
+      channelId: data.roomId,
+      sendUserId: data.userId,
+    });
+    await this.channelMessageRepository.save(newChannelMessage);
+    console.log(`cm save 했소`);
+    const newChannelMessageData = await this.channelMessageRepository.findOne({
+      relations: ['channelId', 'sendUserId'],
+      where: {
+        id: newChannelMessage.id,
+      },
+    });
+    // const blockUsers = await this.userRepository.findOneBy({ id: socket.id });
+    console.log(`cm room ${data.roomId}에 송구하오`);
+    this.server.in(data.roomId).emit(`drawChannelMessage`, {
+      ...newChannelMessageData, // 일단 block유저 찾지않음
+    });
   }
 }
 
