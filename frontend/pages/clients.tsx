@@ -177,7 +177,7 @@ export default function Client() {
       <button
         onClick={async () => {
           await logout();
-          router.push("/index");
+          router.replace("/clients", "/");
         }}
       >
         logout

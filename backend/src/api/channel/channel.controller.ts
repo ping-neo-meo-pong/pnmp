@@ -106,11 +106,17 @@ export class ChannelController {
 
   @Get(':channelId/member')
   @ApiOperation({ summary: '특정 채널에 참여한 멤버 보기' })
-  findParticipants(@Param('channelId', ParseUUIDPipe) channelId: string) {
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  findParticipants(
+    @Req() req,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
+  ) {
     if (!isUUID(channelId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
-    return this.channelService.findParticipants(channelId);
+    const userId = req.user.id;
+    return this.channelService.findParticipants(userId, channelId);
   }
 
   @Patch(':channelId/password')
