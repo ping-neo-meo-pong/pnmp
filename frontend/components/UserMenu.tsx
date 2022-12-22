@@ -9,6 +9,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import IconButton from "@mui/material/IconButton";
 import { useRouter } from "next/router";
 import { getLoginUser, logout } from "../lib/login";
+import { signOut } from "next-auth/react";
 
 export default function UserMenu() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -27,7 +28,8 @@ export default function UserMenu() {
   const handleLogout = async () => {
     setAnchorEl(null);
     await logout();
-    router.push("/login");
+    signOut();
+    router.replace("/clients","/");
   };
 
   const open = Boolean(anchorEl);

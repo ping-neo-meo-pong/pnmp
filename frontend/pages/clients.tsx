@@ -4,6 +4,7 @@ import axios from "axios";
 import { socket, useSocketAuthorization } from "../lib/socket";
 import { logout, getLoginUser } from "../lib/login";
 import Layout from "../components/Layout";
+import { useSession, signIn, signOut } from "next-auth/react"
 import { Button } from "@mui/material";
 import {
   InviteModal,
@@ -80,7 +81,7 @@ export default function Client() {
         setGameRoomList(newGameRoomList);
       })
       .catch(() => {
-        // router.push("/login");
+        router.replace("clients", "/");
       });
     socket.emit("giveMeInvited");
     socket.on(`invitedQue`, (ques) => {
@@ -176,7 +177,7 @@ export default function Client() {
       <button
         onClick={async () => {
           await logout();
-          router.push("/login");
+          router.push("/index");
         }}
       >
         logout

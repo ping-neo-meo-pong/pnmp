@@ -27,12 +27,17 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 //   return <></>;
 // }
 
+import axios from "axios";
 import { useSession, signIn, signOut } from "next-auth/react"
 import * as React from 'react';
 import { CssVarsProvider } from '@mui/joy/styles';
 import Button from '@mui/joy/Button';
 import Sheet from '@mui/joy/Sheet';
-import Image from 'next/image'
+import Image from 'next/image';
+import Login from '../components/LoginWithAuth';
+import { SendTimeExtension, SendTimeExtensionSharp } from "@mui/icons-material";
+import { socket } from "../lib/socket";
+import { userAgent } from "next/server";
 
 function Copyright(props: any) {
   return (
@@ -47,15 +52,28 @@ function Copyright(props: any) {
   );
 }
 
-export default function Component() {
-  const { data: session } = useSession()
+export default function Home() {
+  const router = useRouter();
+  const { data: session } = useSession();
+
   if (session) {
-    return (
-      <>
-        Signed in as {session.user.email} <br />
-        <button onClick={() => signOut()}>Sign out</button>
-      </>
-    )
+    if (isLoggedIn()) router.push("/clients");
+    else {
+      
+      axios.post('/server/api/auth/login?', {
+        accessToken: session.accessToken,
+        username: session.user.name,
+        password: session.user.email
+      })
+      socket.emit("authorize", session.accessToken);
+      const loginUser = {
+          id: session.user.id,
+          username: session.user.name,
+          jwt: session.accessToken,
+        };
+      window.localStorage.setItem("loginUser", JSON.stringify(loginUser));
+      router.push("/clients");
+    }
   }
   return (
     <>
@@ -77,7 +95,7 @@ export default function Component() {
             <Image src="/pu.svg" alt="home" width={220} height={180}/>
             </div>
           <Button onClick={() => {signIn('github')}}>
-            Sign with GitHub
+           Sign with GitHub
             </Button>
           <Button onClick={() => {signIn('42-school')}}>
             Sign with 42school
