@@ -24,6 +24,7 @@ import { getLoginUser } from "../lib/login";
 import { FiberNew } from "@mui/icons-material";
 import { Router, useRouter } from "next/router";
 import { Avatar, ListItemAvatar } from "@mui/material";
+import { socket } from "../lib/socket";
 
 function ChangeRoleDialog({ open, onClose, onSelect }: any) {
   return (
@@ -305,7 +306,11 @@ export default function ChannelMemberList({
             {me.id == member.id ? (
               <OutButton channelId={channelId} />
             ) : myRole == "NORMAL" || member.userRoleInChannel == "OWNER" ? (
-              <IconButton>
+              <IconButton
+                onClick={() => {
+                  socket.emit("leaveRoom", channelId);
+                }}
+              >
                 <CloseIcon />
               </IconButton>
             ) : (
@@ -316,6 +321,10 @@ export default function ChannelMemberList({
                   const newMembers = [...members];
                   newMembers.splice(members.indexOf(member), 1);
                   setMembers(newMembers);
+                  socket.emit("userBan", {
+                    targetId: member.id,
+                    roomId: channelId,
+                  });
                 }}
               />
             )}

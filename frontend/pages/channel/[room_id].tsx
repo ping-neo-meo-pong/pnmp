@@ -90,6 +90,15 @@ export default function Channel() {
           // router.push("/login", );
         });
     }
+    socket.on(`youBanned`, () => {
+      console.log(`banned!`);
+      alert(`you banned!`);
+      router.push(`/clients`);
+    });
+
+    return () => {
+      socket.off(`youBanned`);
+    };
   }, [router.isReady, router.query.room_id]);
 
   function onSubmitMessage(message: string) {

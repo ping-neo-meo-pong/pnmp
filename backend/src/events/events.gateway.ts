@@ -10,7 +10,7 @@ import {
   WsResponse,
   WsException,
 } from '@nestjs/websockets';
-import { Injectable, UseGuards } from '@nestjs/common';
+import { Injectable, UseGuards, BadRequestException } from '@nestjs/common';
 import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Server, Socket } from 'socket.io';
@@ -38,6 +38,7 @@ import { ChannelMessageRepository } from 'src/core/channel/channel-message.repos
 import { ChannelMemberRepository } from 'src/core/channel/channel-member.repository';
 import { ChannelRepository } from 'src/core/channel/channel.repository';
 import { BlockRepository } from 'src/core/block/block.repository';
+import { Repository, IsNull, MoreThan, Not } from 'typeorm';
 
 function wsGuard(socket: UserSocket) {
   if (!socket.hasOwnProperty('user')) {
@@ -556,8 +557,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() channelRoomId: string,
   ) {
     try {
-      // 지금은 그냥 조인
-      console.log(`join	하오`);
+      // 지금은 그냥 조인 (ban or private)
       console.log(channelRoomId);
       socket.join(channelRoomId);
     } catch (err) {
@@ -567,10 +567,21 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('channelMessage')
   async onChannelMessage(
-    @ConnectedSocket() socket: Socket,
+    @ConnectedSocket() socket: UserSocket,
     @MessageBody() data: any,
   ) {
-    console.log(`c message`);
+    const joinChannels =
+      await this.channelMemberRepository.findChannelHaveJoinOrInvite(
+        data.userId,
+        data.roomId,
+      );
+    if (
+      !joinChannels ||
+      joinChannels.banEndAt >= new Date() ||
+      joinChannels.leftAt <= new Date()
+    ) {
+      return;
+    }
     const newChannelMessage = this.channelMessageRepository.create({
       message: data.msg,
       channelId: data.roomId,
@@ -584,11 +595,26 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         id: newChannelMessage.id,
       },
     });
-    // const blockUsers = await this.userRepository.findOneBy({ id: socket.id });
-    console.log(`cm room ${data.roomId}에 송구하오`);
     this.server.in(data.roomId).emit(`drawChannelMessage`, {
       ...newChannelMessageData, // 일단 block유저 찾지않음
     });
+  }
+  @SubscribeMessage('userBan')
+  async userBan(
+    @ConnectedSocket() socket: UserSocket,
+    @MessageBody() data: any,
+  ) {
+    const target = await this.socketRepository.find(data.targetId);
+    target.leave(data.roomId);
+    target.emit(`youBanned`);
+  }
+
+  @SubscribeMessage('leaveRoom')
+  leaveRoom(
+    @ConnectedSocket() socket: UserSocket,
+    @MessageBody() channelId: string,
+  ) {
+    socket.leave(channelId);
   }
 }
 
