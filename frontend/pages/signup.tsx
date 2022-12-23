@@ -10,6 +10,7 @@ import Button from "@mui/joy/Button";
 import Avatar from "@mui/joy/Avatar";
 import { CssVarsProvider } from "@mui/joy/styles";
 import axios from "axios";
+import { useSession } from "next-auth/react";
 
 function Copyright(props: any) {
   return (
@@ -28,6 +29,7 @@ function Copyright(props: any) {
 }
 
 export default function SignUp() {
+  const { data: session }  = useSession();
   const [createObjectURL, setCreateObjectURL] = useState(null);
   const [image, setImage] = useState(null);
   const [userName, setUserName] = useState("");
@@ -44,12 +46,13 @@ export default function SignUp() {
 
   const handleSubmit = async () => {
     const body = new FormData();
+    console.log(session);
     body.append("file", image);
     axios({
       headers: {
         "Content-Type": "multipart/form-data",
       },
-      url: `/server/api/auth/signup?userName=${userName}`, // 파일 업로드 요청 URL
+      url: `/server/api/auth/signup?username=${userName}&email=${session.user.email}`, // 파일 업로드 요청 URL
       method: "POST",
       data: body,
     });
