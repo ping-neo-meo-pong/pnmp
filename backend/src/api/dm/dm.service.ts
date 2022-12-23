@@ -101,17 +101,19 @@ export class DmService {
 
   async getDmRoomsByParticipant(userId: string): Promise<DmRoom[]> {
     const dmRooms = await this.dmRoomRepository.getDmRoomsByParticipant(userId);
-    const result = [];
-    for (const dmRoom of dmRooms) {
-      result.push({
-        id: dmRoom.id,
-        otherUser:
-          dmRoom.userId.id === userId
-            ? dmRoom.invitedUserId.username
-            : dmRoom.userId.username,
-      });
-    }
-    return result;
+    // const result = [];
+    // for (const dmRoom of dmRooms) {
+    //   result.push({
+    //     id: dmRoom.id,
+    //     otherUser:
+    //       dmRoom.userId.id === userId
+    //         ? dmRoom.invitedUserId.username
+    //         : dmRoom.userId.username,
+    //     otherUserProfileImage:
+
+    //   });
+    // }
+    return dmRooms;
   }
 
   async createDm(dmData: any) {

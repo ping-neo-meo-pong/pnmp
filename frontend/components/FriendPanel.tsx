@@ -18,16 +18,12 @@ export default function FriendPanel() {
     axios
       .get("/server/api/user/friend")
       .then((response) => {
-        setFriendships([
-          ...response.data.friends,
-          ...response.data.receiveRequest,
-          ...response.data.sendRequest,
-        ]);
+        setFriendships([...response.data.friends]);
       })
       .catch((error) => {});
   }
 
-  function addNewFriend(friendId: string) {
+  function friendRequest(friendId: string) {
     axios
       .post(`/server/api/user/friend/${friendId}`)
       .then((response) => getAndSetFriends())
@@ -49,7 +45,7 @@ export default function FriendPanel() {
       <AddFriendDialog
         open={open}
         onClose={() => setOpen(false)}
-        onSelect={addNewFriend}
+        onSelect={friendRequest}
       />
     </Box>
   );

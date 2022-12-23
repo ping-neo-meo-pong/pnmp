@@ -1,11 +1,12 @@
 import Router, { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { socket } from "../lib/socket";
+import { socket, useSocketAuthorization } from "../lib/socket";
 import Layout from "../components/Layout";
 import { Button, Typography } from "@mui/material";
 
 export default function LeaderBoard() {
+  useSocketAuthorization();
   const router = useRouter();
   let users: any[] = [];
   useEffect(getUsers, [router.isReady]);

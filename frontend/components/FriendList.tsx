@@ -21,22 +21,22 @@ export default function FriendList({ friendships }: any) {
   return (
     <List>
       {friendships.map((friendship: any) => {
-        const friendName =
-          loginUser.username === friendship.userId.username
-            ? friendship.userFriendId.username
-            : friendship.userId.username;
+        const friend =
+          loginUser.userId === friendship.userId.id
+            ? friendship.userFriendId
+            : friendship.userId;
 
         return (
           <ListItemButton
             key={friendship.id}
             onClick={() => {
-              router.push(`/profile/${friendName}`);
+              router.push(`/profile/${friend.username}`);
             }}
           >
             <ListItemAvatar>
-              <Avatar>P</Avatar>
+              <Avatar src={friend.profileImage}>P</Avatar>
             </ListItemAvatar>
-            <ListItemText primary={friendName} />
+            <ListItemText primary={friend.username} />
           </ListItemButton>
         );
       })}

@@ -30,8 +30,7 @@ export class AuthController {
     console.log(`auth.controller login`);
     console.log(req);
     const user = req.user;
-    // const token = await this.authService.getToken(user);
-    const token = req.body.accessToken;
+    const token = await this.authService.getToken(user);
     // res.setHeader('Authorization', 'Bearer ' + token.accessToken);
     res.cookie('jwt', token.accessToken, {
       httpOnly: true,
