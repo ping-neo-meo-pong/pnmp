@@ -21,8 +21,11 @@ export default function FriendList({ friendships }: any) {
   return (
     <List>
       {friendships.map((friendship: any) => {
+        console.log(
+          `friendList: ${loginUser.username} vs ${friendship.userId.username}`
+        );
         const friend =
-          loginUser.userId === friendship.userId.id
+          loginUser.id === friendship.userId.id
             ? friendship.userFriendId
             : friendship.userId;
 

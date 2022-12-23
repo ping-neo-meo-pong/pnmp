@@ -13,7 +13,7 @@ export function useLoginGuard() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoggedIn()) router.replace("clients", "/");
+    if (!isLoggedIn()) router.replace("/");
   }, []);
 }
 

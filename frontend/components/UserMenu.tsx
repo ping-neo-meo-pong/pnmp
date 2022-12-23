@@ -30,7 +30,7 @@ export default function UserMenu() {
     setAnchorEl(null);
     await logout();
     signOut();
-    router.replace("/clients","/");
+    router.replace("/");
   };
 
   const open = Boolean(anchorEl);
