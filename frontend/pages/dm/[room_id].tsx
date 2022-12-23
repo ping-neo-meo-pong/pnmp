@@ -7,6 +7,21 @@ import { dmSocket } from "../../sockets/sockets";
 import { useSocketAuthorization } from "../../lib/socket";
 import { getLoginUser } from "../../lib/login";
 import Layout from "../../components/Layout";
+import {
+  Avatar,
+  Box,
+  Grid,
+  IconButton,
+  InputAdornment,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { bodyHeight } from "../../components/constants";
+import SendIcon from "@mui/icons-material/Send";
 
 export default function Dm() {
   useSocketAuthorization();
@@ -16,6 +31,7 @@ export default function Dm() {
 
   const [msgList, setMsgList] = useState<any>([]);
   let loginUser: any = getLoginUser();
+  const [msgToSend, setMsgToSend] = useState("");
 
   useEffect(() => {
     console.log("useEffect in dm[room_id]");
@@ -55,13 +71,12 @@ export default function Dm() {
     }
   }, [router.isReady, router.query.room_id]);
 
-  function onSubmitMessage(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function onSubmitMessage(message: string) {
     const msgData = {
       roomId: router.query.room_id,
       userId: loginUser.id,
       username: loginUser.username,
-      msg: event.currentTarget.message.value,
+      msg: message,
     };
     console.log(msgData);
     dmSocket.emit(`dm`, msgData);
@@ -69,26 +84,58 @@ export default function Dm() {
 
   return (
     <Layout>
-      <h1>dm</h1>
-      <form id="username" onSubmit={onSubmitMessage}>
-        <input type="text" id="message" name="message" />
-        <button type="submit">send_message</button>
-      </form>
-      {msgList.map((msg: any) => (
-        <DmMessage key={msg?.id} dm={msg} />
-      ))}
+      <Box
+        sx={{ display: "flex", flexDirection: "column", height: bodyHeight }}
+      >
+        <MessageList messages={msgList} />
+        <TextField
+          size="small"
+          label="send message..."
+          onChange={(event) => {
+            setMsgToSend(event.target.value);
+          }}
+          value={msgToSend}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={() => {
+                    setMsgToSend("");
+                    onSubmitMessage(msgToSend);
+                  }}
+                >
+                  <SendIcon />
+                </IconButton>
+              </InputAdornment>
+            ),
+          }}
+        />
+      </Box>
     </Layout>
   );
 }
 
-function DmMessage({ dm }: any) {
-  const date = new Date(dm?.createdAt);
+function MessageList({ messages }: any) {
+  // const date = new Date(message?.createdAt);
   return (
-    <div>
-      <h2 style={{ display: "inline" }}>{dm?.sendUserId?.username}</h2>
-      <span> {date.toLocaleString()}</span>
-      <div style={{ fontSize: "x-large" }}>{dm?.message}</div>
-      <br></br>
-    </div>
+    <List sx={{ flex: 1, overflowY: "scroll" }}>
+      {messages.map((message) => (
+        // <ListItem>
+        //   <ListItemText
+        //     primaryTypographyProps={{ variant: "h6" }}
+        //     primary={`${message?.sendUserId?.username}: ${message?.message}`}
+        //   ></ListItemText>
+        //   <ListItemText
+        //     secondary={new Date(message?.createdAt).toLocaleString()}
+        //   ></ListItemText>
+        // </ListItem>
+        <>
+          <h2 style={{ display: "inline" }}>{message?.sendUserId?.username}</h2>
+          <span> {new Date(message?.createdAt).toLocaleString()}</span>
+          <div style={{ fontSize: "x-large" }}>{message?.message}</div>
+          <br></br>
+        </>
+      ))}
+    </List>
   );
 }

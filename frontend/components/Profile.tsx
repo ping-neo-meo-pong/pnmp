@@ -2,7 +2,11 @@ import {
   Avatar,
   Box,
   Button,
+  Dialog,
+  DialogTitle,
   Grid,
+  IconButton,
+  List,
   ListItemAvatar,
   ListItemButton,
   ListItemText,
@@ -19,14 +23,18 @@ export default function Profile({ userName }: any) {
   const me = getLoginUser();
   //   const [user, setUser]: any = useState({});
   const [userLadder, setUserLadder]: any = useState(0);
-  const [history, setHistory]: any = useState({});
   const [testHistory, setTestHistory]: any[] = useState([]);
   const [inviteModal, setInviteModal] = useState(<></>);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [userId, setUserId] = useState("");
+  const [userStatus, setUserStatus] = useState("OFFLINE");
+  const [userImage, setUserImage] = useState("");
+  const [open, setOpen] = useState(false);
 
   console.log(me);
   useEffect(() => {
     if (!router.isReady) return;
-    // let user: any = {};
+
     axios
       .get(`/server/api/user?username=${userName}`)
       .then(function (res) {
@@ -34,6 +42,9 @@ export default function Profile({ userName }: any) {
         // setUser(res.data[0]);
         const user = res.data[0];
         setUserLadder(user.ladder);
+        setUserId(user.id);
+        setUserStatus(user.status);
+        setUserImage(user.profileImage)
         console.log(`user:`);
         console.log(user);
         console.log(`${me.username} vs ${userName}`);
@@ -42,18 +53,27 @@ export default function Profile({ userName }: any) {
         } else {
           setInviteModal(<></>);
         }
+        axios // isBlock?
+          .get(`/server/api/user/block`)
+          .then((res) => {
+            console.log(res.data);
+            const blocks = res.data;
+            if (blocks.find((block: any) => block.blockedUserId.id === user.id))
+              setIsBlocked(true);
+          })
+          .catch((e) => {
+            console.error(e);
+          });
 
-        axios
+        axios // history
           .get(`/server/api/user/${user.id}`)
           .then(function (res) {
-            let arr: any[] = [];
             let brr: any = [];
             const historys = res.data.matchHistory;
             // console.log(`history data`);
             // console.log(res.data);
 
             for (let i in historys) {
-              arr.push(historys[i]);
               let time = `${historys[i].gameRoom.createdAt}`;
               brr.push(
                 <Box>
@@ -83,11 +103,6 @@ export default function Profile({ userName }: any) {
               );
             }
             setTestHistory(brr);
-            setHistory(arr);
-            // console.log(`history:`);
-            // console.log(arr);
-            // console.log(`brr:`);
-            // console.log(brr);
           })
           .catch((e) => {
             console.error(e);
@@ -100,25 +115,84 @@ export default function Profile({ userName }: any) {
   }, [router.isReady, userName]);
 
   if (!router.isReady) return <></>;
+
+  function blockUser() {
+    axios
+      .post(`/server/api/user/block/${userId}`)
+      .then((res) => {
+        console.log(res.data);
+        setIsBlocked(true);
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+  }
+  function unBlock() {
+    axios
+      .patch(`/server/api/user/block/${userId}`)
+      .then((res) => {
+        console.log(res.data);
+        setIsBlocked(false);
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+  }
+  function ImageDialog() {
+    return (
+      <Dialog onClose={()=>setOpen(false)} open={open}>
+        <DialogTitle>select Image..</DialogTitle>
+        <List sx={{ pt: 0 }}>
+          <input type="file" id="fileInput"/>
+        </List>
+      </Dialog>
+    );
+  }
+
   return (
     <Box>
-      <ListItemButton sx={{ justifyContent: "center" }}>
-        <ListItemAvatar>
+      {/* <ListItemButton sx={{ justifyContent: "center" }}> */}
+      <ImageDialog />
+      <Box display="flex" justifyContent="center" sx={{py: 2}} >
+        <Button onClick={()=>{setOpen(true)}}>
           <Avatar
             sx={{ width: 100, height: 100 }}
-            // alt={`Avatar n°${value + 1}`}
-            // src={`/static/images/avatar/${value + 1}.jpg`}
+            src={userImage}
           />
-        </ListItemAvatar>
-      </ListItemButton>
+        </Button>
+      </Box>
       <Box textAlign={"center"}>
         <Typography variant="h4" gutterBottom>
-          Hi! {userName}
+          Hi! {userName} <Button color={userStatus === "ONLINE" ? "primary" : ( userStatus === "INGAME" ? "success" : "inherit")} variant="outlined">{userStatus}</Button>
         </Typography>
-        {inviteModal}
         <br />
         <Typography variant="h5" gutterBottom>
-          ladder: {userLadder} <br /> <br /> History
+          ladder: {userLadder}
+        </Typography>
+        {inviteModal}{" "}
+        {userStatus === "INGAME" && <Button color="success" variant="outlined" onClick={
+          ()=>{axios.get('/server/api/game')
+          .then((res)=>{
+            const gameId = res.data.find((game: any)=>game.leftUser.id === userId || game.rightUser.id === userId).id;
+            router.push(`/game/${gameId}`);
+          })
+          .catch((e)=>{console.error(e)})
+        }}>관전하기</Button>}
+        {" "}
+        {me.id !== userId &&
+          (isBlocked ? (
+            <Button color="inherit" variant="outlined" onClick={unBlock}>
+              차단 해제
+            </Button>
+          ) : (
+            <Button color="warning" variant="outlined" onClick={blockUser}>
+              유저 차단
+            </Button>
+          ))}
+        <br />
+        <br />
+        <Typography variant="h5" gutterBottom>
+          History
         </Typography>
         {testHistory}
       </Box>

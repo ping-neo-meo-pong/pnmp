@@ -236,15 +236,14 @@ export function InviteModalWithUserName({ userName }: any) {
   }
 
   return (
-    <div>
+    <>
       <Button
-        variant="contained"
+        variant="outlined"
         onClick={() => {
           setOpen(true);
         }}
       >
-        {" "}
-        {userName}에게 게임 초대{" "}
+        {userName}에게 게임 초대
       </Button>
       <Modal
         open={open}
@@ -291,7 +290,7 @@ export function InviteModalWithUserName({ userName }: any) {
           <GameLoading />
         </Box>
       </Modal>
-    </div>
+    </>
   );
 }
 

@@ -1,1 +1,1 @@
-export const bodyHeight = 1000;
+export const bodyHeight = 500;

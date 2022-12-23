@@ -4,8 +4,10 @@ import axios from "axios";
 import { dmSocket } from "../sockets/sockets";
 import Link from "next/link";
 import Layout from "../components/Layout";
+import { useSocketAuthorization } from "../lib/socket";
 
 export default function Dm() {
+  useSocketAuthorization();
   const router = useRouter();
   const [invitedUser, setInvitedUser] = useState({ id: null, username: null });
   let dmRooms: any[] = [];

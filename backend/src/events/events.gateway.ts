@@ -10,7 +10,7 @@ import {
   WsResponse,
   WsException,
 } from '@nestjs/websockets';
-import { Injectable, UseGuards } from '@nestjs/common';
+import { Injectable, UseGuards, BadRequestException } from '@nestjs/common';
 import { from, Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Server, Socket } from 'socket.io';
@@ -33,6 +33,12 @@ import { History } from 'src/core/game/dto/game-history.dto';
 import { GameRoom } from 'src/core/game/game-room.entity';
 import { Side, WinLose } from '../enum/win-lose.enum';
 import { UserStatus } from 'src/enum/user-status';
+
+import { ChannelMessageRepository } from 'src/core/channel/channel-message.repository'; // added
+import { ChannelMemberRepository } from 'src/core/channel/channel-member.repository';
+import { ChannelRepository } from 'src/core/channel/channel.repository';
+import { BlockRepository } from 'src/core/block/block.repository';
+import { Repository, IsNull, MoreThan, Not } from 'typeorm';
 
 function wsGuard(socket: UserSocket) {
   if (!socket.hasOwnProperty('user')) {
@@ -57,6 +63,11 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private gameQueueRepository: GameQueueRepository,
     private userRepository: UserRepository,
     private gameHistroyRepository: GameHistoryRepository,
+
+    private channelMessageRepository: ChannelMessageRepository,
+    private channelMemberRepository: ChannelMemberRepository,
+    private channelRepository: ChannelRepository,
+    private blockRepository: BlockRepository,
   ) {}
 
   async handleConnection(socket: Socket) {
@@ -136,14 +147,14 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       console.log(`friend is already in the game`);
       return;
     }
-    const invitedSocket = this.socketRepository.find(invitedUser.id);
-    if (invitedSocket) {
-      this.server.sockets
-        .to(invitedSocket.id)
-        .emit(`gameInvited`, client.user.id);
-    } else {
-      console.log(`friend not login`);
-    }
+    // const invitedSocket = this.socketRepository.find(invitedUser.id);
+    // if (invitedSocket) {
+    //   this.server.sockets
+    //     .to(invitedSocket.id)
+    //     .emit(`gameInvited`, { id: client.user.id, mode: data.mode });
+    // } else {
+    //   console.log(`friend not login: cant emit to socket`);
+    // }
 
     for (const que of this.friendQue) {
       if (que.leftUserId == client.user.id) {
@@ -298,8 +309,13 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
           console.log(`can not find user`);
           return;
         }
-        gameQueList.push({ inviterName: user.username, inviterId: user.id });
+        gameQueList.push({
+          inviterName: user.username,
+          inviterId: user.id,
+          mode: que.mode,
+        });
       }
+      console.count(que);
     }
     if (gameQueList.length) {
       client.emit(`invitedQue`, gameQueList);
@@ -533,6 +549,72 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return;
     }
     console.log(`there is no Friend Que`);
+  }
+
+  @SubscribeMessage('channelRoom') /////////////////// Channel Room ////////////////
+  async joinChannelRoom(
+    @ConnectedSocket() socket: UserSocket,
+    @MessageBody() channelRoomId: string,
+  ) {
+    try {
+      // 지금은 그냥 조인 (ban or private)
+      console.log(channelRoomId);
+      socket.join(channelRoomId);
+    } catch (err) {
+      socket.disconnect();
+    }
+  }
+
+  @SubscribeMessage('channelMessage')
+  async onChannelMessage(
+    @ConnectedSocket() socket: UserSocket,
+    @MessageBody() data: any,
+  ) {
+    const joinChannels =
+      await this.channelMemberRepository.findChannelHaveJoinOrInvite(
+        data.userId,
+        data.roomId,
+      );
+    if (
+      !joinChannels ||
+      joinChannels.banEndAt >= new Date() ||
+      joinChannels.leftAt <= new Date()
+    ) {
+      return;
+    }
+    const newChannelMessage = this.channelMessageRepository.create({
+      message: data.msg,
+      channelId: data.roomId,
+      sendUserId: data.userId,
+    });
+    await this.channelMessageRepository.save(newChannelMessage);
+    console.log(`cm save 했소`);
+    const newChannelMessageData = await this.channelMessageRepository.findOne({
+      relations: ['channelId', 'sendUserId'],
+      where: {
+        id: newChannelMessage.id,
+      },
+    });
+    this.server.in(data.roomId).emit(`drawChannelMessage`, {
+      ...newChannelMessageData, // 일단 block유저 찾지않음
+    });
+  }
+  @SubscribeMessage('userBan')
+  async userBan(
+    @ConnectedSocket() socket: UserSocket,
+    @MessageBody() data: any,
+  ) {
+    const target = await this.socketRepository.find(data.targetId);
+    target.leave(data.roomId);
+    target.emit(`youBanned`);
+  }
+
+  @SubscribeMessage('leaveRoom')
+  leaveRoom(
+    @ConnectedSocket() socket: UserSocket,
+    @MessageBody() channelId: string,
+  ) {
+    socket.leave(channelId);
   }
 }
 
