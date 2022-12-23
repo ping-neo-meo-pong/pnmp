@@ -19,6 +19,8 @@ import { RestrictChannelDto } from './dto/restrict-channel.dto';
 import { ChangeRoleInChannelDto } from './dto/change-role-in-channel.dto';
 import { isUUID } from 'class-validator';
 import { BadRequestException } from '@nestjs/common';
+import { ChannelInfoDto } from './dto/channel-info.dto';
+import { ChannelMessageDto } from './dto/channel-message.dto';
 
 @Controller('channel')
 @ApiTags('channel')
@@ -29,7 +31,7 @@ export class ChannelController {
   @ApiOperation({ summary: '참여 가능한 채널 목록, 참여한 채널의 제외' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  allChannel(@Req() req) {
+  allChannel(@Req() req): Promise<ChannelInfoDto[]> {
     const userId = req.user.id;
     return this.channelService.getChannels(userId);
   }
@@ -38,7 +40,10 @@ export class ChannelController {
   @ApiOperation({ summary: '채널 생성' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  makeChannel(@Req() req, @Body() createChannelData: CreateChannelDto) {
+  makeChannel(
+    @Req() req,
+    @Body() createChannelData: CreateChannelDto,
+  ): Promise<ChannelInfoDto> {
     const userId = req.user.id;
     return this.channelService.makeChannel(userId, createChannelData);
   }
@@ -60,6 +65,7 @@ export class ChannelController {
 
   @Post(':channelId')
   @ApiOperation({ summary: '특정 채널에 참여' })
+  @ApiBody({ required: false, type: ChannelPasswordDto })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   joinChannel(
@@ -96,7 +102,7 @@ export class ChannelController {
   getChannelMessages(
     @Req() req,
     @Param('channelId', ParseUUIDPipe) channelId: string,
-  ) {
+  ): Promise<ChannelMessageDto[]> {
     if (!isUUID(channelId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }

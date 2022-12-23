@@ -20,7 +20,7 @@ export class Channel extends Base {
 
   @Column({
     type: 'varchar',
-    length: 50,
+    length: 255,
     comment: '채널 비밀번호',
     nullable: true,
   })

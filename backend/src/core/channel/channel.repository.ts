@@ -2,6 +2,7 @@ import { Repository, IsNull, Not, In } from 'typeorm';
 import { Channel } from './channel.entity';
 import { CustomRepository } from '../../typeorm-ex.decorator';
 import { CreateChannelDto } from '../../api/channel/dto/create-channel.dto';
+import * as bcrypt from 'bcrypt';
 
 @CustomRepository(Channel)
 export class ChannelRepository extends Repository<Channel> {
@@ -24,7 +25,11 @@ export class ChannelRepository extends Repository<Channel> {
   }
 
   async makeChannel(createChannelData: CreateChannelDto) {
-    // 비밀번호 암호화 과정 추가
+    let hashPassword = null;
+    if (createChannelData?.password) {
+      hashPassword = await bcrypt.hash(createChannelData.password, 10);
+    }
+    createChannelData.password = hashPassword;
     return await this.save(createChannelData.toChannelEntity());
   }
 }
