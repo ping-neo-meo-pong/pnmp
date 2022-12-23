@@ -6,7 +6,11 @@ import {
   Request,
   Res,
   Req,
+  Query,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
@@ -21,6 +25,13 @@ export class AuthController {
     private authService: AuthService,
     private userRepository: UserRepository,
   ) {}
+
+  @Post('/signup')
+  @UseInterceptors(FileInterceptor('file'))
+  async signup(@Query() userName, @UploadedFile() file) {
+    console.log(userName);
+    console.log(file);
+  }
 
   @UseGuards(AuthGuard('local'))
   @Post('/login')

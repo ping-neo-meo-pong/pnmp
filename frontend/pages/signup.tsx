@@ -45,13 +45,14 @@ export default function SignUp() {
   const handleSubmit = async () => {
     const body = new FormData();
     body.append("file", image);
-    axios
-      .post(`/server/api/file?${userName}`, {
-        method: "POST",
-        body,
-      })
-      .then((res) => {})
-      .catch((e) => {});
+    axios({
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      url: `/server/api/auth/signup?userName=${userName}`, // 파일 업로드 요청 URL
+      method: "POST",
+      data: body,
+    });
   };
 
   return (
