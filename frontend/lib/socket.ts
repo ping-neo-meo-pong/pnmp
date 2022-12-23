@@ -16,6 +16,6 @@ export function useSocketAuthorization() {
       console.log(localStorage.loginUser);
       console.log(`jwt: ${localStorage.loginUser.jwt}`);
       socket.emit("authorize", getLoginUser().jwt);
-    } else router.replace("/clients", "/", undefined, { shallow: true });
+    } else router.replace("/");
   }, []);
 }

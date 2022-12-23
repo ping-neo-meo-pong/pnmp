@@ -44,7 +44,7 @@ export default function Profile({ userName }: any) {
         setUserLadder(user.ladder);
         setUserId(user.id);
         setUserStatus(user.status);
-        setUserImage(user.profileImage)
+        setUserImage(user.profileImage);
         console.log(`user:`);
         console.log(user);
         console.log(`${me.username} vs ${userName}`);
@@ -140,10 +140,10 @@ export default function Profile({ userName }: any) {
   }
   function ImageDialog() {
     return (
-      <Dialog onClose={()=>setOpen(false)} open={open}>
+      <Dialog onClose={() => setOpen(false)} open={open}>
         <DialogTitle>select Image..</DialogTitle>
         <List sx={{ pt: 0 }}>
-          <input type="file" id="fileInput"/>
+          <input type="file" id="fileInput" />
         </List>
       </Dialog>
     );
@@ -153,32 +153,59 @@ export default function Profile({ userName }: any) {
     <Box>
       {/* <ListItemButton sx={{ justifyContent: "center" }}> */}
       <ImageDialog />
-      <Box display="flex" justifyContent="center" sx={{py: 2}} >
-        <Button onClick={()=>{setOpen(true)}}>
-          <Avatar
-            sx={{ width: 100, height: 100 }}
-            src={userImage}
-          />
+      <Box display="flex" justifyContent="center" sx={{ py: 2 }}>
+        <Button
+          onClick={() => {
+            setOpen(true);
+          }}
+        >
+          <Avatar sx={{ width: 100, height: 100 }} src={userImage} />
         </Button>
       </Box>
       <Box textAlign={"center"}>
         <Typography variant="h4" gutterBottom>
-          Hi! {userName} <Button color={userStatus === "ONLINE" ? "primary" : ( userStatus === "INGAME" ? "success" : "inherit")} variant="outlined">{userStatus}</Button>
+          Hi! {userName}{" "}
+          <Button
+            color={
+              userStatus === "ONLINE"
+                ? "primary"
+                : userStatus === "INGAME"
+                ? "success"
+                : "inherit"
+            }
+            variant="outlined"
+          >
+            {userStatus}
+          </Button>
         </Typography>
         <br />
         <Typography variant="h5" gutterBottom>
           ladder: {userLadder}
         </Typography>
         {inviteModal}{" "}
-        {userStatus === "INGAME" && <Button color="success" variant="outlined" onClick={
-          ()=>{axios.get('/server/api/game')
-          .then((res)=>{
-            const gameId = res.data.find((game: any)=>game.leftUser.id === userId || game.rightUser.id === userId).id;
-            router.push(`/game/${gameId}`);
-          })
-          .catch((e)=>{console.error(e)})
-        }}>관전하기</Button>}
-        {" "}
+        {userStatus === "INGAME" && (
+          <Button
+            color="success"
+            variant="outlined"
+            onClick={() => {
+              axios
+                .get("/server/api/game")
+                .then((res) => {
+                  const gameId = res.data.find(
+                    (game: any) =>
+                      game.leftUser.id === userId ||
+                      game.rightUser.id === userId
+                  ).id;
+                  router.push(`/game/${gameId}`);
+                })
+                .catch((e) => {
+                  console.error(e);
+                });
+            }}
+          >
+            관전하기
+          </Button>
+        )}{" "}
         {me.id !== userId &&
           (isBlocked ? (
             <Button color="inherit" variant="outlined" onClick={unBlock}>

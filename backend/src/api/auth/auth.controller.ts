@@ -27,8 +27,6 @@ export class AuthController {
   @ApiConsumes('application/json')
   @ApiBody({ type: LoginReqDto })
   async login(@Req() req, @Res({ passthrough: true }) res) {
-    console.log(`auth.controller login`);
-    console.log(req);
     const user = req.user;
     const token = await this.authService.getToken(user);
     // res.setHeader('Authorization', 'Bearer ' + token.accessToken);
