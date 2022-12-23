@@ -39,6 +39,7 @@ import { ChannelMemberRepository } from 'src/core/channel/channel-member.reposit
 import { ChannelRepository } from 'src/core/channel/channel.repository';
 import { BlockRepository } from 'src/core/block/block.repository';
 import { Repository, IsNull, MoreThan, Not } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 function wsGuard(socket: UserSocket) {
   if (!socket.hasOwnProperty('user')) {
@@ -571,15 +572,12 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: any,
   ) {
     const joinChannels =
-      await this.channelMemberRepository.findChannelHaveJoinOrInvite(
+      await this.channelMemberRepository.findChannelJoinCurrently(
         data.userId,
         data.roomId,
       );
-    if (
-      !joinChannels ||
-      joinChannels.banEndAt >= new Date() ||
-      joinChannels.leftAt <= new Date()
-    ) {
+    if (joinChannels === null) {
+      console.log(`you cant send message`);
       return;
     }
     const newChannelMessage = this.channelMessageRepository.create({
