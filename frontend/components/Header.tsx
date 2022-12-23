@@ -25,12 +25,17 @@ export default function Header({ title }: any) {
   useEffect(() => {
     const me = getLoginUser();
     setUserName(me.username);
-    axios.get(`/server/api/user/${me.id}`)
-    .then((res)=>{console.log("res.data");
-      console.log(res.data);
-      setUserImage(res.data.profileImage)})
-    .catch((e)=>{console.error(e)});
-  }, []);
+    axios
+      .get(`/server/api/user/${me.id}`)
+      .then((res) => {
+        console.log("res.data");
+        console.log(res.data);
+        setUserImage(res.data.profileImage);
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+  }, [router.query]);
 
   return (
     <>
