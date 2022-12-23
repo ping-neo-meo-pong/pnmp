@@ -19,6 +19,7 @@ import { getLoginUser } from "../lib/login";
 import { useRouter } from "next/router";
 import { InviteModalWithUserName } from "./InviteModal";
 import EditIcon from "@mui/icons-material/Edit";
+import React from "react";
 
 export default function Profile({ userName }: { userName: string }) {
   const router = useRouter();
