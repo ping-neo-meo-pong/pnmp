@@ -17,6 +17,7 @@ import axios from "axios";
 import { getLoginUser } from "../lib/login";
 import { useRouter } from "next/router";
 import { InviteModalWithUserName } from "./InviteModal";
+import React from "react";
 
 export default function Profile({ userName }: any) {
   const router = useRouter();
