@@ -20,11 +20,10 @@ export default function ChatList({ chats }: any) {
 
   return (
     <List>
-      {chats.map((chat: any ) => {
+      {chats.map((chat: any) => {
+        console.log(`ChatList: ${loginUser.id} vs ${chat.userId.id}`);
         const otherUser =
-          loginUser.userId === chat.userId.id
-            ? chat.invitedUserId
-            : chat.userId;
+          loginUser.id === chat.userId.id ? chat.invitedUserId : chat.userId;
         return (
           <ListItemButton
             key={chat.id}

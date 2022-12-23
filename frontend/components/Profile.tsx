@@ -10,6 +10,7 @@ import {
   ListItemAvatar,
   ListItemButton,
   ListItemText,
+  TextField,
   Typography,
 } from "@mui/material";
 import { useEffect, useState } from "react";
@@ -17,9 +18,10 @@ import axios from "axios";
 import { getLoginUser } from "../lib/login";
 import { useRouter } from "next/router";
 import { InviteModalWithUserName } from "./InviteModal";
+import EditIcon from "@mui/icons-material/Edit";
 import React from "react";
 
-export default function Profile({ userName }: any) {
+export default function Profile({ userName }: { userName: string }) {
   const router = useRouter();
   const me = getLoginUser();
   //   const [user, setUser]: any = useState({});
@@ -30,7 +32,8 @@ export default function Profile({ userName }: any) {
   const [userId, setUserId] = useState("");
   const [userStatus, setUserStatus] = useState("OFFLINE");
   const [userImage, setUserImage] = useState("");
-  const [open, setOpen] = useState(false);
+  const [imageOpen, setImageOpen] = useState(false);
+  const [nameDialogOpen, setNameDialogOpen] = useState(false);
 
   console.log(me);
   useEffect(() => {
@@ -73,7 +76,6 @@ export default function Profile({ userName }: any) {
             const historys = res.data.matchHistory;
             // console.log(`history data`);
             // console.log(res.data);
-
             for (let i in historys) {
               let time = `${historys[i].gameRoom.createdAt}`;
               brr.push(
@@ -141,7 +143,7 @@ export default function Profile({ userName }: any) {
   }
   function ImageDialog() {
     return (
-      <Dialog onClose={() => setOpen(false)} open={open}>
+      <Dialog onClose={() => setImageOpen(false)} open={imageOpen}>
         <DialogTitle>select Image..</DialogTitle>
         <List sx={{ pt: 0 }}>
           <input type="file" id="fileInput" />
@@ -157,7 +159,7 @@ export default function Profile({ userName }: any) {
       <Box display="flex" justifyContent="center" sx={{ py: 2 }}>
         <Button
           onClick={() => {
-            setOpen(true);
+            setImageOpen(true);
           }}
         >
           <Avatar sx={{ width: 100, height: 100 }} src={userImage} />
@@ -165,24 +167,41 @@ export default function Profile({ userName }: any) {
       </Box>
       <Box textAlign={"center"}>
         <Typography variant="h4" gutterBottom>
-          Hi! {userName}{" "}
-          <Button
-            color={
-              userStatus === "ONLINE"
-                ? "primary"
-                : userStatus === "INGAME"
-                ? "success"
-                : "inherit"
-            }
-            variant="outlined"
-          >
-            {userStatus}
-          </Button>
+          {userName}{" "}
+          {me.id === userId && (
+            <>
+              <IconButton
+                onClick={() => {
+                  setNameDialogOpen(true);
+                }}
+              >
+                <EditIcon />
+              </IconButton>
+            </>
+          )}
+          <SetNameDialog
+            setNameDialogOpen={setNameDialogOpen}
+            nameDialogOpen={nameDialogOpen}
+            accessToken={me.accessToken}
+          />
         </Typography>
         <br />
         <Typography variant="h5" gutterBottom>
           ladder: {userLadder}
         </Typography>
+        <Button
+          color={
+            userStatus === "ONLINE"
+              ? "primary"
+              : userStatus === "INGAME"
+              ? "success"
+              : "inherit"
+          }
+          variant="outlined"
+          size="small"
+        >
+          {userStatus}
+        </Button>{" "}
         {inviteModal}{" "}
         {userStatus === "INGAME" && (
           <Button
@@ -213,7 +232,14 @@ export default function Profile({ userName }: any) {
               차단 해제
             </Button>
           ) : (
-            <Button color="warning" variant="outlined" onClick={blockUser}>
+            <Button
+              color="warning"
+              variant="outlined"
+              onClick={() => {
+                blockUser();
+                console.log(`profile: ${me.id} vs ${userId}`);
+              }}
+            >
               유저 차단
             </Button>
           ))}
@@ -225,5 +251,61 @@ export default function Profile({ userName }: any) {
         {testHistory}
       </Box>
     </Box>
+  );
+}
+
+function SetNameDialog({
+  setNameDialogOpen,
+  nameDialogOpen,
+  accessToken,
+}: any) {
+  const router = useRouter();
+  const [setName, setSetName] = useState("");
+
+  return (
+    <Dialog onClose={() => setNameDialogOpen(false)} open={nameDialogOpen}>
+      <DialogTitle>Change name..</DialogTitle>
+      <TextField
+        label="name"
+        variant="outlined"
+        value={setName}
+        onChange={(e) => {
+          setSetName(e.target.value);
+          console.log(setName);
+        }}
+      ></TextField>
+      <List sx={{ pt: 0 }}></List>
+      <Button
+        variant="outlined"
+        onClick={() => {
+          if (setName.trim() == "")
+            alert("공백으로만 이루어진 이름은 변경할수 없습니다");
+          else {
+            axios
+              .patch("/server/api/user", {
+                username: setName,
+              })
+              .then((res) => {
+                setNameDialogOpen(false);
+                const loginUser = {
+                  id: res.data.id,
+                  username: setName,
+                  jwt: accessToken,
+                };
+                window.localStorage.setItem(
+                  "loginUser",
+                  JSON.stringify(loginUser)
+                );
+                router.push(`/profile/${setName}`);
+              })
+              .catch((e) => {
+                console.error(e);
+              });
+          }
+        }}
+      >
+        바꾸기
+      </Button>
+    </Dialog>
   );
 }
