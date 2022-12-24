@@ -20,6 +20,7 @@ import { useRouter } from "next/router";
 import { InviteModalWithUserName } from "./InviteModal";
 import EditIcon from "@mui/icons-material/Edit";
 import React from "react";
+import { regex } from "../lib/regex";
 
 export default function Profile({ userName }: { userName: string }) {
   const router = useRouter();
@@ -278,14 +279,7 @@ function SetNameDialog({
       <Button
         variant="outlined"
         onClick={() => {
-          const regex = /[^가-힣\w\s]/g;
-
-          if (setName.trim() == "") {
-            alert("공백으로만 이루어진 이름은 변경할수 없습니다");
-          } else if (
-            regex.test(setName.trim()) == true ||
-            setName.trim().length > 10
-          ) {
+          if (regex(setName, 10)) {
             alert("특수문자가 포함되어 있거나 잘못된 이름입니다");
           } else {
             axios
