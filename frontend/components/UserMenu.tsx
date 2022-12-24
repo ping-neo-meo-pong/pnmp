@@ -30,7 +30,6 @@ export default function UserMenu() {
     setAnchorEl(null);
     await logout();
     await signOut();
-    router.replace("/temp");
   };
 
   const open = Boolean(anchorEl);
