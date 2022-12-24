@@ -29,6 +29,7 @@ export class User extends Base {
 
   @Column({
     comment: '2fa 에 사용될 비밀키',
+    nullable: true,
   })
   twoFactorAuthSecret: string;
 
