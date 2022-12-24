@@ -28,6 +28,11 @@ export class User extends Base {
   twoFactorAuth: boolean;
 
   @Column({
+    comment: '2fa 에 사용될 비밀키',
+  })
+  twoFactorAuthSecret: string;
+
+  @Column({
     type: 'varchar',
     length: 255,
     nullable: true,
