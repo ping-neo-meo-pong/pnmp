@@ -68,12 +68,13 @@ export class AuthController {
   async get2faQrCode(@Req() req) {
     const user = await this.userRepository.findOneBy({ id: req.user.id });
     console.log(authenticator.generateSecret());
-    const otpAuthUrl = authenticator.keyuri(req.user.id, 'PNMP', 'EVCDKZCJIJCQGOIW');
+    const otpAuthUrl = authenticator.keyuri(req.user.id, 'PNMP', user.twoFactorAuthSecret);
+    // const otpAuthUrl = authenticator.keyuri(req.user.id, 'PNMP', 'EVCDKZCJIJCQGOIW');
     console.log(otpAuthUrl);
     return toDataURL(otpAuthUrl);
   }
 
-  @Post('2fa-otp')
+  @Post('otp-login')
   @ApiConsumes('application/json')
   @ApiBody({ type: OtpDto })
   async otpLogin(@Body() body) {

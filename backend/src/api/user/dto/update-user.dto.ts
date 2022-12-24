@@ -15,5 +15,10 @@ export class UpdateUserDto {
   @ApiProperty({ type: String, required: false })
   @IsOptional()
   @IsString()
+  readonly otp: string;
+
+  @ApiProperty({ type: String, required: false })
+  @IsOptional()
+  @IsString()
   readonly profileImage: string;
 }

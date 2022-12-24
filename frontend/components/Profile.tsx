@@ -260,7 +260,8 @@ export default function Profile({ userName }: { userName: string }) {
             onClick={() => {
               //////////////////////   2FA Code   //////////////////////
               axios
-                .post(`/server/api/auth/2fa-otp`, {
+                .patch(`/server/api/user`, {
+                  twoFactorAuth: true,
                   otp: inputCode,
                 })
                 .then((res) => {
