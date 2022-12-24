@@ -18,10 +18,14 @@ export function useLoginGuard() {
 }
 
 export async function logout() {
-  await axios.post("/server/api/auth/logout").catch((e) => {
-    console.error(e);
-  });
-  window.localStorage.removeItem("loginUser");
+  await axios
+    .post("/server/api/auth/logout")
+    .then(async (res) => {
+      window.localStorage.removeItem("loginUser");
+    })
+    .catch((e) => {
+      console.error(e);
+    });
 }
 
 export function getLoginUser() {

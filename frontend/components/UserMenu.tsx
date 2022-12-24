@@ -29,8 +29,8 @@ export default function UserMenu() {
   const handleLogout = async () => {
     setAnchorEl(null);
     await logout();
-    signOut();
-    router.replace("/");
+    await signOut();
+    router.replace("/temp");
   };
 
   const open = Boolean(anchorEl);
