@@ -62,15 +62,22 @@ export class UserService {
     userId: string,
     updateUserData: UpdateUserDto,
   ): Promise<User> {
-    const user = await this.findUserById(userId);
     const trimUserName = updateUserData.username.trim();
+    const regex = /[^가-힣\w\s]/g;
+    if (trimUserName === '' || trimUserName.length > 10) {
+      throw new BadRequestException('잘못된 이름입니다.');
+    } else if (regex.test(trimUserName) == true) {
+      throw new BadRequestException(
+        '특수문자가 포함되있거나 잘못된 이름입니다.',
+      );
+    }
+    console.log(`regex test:`);
+    console.log(regex.test(trimUserName));
+
+    const user = await this.findUserById(userId);
     if (updateUserData.username) {
       if (trimUserName === user.username) {
         throw new BadRequestException('같은 username으로 변경할 수 없습니다.');
-      } else if (trimUserName === '') {
-        throw new BadRequestException(
-          '공백으로만 이루어진 이름은 생성할 수 없습니다',
-        );
       }
       const isExistUser = await this.userRepository.findOneBy({
         username: updateUserData.username,
