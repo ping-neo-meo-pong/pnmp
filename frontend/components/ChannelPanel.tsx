@@ -41,7 +41,16 @@ export default function ChannelPanel() {
   function onSelectChannelToJoin(channel: any) {
     setSelectedChannel(channel);
     setJoinDialogOpen(false);
-    setPasswordDialogOpen(true);
+    if (channel.hasPassword) {
+      setPasswordDialogOpen(true);
+    } else {
+      axios
+        .post(`/server/api/channel/${channel.id}`, {})
+        .then((response) => getAndSetChannels())
+        .catch((error) => {
+          alert(error.response.data.message);
+        });
+    }
   }
 
   function openCreateDialog() {

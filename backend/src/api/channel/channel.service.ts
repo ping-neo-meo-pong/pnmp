@@ -60,6 +60,15 @@ export class ChannelService {
     userId: string,
     createChannelData: CreateChannelDto,
   ): Promise<ChannelInfoDto> {
+    const regex = /[^가-힣\w\s]/g;
+    const trimName = createChannelData.channelName.trim();
+    if (
+      trimName.length == 0 ||
+      regex.test(trimName) == true ||
+      trimName.length > 10
+    ) {
+      throw new BadRequestException('잘못된 이름');
+    }
     const isExistChannel = await this.channelRepository.findOne({
       where: {
         channelName: createChannelData.channelName,

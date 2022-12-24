@@ -10,6 +10,7 @@ import Button from "@mui/joy/Button";
 import Avatar from "@mui/joy/Avatar";
 import { CssVarsProvider } from "@mui/joy/styles";
 import axios from "axios";
+import { regex } from "../lib/regex";
 
 function Copyright(props: any) {
   return (
@@ -43,10 +44,15 @@ export default function SignUp() {
   };
 
   const handleSubmit = async () => {
+    if (regex(userName, 10)) {
+      close();
+      alert("잘못된 이름입니다");
+      return;
+    }
     const body = new FormData();
     body.append("file", image);
     axios
-      .post(`/server/api/file?${userName}`, {
+      .post(`/server/api/file?${userName.trim()}`, {
         method: "POST",
         body,
       })
