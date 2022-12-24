@@ -162,66 +162,7 @@ export default function Client() {
     }
   }
 
-  return (
-    <Layout>
-      <h1>
-        HI {myName}
-        <button
-          onClick={() => {
-            router.push(`/profile/${myName}`);
-          }}
-        >
-          <h1> 프로필 </h1>
-        </button>
-      </h1>
-      <button
-        onClick={async () => {
-          await logout();
-          router.replace("/");
-        }}
-      >
-        logout
-      </button>
-      <button onClick={reset}>
-        {" "}
-        <h1>list 다시 불러오기</h1>{" "}
-      </button>
-      <h1>DM room list</h1>
-      <form onSubmit={onSubmitMessage}>
-        <button type="submit">create new DM room with </button>
-        <input type="text" name="invitedUserName" />
-      </form>
-      {dmRoomList}
-
-      <h1>Game room list</h1>
-      <InviteModal />
-      <InviteModalWithUserName userName="jw" />
-      {/* <form onSubmit={onSubmitGameInvite}>
-        <button type="submit">create new Game room with </button>
-        <input type="text" name="invitedUserId" />
-      </form> */}
-      {gameRoomList}
-
-      <h1>Random Maching</h1>
-      <button
-        onClick={async () => {
-          await router.push(`/matching`);
-          socket.emit("gameMatching", "NOMAL");
-        }}
-      >
-        Maching Mode 1
-      </button>
-      <button
-        onClick={async () => {
-          await router.push(`/matching`);
-          socket.emit("gameMatching", "HARD");
-        }}
-      >
-        Maching Mode 2
-      </button>
-      <MatchingModal />
-    </Layout>
-  );
+  return <Layout></Layout>;
 }
 
 function GoToDmRoom({ dmRoom }: any) {

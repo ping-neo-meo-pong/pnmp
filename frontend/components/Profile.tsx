@@ -35,6 +35,10 @@ export default function Profile({ userName }: { userName: string }) {
   const [imageOpen, setImageOpen] = useState(false);
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
 
+  const [checked, setChecked] = useState(false);
+  const [twoFaDialogOpen, setTwoFaDialogOpen] = useState(false);
+  const [inputCode, setInputCode] = useState("");
+
   console.log(me);
   useEffect(() => {
     if (!router.isReady) return;
@@ -201,7 +205,46 @@ export default function Profile({ userName }: { userName: string }) {
           size="small"
         >
           {userStatus}
-        </Button>{" "}
+        </Button>
+        <Box
+          justifyContent="center"
+          sx={{ alignItems: "center", display: "flex", flexDirection: "row" }}
+        >
+          <Typography variant="h6">2FA</Typography>
+          <Switch
+            checked={checked}
+            onChange={() => {
+              setTwoFaDialogOpen(true);
+            }}
+            inputProps={{ "aria-label": "controlled" }}
+          />
+        </Box>
+        <Dialog
+          open={twoFaDialogOpen}
+          onClose={() => {
+            setTwoFaDialogOpen(false);
+          }}
+        >
+          <DialogTitle>Code</DialogTitle>
+          <TextField
+            label="name"
+            variant="outlined"
+            value={inputCode}
+            onChange={(e) => {
+              setInputCode(e.target.value);
+              console.log(inputCode);
+            }}
+          ></TextField>
+          <List sx={{ pt: 0 }}></List>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              //   2FA
+            }}
+          >
+            인증하기
+          </Button>
+        </Dialog>
         {inviteModal}{" "}
         {userStatus === "INGAME" && (
           <Button
