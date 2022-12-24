@@ -23,7 +23,7 @@ export class AuthController {
   ) {}
 
   @UseGuards(AuthGuard('local'))
-  @Post('/login')
+  @Post('login')
   @ApiConsumes('application/json')
   @ApiBody({ type: LoginReqDto })
   async login(@Req() req, @Res({ passthrough: true }) res) {
@@ -45,7 +45,7 @@ export class AuthController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('/logout')
+  @Post('logout')
   @ApiBearerAuth()
   async logout(@Request() req, @Res({ passthrough: true }) res) {
     const user = await this.userRepository.findOneBy({ id: req.user.id });

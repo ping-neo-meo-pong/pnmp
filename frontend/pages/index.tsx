@@ -65,21 +65,25 @@ export default function Home() {
     if (isLoggedIn()) router.push("/clients");
     else {
       axios
-        .post("/server/api/auth/login?", {
+        .post("/server/api/auth/login", {
+          email: session.user.email,
           accessToken: session.accessToken,
-          username: session.user.name,
-          password: session.user.email,
+          //   username: session.user.name,
         })
         .then((res) => {
-          socket.emit("authorize", res.data.accessToken);
-          const loginUser = {
-            id: res.data.id,
-            username: res.data.username,
-            jwt: res.data.accessToken,
-          };
-          window.localStorage.setItem("loginUser", JSON.stringify(loginUser));
+          if (res.data.firstLogin) {
+            router.push("/signup");
+          } else {
+            socket.emit("authorize", res.data.accessToken);
+            const loginUser = {
+              id: res.data.id,
+              username: res.data.username,
+              jwt: res.data.accessToken,
+            };
+            window.localStorage.setItem("loginUser", JSON.stringify(loginUser));
+            router.push("/clients");
+          }
         });
-      router.push("/clients");
     }
   }
   return (
