@@ -15,14 +15,11 @@ import { WinLose } from 'src/enum/win-lose.enum';
 import { FriendStatus } from '../../enum/friend-status';
 import { Block } from '../../core/block/block.entity';
 import { ChannelRepository } from '../../core/channel/channel.repository';
-<<<<<<< HEAD
 import { authenticator } from 'otplib';
-=======
 import { ChannelInfoDto } from '../channel/dto/channel-info.dto';
 import { Channel } from 'src/core/channel/channel.entity';
 import { UserChannelInfoDto } from './dto/user-channel-info.dto';
 import { ChannelMember } from '../../core/channel/channel-member.entity';
->>>>>>> main
 
 @Injectable()
 export class UserService {
