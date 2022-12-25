@@ -11,9 +11,14 @@ import { EventsModule } from './events/events.module';
 import { UserModule } from './api/user/user.module';
 import { GameModule } from './api/game/game.module';
 import { ChannelModule } from './api/channel/channel.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'upload'),
+    }),
     EventsModule,
     AuthModule,
     DmModule,

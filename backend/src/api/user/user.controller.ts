@@ -1,14 +1,15 @@
 import {
   Body,
   Controller,
-  // Delete,
   Get,
   Param,
   Patch,
   Post,
   Query,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from '../../core/user/user.entity';
@@ -25,6 +26,9 @@ import { isUUID } from 'class-validator';
 import { BadRequestException } from '@nestjs/common';
 import { Friend } from '../../core/friend/friend.entity';
 import { Block } from '../../core/block/block.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { multerOptions } from '../../config/multer.config';
+import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 @Controller('user')
 @ApiTags('user')
@@ -40,12 +44,6 @@ export class UserController {
     return this.userService.findUsers(findUserData);
   }
 
-  @Get('search/:username')
-  @ApiOperation({ summary: '회원정보 수정할 때 중복 username 확인용' })
-  searchUsers(@Param('username') username: string) {
-    return this.userService.findUserByUserName(username);
-  }
-
   @Patch()
   @ApiOperation({ summary: '로그인한 유저의 정보 수정' })
   @UseGuards(AuthGuard('jwt'))
@@ -53,6 +51,41 @@ export class UserController {
   modifyUser(@Req() req, @Body() updateUserData: UpdateUserDto): Promise<User> {
     const userId = req.user.id;
     return this.userService.updateUserById(userId, updateUserData);
+  }
+
+  @Patch('profile-image')
+  @ApiOperation({ summary: '로그인한 유저의 프로필 이미지 수정' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        profileImage: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+    required: false,
+  })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @UseInterceptors(FileInterceptor('profileImage', multerOptions))
+  modifyUserProfileImage(
+    @Req() req,
+    @UploadedFile() file: Express.Multer.File | null | undefined,
+  ): Promise<User> {
+    const userId = req.user.id;
+    return this.userService.updateUserProfileImageById(
+      userId,
+      file?.filename ?? null,
+    );
+  }
+
+  @Get('search/:username')
+  @ApiOperation({ summary: '회원정보 수정할 때 중복 username 확인용' })
+  searchUsers(@Param('username') username: string) {
+    return this.userService.findUserByUserName(username);
   }
 
   @Get('/friend')
