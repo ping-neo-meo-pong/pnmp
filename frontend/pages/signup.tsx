@@ -11,6 +11,8 @@ import Avatar from "@mui/joy/Avatar";
 import { CssVarsProvider } from "@mui/joy/styles";
 import axios from "axios";
 import { regex } from "../lib/regex";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 
 function Copyright(props: any) {
   return (
@@ -29,6 +31,8 @@ function Copyright(props: any) {
 }
 
 export default function SignUp() {
+  const { data: session } = useSession();
+  const router = useRouter();
   const [createObjectURL, setCreateObjectURL] = useState(null);
   const [image, setImage] = useState(null);
   const [userName, setUserName] = useState("");
@@ -49,15 +53,34 @@ export default function SignUp() {
       alert("잘못된 이름입니다");
       return;
     }
-    const body = new FormData();
-    body.append("file", image);
     axios
-      .post(`/server/api/file?${userName.trim()}`, {
-        method: "POST",
-        body,
+      .get(`/server/api/user/search/${userName}`)
+      .then((response) => {
+        if (response.data.isExistUser) {
+          close();
+          alert("중복된 이름입니다");
+          return;
+        }
       })
-      .then((res) => {})
-      .catch((e) => {});
+      .catch((error) => {});
+    const body = new FormData();
+    console.log(session);
+    body.append("profileImage", image);
+    axios({
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      url: `/server/api/auth/signup?username=${userName}&email=${session.user.email}`, // 파일 업로드 요청 URL
+      method: "POST",
+      data: body,
+    })
+      .then((res) => {
+        console.log(res.data);
+        router.push("/clients");
+      })
+      .catch((e) => {
+        console.log(e);
+      });
   };
 
   return (
