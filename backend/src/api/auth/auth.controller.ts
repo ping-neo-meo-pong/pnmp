@@ -10,10 +10,17 @@ import {
   UseInterceptors,
   Query,
   UploadedFile,
+  Headers,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { LoginReqDto } from 'src/api/user/dto/login-req.dto';
 import { OtpDto } from 'src/api/user/dto/otp.dto';
 import { UserRepository } from 'src/core/user/user.repository';
@@ -32,8 +39,12 @@ export class AuthController {
   ) {}
 
   @Post('/signup')
+  @ApiOperation({
+    summary: 'username으로 signup',
+  })
   @UseInterceptors(FileInterceptor('profileImage', multerOptions))
   async signup(
+    @Headers('Authorization') accessToken,
     @Query() userInfo,
     @UploadedFile() file: Express.Multer.File | null | undefined,
     @Res({ passthrough: true }) res,

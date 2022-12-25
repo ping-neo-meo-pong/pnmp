@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from 'src/core/user/user.repository';
 import { JwtService } from '@nestjs/jwt';
 import axios from 'axios';
+import { authenticator } from 'otplib';
 
 @Injectable()
 export class AuthService {
@@ -29,6 +30,7 @@ export class AuthService {
       username: username,
       email: email,
       profileImage: filename ? `http://localhost/server/${filename}` : null,
+      twoFactorAuthSecret: authenticator.generateSecret(),
     });
     const saveUser = await this.userRepository.save(newUser);
     return {
@@ -54,12 +56,16 @@ export class AuthService {
       };
     }
 
-    const fourtyTwo = await axios.get('https://api.intra.42.fr/v2/me', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    console.log(fourtyTwo);
+    try {
+      const fourtyTwo = await axios.get('https://api.intra.42.fr/v2/me', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      console.log(fourtyTwo);
+    } catch (e) {
+      return null;
+    }
     return { firstLogin: true };
   }
 
