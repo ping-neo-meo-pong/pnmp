@@ -17,43 +17,7 @@ import { LoginReqDto } from 'src/api/user/dto/login-req.dto';
 import { UserRepository } from 'src/core/user/user.repository';
 import { UserStatus } from 'src/enum/user-status';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { existsSync, mkdirSync } from 'fs';
-import { BadRequestException } from '@nestjs/common';
-
-const multerOptions = {
-  fileFilter: (request, file, callback) => {
-    if (file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
-      callback(null, true);
-    } else {
-      callback(
-        new BadRequestException('이미지 형식은 jpg, jpeg, png만 허용'),
-        false,
-      );
-    }
-  },
-
-  storage: diskStorage({
-    filename: (request, file, callback) => {
-      const filename = file.originalname.split('.');
-      const editName = `${Date.now()}_${request.query.email}.${
-        filename[filename.length - 1]
-      }`;
-      callback(null, editName);
-    },
-    destination: (request, file, callback) => {
-      const uploadPath = 'upload';
-      if (!existsSync(uploadPath)) {
-        mkdirSync(uploadPath);
-      }
-      callback(null, uploadPath);
-    },
-  }),
-
-  limits: {
-    fileSize: 1024 * 1024 * 5, // 10 Mb
-  },
-};
+import { multerOptions } from 'src/config/multer.config';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -67,10 +31,9 @@ export class AuthController {
   @UseInterceptors(FileInterceptor('profileImage', multerOptions))
   async signup(
     @Query() userInfo,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() file: Express.Multer.File | null | undefined,
     @Res({ passthrough: true }) res,
   ) {
-    console.log(file);
     const user = this.authService.signUpUser(
       userInfo.username,
       userInfo.email,
