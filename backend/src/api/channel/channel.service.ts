@@ -1,10 +1,10 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
 import { ChannelRepository } from '../../core/channel/channel.repository';
 import { ChannelMemberRepository } from '../../core/channel/channel-member.repository';
 import { Channel } from '../../core/channel/channel.entity';
 import { IsNull } from 'typeorm';
-import { ChannelMember } from '../../core/channel/channel-member.entity';
 import { User } from '../../core/user/user.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UserRepository } from '../../core/user/user.repository';
@@ -13,6 +13,9 @@ import { RoleInChannel } from 'src/enum/role-in-channel.enum';
 import { ChangeRoleInChannelDto } from './dto/change-role-in-channel.dto';
 import { BlockRepository } from '../../core/block/block.repository';
 import { ChannelMessageRepository } from '../../core/channel/channel-message.repository';
+import { ChannelInfoDto } from './dto/channel-info.dto';
+import { ChannelMessageDto } from './dto/channel-message.dto';
+import { ChannelMessage } from '../../core/channel/channel-message.entity';
 
 @Injectable()
 export class ChannelService {
@@ -29,14 +32,43 @@ export class ChannelService {
     private blockRepository: BlockRepository,
   ) {}
 
-  async getChannels(userId: string): Promise<Channel[]> {
+  changeChannelInfo(oldInfo: Channel) {
+    const newInfo: ChannelInfoDto = new ChannelInfoDto();
+    newInfo.id = oldInfo.id;
+    newInfo.channelName = oldInfo.channelName;
+    newInfo.description = oldInfo.description;
+    newInfo.hasPassword = oldInfo.password === null ? false : true;
+    newInfo.isPublic = oldInfo.isPublic;
+    return newInfo;
+  }
+
+  async getChannels(userId: string): Promise<ChannelInfoDto[]> {
     const joinChannels =
       await this.channelMemberRepository.getChannelsJoinCurrently(userId);
     const joinChannelsId = joinChannels.map((channel) => channel.channelId.id);
-    return await this.channelRepository.getChannels(joinChannelsId);
+    const channelList = await this.channelRepository.getChannels(
+      joinChannelsId,
+    );
+    const newChannelList: Array<ChannelInfoDto> = [];
+    channelList.map((oldInfo: Channel) => {
+      newChannelList.push(this.changeChannelInfo(oldInfo));
+    });
+    return newChannelList;
   }
 
-  async makeChannel(userId: string, createChannelData: CreateChannelDto) {
+  async makeChannel(
+    userId: string,
+    createChannelData: CreateChannelDto,
+  ): Promise<ChannelInfoDto> {
+    const regex = /[^가-힣\w\s]/g;
+    const trimName = createChannelData.channelName.trim();
+    if (
+      trimName.length == 0 ||
+      regex.test(trimName) == true ||
+      trimName.length > 10
+    ) {
+      throw new BadRequestException('잘못된 이름');
+    }
     const isExistChannel = await this.channelRepository.findOne({
       where: {
         channelName: createChannelData.channelName,
@@ -49,7 +81,7 @@ export class ChannelService {
     const user = await this.userRepository.findOneBy({ id: userId });
     const channel = await this.channelRepository.makeChannel(createChannelData);
     await this.channelMemberRepository.createChannelMember(user, channel);
-    return channel;
+    return this.changeChannelInfo(channel);
   }
 
   async deleteChannel(userId: string, channelId: string) {
@@ -74,7 +106,7 @@ export class ChannelService {
     userId: string,
     channelId: string,
     channelPassword: ChannelPasswordDto,
-  ): Promise<Channel | ChannelMember> {
+  ) {
     const user = await this.userRepository.findOneBy({ id: userId });
     const channel = await this.channelRepository.findOneBy({ id: channelId });
     if (!channel) {
@@ -97,23 +129,28 @@ export class ChannelService {
     ) {
       throw new BadRequestException('입장 권한이 없습니다');
     }
-    // 비밀번호 암호화 검증 추가
-    if (channel.password && channel.password !== channelPassword.password) {
-      throw new BadRequestException('비밀번호가 틀렸습니다');
+    if (channel.password) {
+      const passwordCompare = await bcrypt.compare(
+        channel.password,
+        channelPassword.password,
+      );
+      if (!passwordCompare) {
+        throw new BadRequestException('비밀번호가 틀렸습니다');
+      }
     }
     if (joinChannels) {
       await this.channelMemberRepository.update(joinChannels.id, {
         joinAt: () => 'CURRENT_TIMESTAMP',
         leftAt: null,
       });
-      return joinChannels;
+      return { success: true };
     }
     const channelMember = this.channelMemberRepository.create({
       userId: user,
       channelId: channel,
     });
     await this.channelMemberRepository.save(channelMember);
-    return channelMember;
+    return { success: true };
   }
 
   async changeChannelOwner(channelId: string) {
@@ -137,10 +174,7 @@ export class ChannelService {
     return ownerCandidates[0].id;
   }
 
-  async getOutChannel(
-    userId: string,
-    channelId: string,
-  ): Promise<Channel | ChannelMember> {
+  async getOutChannel(userId: string, channelId: string) {
     // const user = await this.channelRepository.findOneBy({ id: channelId });
     const channel = await this.channelRepository.findOneBy({ id: channelId });
     if (!channel) {
@@ -161,10 +195,23 @@ export class ChannelService {
     if (joinChannels.roleInChannel === RoleInChannel.OWNER) {
       await this.changeChannelOwner(channelId);
     }
-    return await this.channelRepository.findOneBy({ id: channelId });
+    return { success: true };
   }
 
-  async getChannelMessages(userId: string, channelId: string) {
+  changeChannelMessageInfo(oldInfo: ChannelMessage) {
+    const newInfo: ChannelMessageDto = new ChannelMessageDto();
+    newInfo.id = oldInfo.id;
+    newInfo.createdAt = oldInfo.createdAt;
+    newInfo.message = oldInfo.message;
+    newInfo.channelId = this.changeChannelInfo(oldInfo.channelId);
+    newInfo.sendUserId = oldInfo.sendUserId;
+    return newInfo;
+  }
+
+  async getChannelMessages(
+    userId: string,
+    channelId: string,
+  ): Promise<ChannelMessageDto[]> {
     const channel = await this.channelRepository.findOneBy({ id: channelId });
     if (!channel) {
       throw new BadRequestException('채널 정보가 잘못됨');
@@ -180,11 +227,15 @@ export class ChannelService {
       );
     }
     const blockUsers = await this.blockRepository.getBlockUsers(userId);
-    return await this.channelMessageRepository.getChannelMessages(
-      userId,
+    const messages = await this.channelMessageRepository.getChannelMessages(
       channelId,
       blockUsers,
     );
+    const newMessages: ChannelMessageDto[] = [];
+    messages.map((message) => {
+      newMessages.push(this.changeChannelMessageInfo(message));
+    });
+    return newMessages;
   }
 
   async findParticipants(userId: string, channelId: string): Promise<User[]> {
@@ -200,7 +251,7 @@ export class ChannelService {
       return {
         ...channel.userId,
         userRoleInChannel: channel.roleInChannel,
-        userBan: channel.banEndAt < new Date() ? false : true,
+        // userBan: channel.banEndAt < new Date() ? false : true,
         userMute: channel.muteEndAt < new Date() ? false : true,
       };
     });
@@ -237,9 +288,12 @@ export class ChannelService {
         '알 수 없는 채널이거나 채널에 대한 권한이 없습니다.',
       );
     }
-    // 비밀번호 암호화
+    let hashPassword = null;
+    if (channelPassword?.password) {
+      hashPassword = await bcrypt.hash(channelPassword.password, 10);
+    }
     await this.channelRepository.update(channelId, {
-      password: channelPassword?.password ? channelPassword?.password : null,
+      password: hashPassword,
     });
     return { success: true };
   }
@@ -413,7 +467,7 @@ export class ChannelService {
       await this.channelMemberRepository.update(joinChannels.id, {
         joinAt: null,
       });
-      return joinChannels;
+      return { success: true };
     }
     const channelMember = this.channelMemberRepository.create({
       userId: target,
@@ -421,6 +475,6 @@ export class ChannelService {
       joinAt: null,
     });
     await this.channelMemberRepository.save(channelMember);
-    return channelMember;
+    return { success: true };
   }
 }

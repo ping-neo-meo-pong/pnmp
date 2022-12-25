@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from 'src/core/user/user.repository';
 import { JwtService } from '@nestjs/jwt';
+import axios from 'axios';
 
 @Injectable()
 export class AuthService {
@@ -11,10 +12,10 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(username: string): Promise<any> {
+  async validateUser(email: string, accessToken: string): Promise<any> {
     console.log('validateUser');
     const existUser = await this.userRepository.findOneBy({
-      username: username,
+      email: email,
     });
 
     if (existUser) {
@@ -25,9 +26,20 @@ export class AuthService {
       };
     }
 
-    const newUser = this.userRepository.create({ username: username });
-    const saveUser = await this.userRepository.save(newUser);
-    return { id: saveUser.id, username: saveUser.username, firstLogin: true };
+    const fourtyTwo = await axios.get('https://api.intra.42.fr/v2/me', {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    console.log(fourtyTwo);
+
+    // const newUser = this.userRepository.create({
+    //   username: fourtyTwo.data.login,
+    //   email: email,
+    // });
+    // const saveUser = await this.userRepository.save(newUser);
+    // return { id: saveUser.id, username: saveUser.username, firstLogin: true };
+    return { firstLogin: true };
   }
 
   verifyToken(jwt: string): any {

@@ -15,7 +15,7 @@ export class CreateChannelDto {
   @ApiProperty({ type: String, required: false })
   @IsOptional()
   @IsString()
-  readonly password: string;
+  password: string;
 
   @ApiProperty({ type: Boolean })
   @IsBoolean()

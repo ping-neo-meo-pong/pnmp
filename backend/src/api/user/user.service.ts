@@ -15,7 +15,14 @@ import { WinLose } from 'src/enum/win-lose.enum';
 import { FriendStatus } from '../../enum/friend-status';
 import { Block } from '../../core/block/block.entity';
 import { ChannelRepository } from '../../core/channel/channel.repository';
+<<<<<<< HEAD
 import { authenticator } from 'otplib';
+=======
+import { ChannelInfoDto } from '../channel/dto/channel-info.dto';
+import { Channel } from 'src/core/channel/channel.entity';
+import { UserChannelInfoDto } from './dto/user-channel-info.dto';
+import { ChannelMember } from '../../core/channel/channel-member.entity';
+>>>>>>> main
 
 @Injectable()
 export class UserService {
@@ -62,12 +69,18 @@ export class UserService {
     const user = await this.findUserById(userId);
     if (updateUserData.username) {
       const trimUserName = updateUserData.username.trim();
+      const regex = /[^가-힣\w\s]/g;
+      if (trimUserName === '' || trimUserName.length > 10) {
+        throw new BadRequestException('잘못된 이름입니다.');
+      } else if (regex.test(trimUserName) == true) {
+        throw new BadRequestException(
+          '특수문자가 포함되있거나 잘못된 이름입니다.',
+        );
+      }
+      console.log(`regex test:`);
+      console.log(regex.test(trimUserName));
       if (trimUserName === user.username) {
         throw new BadRequestException('같은 username으로 변경할 수 없습니다.');
-      } else if (trimUserName === '') {
-        throw new BadRequestException(
-          '공백으로만 이루어진 이름은 생성할 수 없습니다',
-        );
       }
       const isExistUser = await this.userRepository.findOneBy({
         username: updateUserData.username,
@@ -223,6 +236,29 @@ export class UserService {
     return { success: true };
   }
 
+  changeChannelInfo(oldInfo: Channel) {
+    const newInfo: ChannelInfoDto = new ChannelInfoDto();
+    newInfo.id = oldInfo.id;
+    newInfo.channelName = oldInfo.channelName;
+    newInfo.description = oldInfo.description;
+    newInfo.hasPassword = oldInfo.password === null ? false : true;
+    newInfo.isPublic = oldInfo.isPublic;
+    return newInfo;
+  }
+
+  changeUserChannelInfo(oldInfo: ChannelMember) {
+    const newInfo: UserChannelInfoDto = new UserChannelInfoDto();
+    newInfo.id = oldInfo.channelId.id;
+    newInfo.channelName = oldInfo.channelId.channelName;
+    newInfo.description = oldInfo.channelId.description;
+    newInfo.hasPassword = oldInfo.channelId.password === null ? false : true;
+    newInfo.isPublic = oldInfo.channelId.isPublic;
+    newInfo.userRoleInChannel = oldInfo.roleInChannel;
+    newInfo.userMute = oldInfo.muteEndAt < new Date() ? false : true;
+    // newInfo.userBan = oldInfo.banEndAt < new Date() ? false : true;
+    return newInfo;
+  }
+
   async acceptChannelInvite(userId: string, channelId: string) {
     const channel = await this.channelRepository.findOneBy({ id: channelId });
     if (!channel) {
@@ -237,25 +273,24 @@ export class UserService {
       joinAt: () => 'CURRENT_TIMESTAMP',
       leftAt: null,
     });
-    return iniviteChannel;
+    return { success: true };
   }
 
   async findChannelByParticipant(userId: string) {
     // const user = await this.findUserById(userId);
     const joinChannels =
       await this.channelMemberRepository.getChannelsJoinCurrently(userId);
-    const channels = joinChannels.map((channel) => {
-      return {
-        ...channel.channelId,
-        userRoleInChannel: channel.roleInChannel,
-        // userBan: channel.banEndAt < new Date() ? false : true,
-        userMute: channel.muteEndAt < new Date() ? false : true,
-      };
+    const channels: UserChannelInfoDto[] = [];
+    joinChannels.map((channel) => {
+      channels.push(this.changeUserChannelInfo(channel));
     });
     const inviteChannels =
       await this.channelMemberRepository.getIniviteChannels(userId);
-    const inivie = inviteChannels.map((channel) => channel.channelId);
-    return { channels: channels, invite: inivie };
+    const inivite: ChannelInfoDto[] = [];
+    inviteChannels.map((channel) => {
+      inivite.push(this.changeChannelInfo(channel.channelId));
+    });
+    return { channels: channels, invite: inivite };
   }
 
   async getFriendStatus(

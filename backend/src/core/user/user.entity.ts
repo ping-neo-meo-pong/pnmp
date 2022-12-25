@@ -4,7 +4,7 @@ import { UserRole } from '../../enum/user-role.enum';
 import { UserStatus } from '../../enum/user-status';
 
 @Entity()
-@Unique(['username'])
+@Unique(['username', 'email'])
 export class User extends Base {
   @Column({
     type: 'varchar',

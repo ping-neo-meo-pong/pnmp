@@ -29,7 +29,7 @@ export default function UserMenu() {
   const handleLogout = async () => {
     setAnchorEl(null);
     await logout();
-    signOut();
+    await signOut();
   };
 
   const open = Boolean(anchorEl);

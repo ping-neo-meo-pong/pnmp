@@ -9,6 +9,7 @@ import CheckBox from "@mui/material/Checkbox";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import { useState } from "react";
 import axios from "axios";
+import { regex } from "../lib/regex";
 
 export default function CreateChannelDialog({ open, onClose, onSubmit }: any) {
   const [name, setName] = useState<string>("");
@@ -24,6 +25,11 @@ export default function CreateChannelDialog({ open, onClose, onSubmit }: any) {
   }
 
   function submit() {
+    if (regex(name, 10)) {
+      close();
+      alert("잘못된 이름입니다");
+      return;
+    }
     axios
       .post("/server/api/channel", {
         channelName: name,

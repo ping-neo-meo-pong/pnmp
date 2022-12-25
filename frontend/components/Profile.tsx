@@ -21,6 +21,7 @@ import { useRouter } from "next/router";
 import { InviteModalWithUserName } from "./InviteModal";
 import EditIcon from "@mui/icons-material/Edit";
 import React from "react";
+import { regex } from "../lib/regex";
 
 import { useQRCode } from "next-qrcode";
 import Image from "next/image";
@@ -361,18 +362,18 @@ function SetNameDialog({
       <Button
         variant="outlined"
         onClick={() => {
-          if (setName.trim() == "")
-            alert("공백으로만 이루어진 이름은 변경할수 없습니다");
-          else {
+          if (regex(setName, 10)) {
+            alert("특수문자가 포함되어 있거나 잘못된 이름입니다");
+          } else {
             axios
               .patch("/server/api/user", {
-                username: setName,
+                username: setName.trim(),
               })
               .then((res) => {
                 setNameDialogOpen(false);
                 const loginUser = {
                   id: res.data.id,
-                  username: setName,
+                  username: setName.trim(),
                   jwt: accessToken,
                 };
                 window.localStorage.setItem(
@@ -380,6 +381,7 @@ function SetNameDialog({
                   JSON.stringify(loginUser)
                 );
                 router.push(`/profile/${setName}`);
+                setSetName(setName.trim());
               })
               .catch((e) => {
                 console.error(e);
