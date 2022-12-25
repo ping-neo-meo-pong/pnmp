@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from 'src/core/user/user.repository';
 import { JwtService } from '@nestjs/jwt';
@@ -12,6 +12,33 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
+  async signUpUser(
+    username: string,
+    email: string,
+    filename: string,
+  ): Promise<any> {
+    console.log('signUpUser');
+    const existUser = await this.userRepository.findOneBy({
+      username: username,
+    });
+    if (existUser) {
+      throw new BadRequestException('중복된 유저 네임');
+    }
+
+    const newUser = this.userRepository.create({
+      username: username,
+      email: email,
+      profileImage: filename ? `http://localhost/server/${filename}` : null,
+    });
+    const saveUser = await this.userRepository.save(newUser);
+    return {
+      id: saveUser.id,
+      username: saveUser.username,
+      profileImage: saveUser.profileImage,
+      firstLogin: true,
+    };
+  }
+
   async validateUser(email: string, accessToken: string): Promise<any> {
     console.log('validateUser');
     const existUser = await this.userRepository.findOneBy({
@@ -22,6 +49,7 @@ export class AuthService {
       return {
         id: existUser.id,
         username: existUser.username,
+        profileImage: existUser.profileImage,
         firstLogin: false,
       };
     }
@@ -32,13 +60,6 @@ export class AuthService {
       },
     });
     console.log(fourtyTwo);
-
-    // const newUser = this.userRepository.create({
-    //   username: fourtyTwo.data.login,
-    //   email: email,
-    // });
-    // const saveUser = await this.userRepository.save(newUser);
-    // return { id: saveUser.id, username: saveUser.username, firstLogin: true };
     return { firstLogin: true };
   }
 

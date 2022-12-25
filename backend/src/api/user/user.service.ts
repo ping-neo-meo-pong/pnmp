@@ -104,6 +104,17 @@ export class UserService {
     return user;
   }
 
+  async updateUserProfileImageById(
+    userId: string,
+    filename: string,
+  ): Promise<User> {
+    await this.userRepository.update(userId, {
+      profileImage: filename ? `http://localhost/server/${filename}` : null,
+    });
+    const user = await this.findUserById(userId);
+    return user;
+  }
+
   async findFriends(userId: string) {
     const friends = await this.friendRespository.find({
       relations: ['userId', 'userFriendId'],
