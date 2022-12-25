@@ -228,7 +228,16 @@ export default function Profile({ userName }: { userName: string }) {
                     setQRCode(res.data);
                   });
                 } else {
-                  setChecked(false);
+                  axios
+                    .patch(`/server/api/user`, {
+                      twoFactorAuth: false,
+                    })
+                    .then((res) => {
+                      setChecked(false);
+                    })
+                    .catch((e) => {
+                      console.log(e);
+                    });
                 }
               }}
               inputProps={{ "aria-label": "controlled" }}
@@ -266,6 +275,7 @@ export default function Profile({ userName }: { userName: string }) {
                 })
                 .then((res) => {
                   setChecked(true);
+                  setTwoFaDialogOpen(false);
                 })
                 .catch((e) => {
                   setChecked(false);
