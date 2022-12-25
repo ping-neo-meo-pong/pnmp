@@ -15,9 +15,13 @@ export class DmRoomRepository extends Repository<DmRoom> {
   }
 
   async getDmRoomsByParticipant(userId: string): Promise<DmRoom[]> {
+    console.log(`dm-room.rep: userId: ${userId}`);
     const dmRooms = await this.find({
       relations: ['userId', 'invitedUserId'],
       where: [{ userId: { id: userId } }, { invitedUserId: { id: userId } }],
+    }).catch((e) => {
+      console.error(e); // undefined
+      return null;
     });
     return dmRooms;
   }
