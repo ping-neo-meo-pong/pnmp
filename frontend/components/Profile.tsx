@@ -13,8 +13,9 @@ import {
   Switch,
   TextField,
   Typography,
+  DialogActions,
 } from "@mui/material";
-import { useEffect, useState, forwardRef } from "react";
+import { useEffect, useState, forwardRef, useContext } from "react";
 import axios from "axios";
 import { getLoginUser } from "../lib/login";
 import { useRouter } from "next/router";
@@ -22,9 +23,9 @@ import { InviteModalWithUserName } from "./InviteModal";
 import EditIcon from "@mui/icons-material/Edit";
 import React from "react";
 import { regex } from "../lib/regex";
-
 import { useQRCode } from "next-qrcode";
 import Image from "next/image";
+import { UserImageContext } from '../lib/contexts';
 
 export default function Profile({ userName }: { userName: string }) {
   const router = useRouter();
@@ -36,7 +37,8 @@ export default function Profile({ userName }: { userName: string }) {
   const [isBlocked, setIsBlocked] = useState(false);
   const [userId, setUserId] = useState("");
   const [userStatus, setUserStatus] = useState("OFFLINE");
-  const [userImage, setUserImage] = useState("");
+  // const [userImage, setUserImage] = useState("");
+  const { userImage, setUserImage } = useContext(UserImageContext);
   const [imageOpen, setImageOpen] = useState(false);
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
 
@@ -45,7 +47,6 @@ export default function Profile({ userName }: { userName: string }) {
   const [QRCode, setQRCode] = useState("");
   const [inputCode, setInputCode] = useState("");
 
-  console.log(me);
   useEffect(() => {
     if (!router.isReady) return;
 
@@ -152,21 +153,14 @@ export default function Profile({ userName }: { userName: string }) {
         console.error(e);
       });
   }
-  function ImageDialog() {
-    return (
-      <Dialog onClose={() => setImageOpen(false)} open={imageOpen}>
-        <DialogTitle>select Image..</DialogTitle>
-        <List sx={{ pt: 0 }}>
-          <input type="file" id="fileInput" />
-        </List>
-      </Dialog>
-    );
-  }
 
   return (
     <Box>
       {/* <ListItemButton sx={{ justifyContent: "center" }}> */}
-      <ImageDialog />
+      <ImageDialog
+        open={imageOpen}
+        onClose={() => setImageOpen(false)}
+      />
       <Box display="flex" justifyContent="center" sx={{ py: 2 }}>
         <Button
           onClick={() => {
@@ -335,6 +329,57 @@ export default function Profile({ userName }: { userName: string }) {
         {testHistory}
       </Box>
     </Box>
+  );
+}
+
+function ImageDialog({ open, onClose }) {
+  const [image, setImage] = useState(null);
+  const { userImage, setUserImage } = useContext(UserImageContext);
+
+  function handleClose() {
+    setImage(null);
+    onClose();
+  }
+
+  function handleImageSelect(event) {
+    if (event.target.files && event.target.files[0]) {
+      const img = event.target.files[0];
+      setImage(img);
+    }
+  }
+
+  function handleSubmit() {
+    if (image) {
+      const body = new FormData();
+      body.append("profileImage", image);
+      axios({
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        url: `/server/api/user/profile-image`, // 파일 업로드 요청 URL
+        method: "PATCH",
+        data: body,
+      })
+      .then((res) => {
+        handleClose();
+        setUserImage(res.data.profileImage);
+      })
+      .catch((e) => {
+        console.log(e);
+      });
+    }
+  }
+
+  return (
+    <Dialog onClose={handleClose} open={open} onChange={handleImageSelect}>
+      <DialogTitle>select Image..</DialogTitle>
+      <List sx={{ pt: 0 }}>
+        <input type="file" id="fileInput" />
+      </List>
+      <DialogActions>
+        <Button onClick={handleSubmit}>save</Button>
+      </DialogActions>
+    </Dialog>
   );
 }
 
