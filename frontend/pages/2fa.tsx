@@ -11,6 +11,9 @@ import { CssVarsProvider } from "@mui/joy/styles";
 import axios from "axios";
 import { Box } from "@mui/system";
 import { Dialog, DialogTitle, List, Switch } from "@mui/material";
+import { socket } from "../lib/socket";
+import { useRouter } from "next/router";
+
 // function Copyright(props: any) {
 //     return (
 //       <Typography
@@ -85,6 +88,7 @@ import { Dialog, DialogTitle, List, Switch } from "@mui/material";
 // }
 
 export default function TwoFactorAuthentificator() {
+  const router = useRouter();
   const [inputCode, setInputCode] = useState("");
   const [QRCode, setQRCode] = useState("");
 
@@ -133,8 +137,23 @@ export default function TwoFactorAuthentificator() {
                   twoFactorAuth: true,
                   otp: inputCode,
                 })
-                .then((res) => {})
-                .catch((e) => {});
+                .then((res) => {
+                  console.log(res.data);
+                  socket.emit("authorize", res.data.accessToken);
+                  const loginUser = {
+                    id: res.data.id,
+                    username: res.data.username,
+                    jwt: res.data.accessToken,
+                  };
+                  window.localStorage.setItem(
+                    "loginUser",
+                    JSON.stringify(loginUser)
+                  );
+                  router.push("/clients");
+                })
+                .catch((e) => {
+                  console.error(e);
+                });
             }}
           >
             인증하기
