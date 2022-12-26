@@ -18,6 +18,12 @@ import { Channel } from 'src/core/channel/channel.entity';
 import { UserChannelInfoDto } from './dto/user-channel-info.dto';
 import { ChannelMember } from '../../core/channel/channel-member.entity';
 import { SuccessOrFailDto } from '../dto/success-or-fail.dto';
+import { UserInfoDto } from './dto/user-info.dto';
+import { UserBlockInfoDto } from './dto/user-block-info.dto';
+import { UserFriendInfoDto } from './dto/user-friend-info.dto';
+import { Friend } from '../../core/friend/friend.entity';
+import { UserGameRoomDto } from './dto/user-game-room.dto';
+import { GameRoom } from 'src/core/game/game-room.entity';
 
 @Injectable()
 export class UserService {
@@ -36,19 +42,36 @@ export class UserService {
     private gameHistoryRepository: GameHistoryRepository,
   ) {}
 
-  async findUsers(findUserData: FindUserDto): Promise<User[]> {
+  changeUserInfo(oldInfo: User) {
+    const newInfo: UserInfoDto = new UserInfoDto();
+    newInfo.id = oldInfo.id;
+    newInfo.username = oldInfo.username;
+    newInfo.profileImage = oldInfo.profileImage;
+    newInfo.status = oldInfo.status;
+    newInfo.ladder = oldInfo.ladder;
+    return newInfo;
+  }
+
+  async findUsers(findUserData: FindUserDto): Promise<UserInfoDto[]> {
+    let users: User[];
     if (!findUserData.username) {
-      return await this.userRepository.find();
+      users = await this.userRepository.find();
+    } else {
+      users = await this.userRepository.findUserIncludingUserName(
+        findUserData.username,
+      );
     }
-    return await this.userRepository.findUserIncludingUserName(
-      findUserData.username,
-    );
+    const newUsers: UserInfoDto[] = [];
+    users.map((user) => {
+      newUsers.push(this.changeUserInfo(user));
+    });
+    return newUsers;
   }
 
   async updateUserById(
     userId: string,
     updateUserData: UpdateUserDto,
-  ): Promise<User> {
+  ): Promise<UserInfoDto> {
     const trimUserName = updateUserData.username.trim();
     const regex = /[^가-힣\w\s]/g;
     if (trimUserName === '' || trimUserName.length > 10) {
@@ -97,17 +120,17 @@ export class UserService {
     const { otp, ...realUserData } = updateUserData;
 
     await this.userRepository.update(userId, realUserData);
-    return await this.userRepository.findUserById(userId);
+    return this.changeUserInfo(await this.userRepository.findUserById(userId));
   }
 
   async updateUserProfileImageById(
     userId: string,
     filename: string,
-  ): Promise<User> {
+  ): Promise<UserInfoDto> {
     await this.userRepository.update(userId, {
       profileImage: filename ? `http://localhost/server/${filename}` : null,
     });
-    return await this.userRepository.findUserById(userId);
+    return this.changeUserInfo(await this.userRepository.findUserById(userId));
   }
 
   async findUserByUserName(username: string) {
@@ -116,6 +139,24 @@ export class UserService {
       return { isExistUser: true };
     }
     return { isExistUser: false };
+  }
+
+  changeUserFriendInfo(oldInfo: Friend) {
+    const newInfo: UserFriendInfoDto = new UserFriendInfoDto();
+    newInfo.id = oldInfo.id;
+    newInfo.requestAt = oldInfo.requestAt;
+    newInfo.acceptAt = oldInfo.acceptAt;
+    newInfo.userId = this.changeUserInfo(oldInfo.userId);
+    newInfo.userFriendId = this.changeUserInfo(oldInfo.userFriendId);
+    return newInfo;
+  }
+
+  changeUserFriendListInfo(oldInfo: Friend[]) {
+    const newInfo: UserFriendInfoDto[] = [];
+    oldInfo.map((old) => {
+      newInfo.push(this.changeUserFriendInfo(old));
+    });
+    return newInfo;
   }
 
   async findFriends(userId: string) {
@@ -128,9 +169,9 @@ export class UserService {
       userId,
     );
     return {
-      friends: friends,
-      receiveRequest: receiveRequest,
-      sendRequest: sendRequest,
+      friends: this.changeUserFriendListInfo(friends),
+      receiveRequest: this.changeUserFriendListInfo(receiveRequest),
+      sendRequest: this.changeUserFriendListInfo(sendRequest),
     };
   }
 
@@ -188,8 +229,22 @@ export class UserService {
     return { success: true };
   }
 
-  async getblockUsers(userId: string): Promise<Block[]> {
-    return await this.blockRepository.getBlockUsers(userId);
+  changeUserBlockInfo(oldInfo: Block) {
+    const newInfo: UserBlockInfoDto = new UserBlockInfoDto();
+    newInfo.id = oldInfo.id;
+    newInfo.blockAt = oldInfo.blockAt;
+    newInfo.userId = this.changeUserInfo(oldInfo.userId);
+    newInfo.blockedUserId = this.changeUserInfo(oldInfo.blockedUserId);
+    return newInfo;
+  }
+
+  async getblockUsers(userId: string): Promise<UserBlockInfoDto[]> {
+    const blocks = await this.blockRepository.getBlockUsers(userId);
+    const newBlocks: UserBlockInfoDto[] = [];
+    blocks.map((block) => {
+      newBlocks.push(this.changeUserBlockInfo(block));
+    });
+    return newBlocks;
   }
 
   async blockUser(userId: string, blockId: string): Promise<SuccessOrFailDto> {
@@ -266,7 +321,6 @@ export class UserService {
     newInfo.isPublic = oldInfo.channelId.isPublic;
     newInfo.userRoleInChannel = oldInfo.roleInChannel;
     newInfo.userMute = oldInfo.muteEndAt < new Date() ? false : true;
-    // newInfo.userBan = oldInfo.banEndAt < new Date() ? false : true;
     return newInfo;
   }
 
@@ -327,7 +381,7 @@ export class UserService {
     return FriendStatus.NONE;
   }
 
-  async getBlockStatus(userId: string, blockId: string) {
+  async getBlockStatus(userId: string, blockId: string): Promise<boolean> {
     const block = await this.blockRepository.findOne({
       relations: ['userId', 'blockedUserId'],
       where: { userId: { id: userId }, blockedUserId: { id: blockId } },
@@ -336,6 +390,15 @@ export class UserService {
       return true;
     }
     return false;
+  }
+
+  changeGameRoomInfo(oldInfo: GameRoom) {
+    const newInfo: UserGameRoomDto = new UserGameRoomDto();
+    newInfo.id = oldInfo.id;
+    newInfo.gameMode = oldInfo.gameMode;
+    newInfo.startAt = oldInfo.startAt;
+    newInfo.endAt = oldInfo.endAt;
+    return newInfo;
   }
 
   async userProfile(loginId: string, userId: string) {
@@ -360,11 +423,9 @@ export class UserService {
     const gameHistory = new Map();
     userGameHistory.forEach((item: GameHistory) =>
       gameHistory.set(item.gameRoomId.id, {
-        profile: {
-          id: item.userId.id,
-          username: item.userId.username,
-          profileImage: item.userId.profileImage,
-        },
+        id: item.userId.id,
+        username: item.userId.username,
+        profileImage: item.userId.profileImage,
         win: item.win,
         side: item.side,
         score: item.score,
@@ -373,14 +434,12 @@ export class UserService {
     );
     otherGameHistory.forEach((item: GameHistory) =>
       gameHistory.set(item.gameRoomId.id, {
-        gameRoom: item.gameRoomId,
+        gameRoom: this.changeGameRoomInfo(item.gameRoomId),
         user: gameHistory.get(item.gameRoomId.id),
         other: {
-          profile: {
-            id: item.userId.id,
-            username: item.userId.username,
-            profileImage: item.userId.profileImage,
-          },
+          id: item.userId.id,
+          username: item.userId.username,
+          profileImage: item.userId.profileImage,
           win: item.win,
           side: item.side,
           score: item.score,
@@ -392,7 +451,7 @@ export class UserService {
 
     if (loginId === userId) {
       return {
-        ...user,
+        ...this.changeUserInfo(user),
         friendStatus: null,
         blockStatus: null,
         winLose: { allGames: userGameHistory.length, wins: userWins.length },
@@ -403,7 +462,7 @@ export class UserService {
     const friendStatus = await this.getFriendStatus(loginId, userId);
     const blockStatus = await this.getBlockStatus(loginId, userId);
     return {
-      ...user,
+      ...this.changeUserInfo(user),
       friendStatus: friendStatus,
       blockStatus: blockStatus,
       winLose: { allGames: userGameHistory.length, wins: userWins.length },

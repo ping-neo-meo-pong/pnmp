@@ -17,6 +17,7 @@ import { ChannelInfoDto } from './dto/channel-info.dto';
 import { ChannelMessageDto } from './dto/channel-message.dto';
 import { ChannelMessage } from '../../core/channel/channel-message.entity';
 import { SuccessOrFailDto } from '../dto/success-or-fail.dto';
+import { UserInfoDto } from '../user/dto/user-info.dto';
 
 @Injectable()
 export class ChannelService {
@@ -276,7 +277,17 @@ export class ChannelService {
     return newMessages;
   }
 
-  async findParticipants(userId: string, channelId: string): Promise<User[]> {
+  changeUserInfo(oldInfo: User) {
+    const newInfo: UserInfoDto = new UserInfoDto();
+    newInfo.id = oldInfo.id;
+    newInfo.username = oldInfo.username;
+    newInfo.profileImage = oldInfo.profileImage;
+    newInfo.status = oldInfo.status;
+    newInfo.ladder = oldInfo.ladder;
+    return newInfo;
+  }
+
+  async findParticipants(userId: string, channelId: string) {
     const channel = await this.channelRepository.findChannelById(channelId);
     if (!channel) {
       throw new BadRequestException('유저 정보나 채널 정보가 잘못됨');
@@ -285,9 +296,8 @@ export class ChannelService {
       await this.channelMemberRepository.getChannelMembers(channelId);
     const channelMembers = channelMembersData.map((channel) => {
       return {
-        ...channel.userId,
+        ...this.changeUserInfo(channel.userId),
         userRoleInChannel: channel.roleInChannel,
-        // userBan: channel.banEndAt < new Date() ? false : true,
         userMute: channel.muteEndAt < new Date() ? false : true,
       };
     });

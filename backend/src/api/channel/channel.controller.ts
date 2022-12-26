@@ -21,8 +21,8 @@ import { isUUID } from 'class-validator';
 import { BadRequestException } from '@nestjs/common';
 import { ChannelInfoDto } from './dto/channel-info.dto';
 import { ChannelMessageDto } from './dto/channel-message.dto';
-import { User } from '../../core/user/user.entity';
 import { SuccessOrFailDto } from '../dto/success-or-fail.dto';
+import { UserInfoDto } from '../user/dto/user-info.dto';
 
 @Controller('channel')
 @ApiTags('channel')
@@ -119,7 +119,7 @@ export class ChannelController {
   findParticipants(
     @Req() req,
     @Param('channelId', ParseUUIDPipe) channelId: string,
-  ): Promise<User[]> {
+  ): Promise<UserInfoDto[]> {
     if (!isUUID(channelId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
