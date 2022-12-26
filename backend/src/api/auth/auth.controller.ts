@@ -120,15 +120,19 @@ export class AuthController {
   @Post('otp-login')
   @ApiConsumes('application/json')
   @ApiBody({ type: OtpDto })
-  async otpLogin(@Req() req, @Body() body, @Res({ passthrough: true }) res) {
-    const user = await this.userRepository.findOneBy({ id: req.user.id });
+  async otpLogin(
+    @Headers() oAuthToken,
+    @Query() query,
+    @Body() body,
+    @Res({ passthrough: true }) res,
+  ) {
+    const user = await this.userRepository.findOneBy({ email: query.email });
 
     const isVerified = authenticator.verify({
       token: body.otp,
       secret: user.twoFactorAuthSecret,
     });
-    if (!isVerified)
-      throw new UnauthorizedException();
+    if (!isVerified) throw new UnauthorizedException();
 
     const token = await this.authService.getToken(user);
     res.cookie('jwt', token.accessToken, {

@@ -13,6 +13,7 @@ import { Box } from "@mui/system";
 import { Dialog, DialogTitle, List, Switch } from "@mui/material";
 import { socket } from "../lib/socket";
 import { useRouter } from "next/router";
+import { useSession } from "next-auth/react";
 
 // function Copyright(props: any) {
 //     return (
@@ -90,14 +91,8 @@ import { useRouter } from "next/router";
 export default function TwoFactorAuthentificator() {
   const router = useRouter();
   const [inputCode, setInputCode] = useState("");
-  const [QRCode, setQRCode] = useState("");
+  const { data: session } = useSession();
 
-  useEffect(() => {
-    axios.get(`/server/api/auth/2fa-qrcode`).then((res) => {
-      /////////////////   set qrcode   ///////////////
-      setQRCode(res.data);
-    });
-  }, []);
   return (
     <Box>
       <CssVarsProvider>
@@ -117,7 +112,6 @@ export default function TwoFactorAuthentificator() {
             alignItems: "center",
           }}
         >
-          <Image src={QRCode} alt="home" width={250} height={250} />
           <Typography level="h4"> One Time Password</Typography>
           <TextField
             value={inputCode}
@@ -132,11 +126,14 @@ export default function TwoFactorAuthentificator() {
             variant="outlined"
             onClick={() => {
               //////////////////////   2FA Code   //////////////////////
+              if (!session) return;
               axios
-                .patch(`/server/api/user`, {
-                  twoFactorAuth: true,
-                  otp: inputCode,
-                })
+                .post(
+                  `/server/api/auth/otp-login?email=${session.user.email}`,
+                  {
+                    otp: inputCode,
+                  }
+                )
                 .then((res) => {
                   console.log(res.data);
                   socket.emit("authorize", res.data.accessToken);
