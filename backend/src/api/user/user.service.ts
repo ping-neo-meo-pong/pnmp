@@ -72,16 +72,6 @@ export class UserService {
     userId: string,
     updateUserData: UpdateUserDto,
   ): Promise<UserInfoDto> {
-    const trimUserName = updateUserData.username.trim();
-    const regex = /[^가-힣\w\s]/g;
-    if (trimUserName === '' || trimUserName.length > 10) {
-      throw new BadRequestException('잘못된 이름입니다.');
-    } else if (regex.test(trimUserName) === true) {
-      throw new BadRequestException(
-        '특수문자가 포함되있거나 잘못된 이름입니다.',
-      );
-    }
-
     const user = await this.userRepository.findUserById(userId);
     if (updateUserData.username) {
       const trimUserName = updateUserData.username.trim();
@@ -452,6 +442,7 @@ export class UserService {
     if (loginId === userId) {
       return {
         ...this.changeUserInfo(user),
+        twoFactorAuth: user.twoFactorAuth,
         friendStatus: null,
         blockStatus: null,
         winLose: { allGames: userGameHistory.length, wins: userWins.length },
@@ -463,6 +454,7 @@ export class UserService {
     const blockStatus = await this.getBlockStatus(loginId, userId);
     return {
       ...this.changeUserInfo(user),
+      twoFactorAuth: null,
       friendStatus: friendStatus,
       blockStatus: blockStatus,
       winLose: { allGames: userGameHistory.length, wins: userWins.length },
