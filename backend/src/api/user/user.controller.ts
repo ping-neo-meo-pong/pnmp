@@ -24,11 +24,11 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { isUUID } from 'class-validator';
 import { BadRequestException } from '@nestjs/common';
-import { Friend } from '../../core/friend/friend.entity';
 import { Block } from '../../core/block/block.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from '../../config/multer.config';
 import { ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { SuccessOrFailDto } from '../dto/success-or-fail.dto';
 
 @Controller('user')
 @ApiTags('user')
@@ -104,7 +104,7 @@ export class UserController {
   requestFriend(
     @Req() req,
     @Param('friendId') friendId: string,
-  ): Promise<Friend> {
+  ): Promise<SuccessOrFailDto> {
     if (!isUUID(friendId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
@@ -119,18 +119,13 @@ export class UserController {
   acceptFriend(
     @Req() req,
     @Param('friendId') friendId: string,
-  ): Promise<Friend> {
+  ): Promise<SuccessOrFailDto> {
     if (!isUUID(friendId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
     const userId = req.user.id;
     return this.userService.acceptFriend(userId, friendId);
   }
-
-  /*
-  @Delete('/friend/:friend-id')
-  deleteFriend(@Param('frined-id') friendId: string) {}
-  */
 
   @Get('/block')
   @ApiOperation({ summary: '로그인한 유저의 차단 목록' })
@@ -145,7 +140,10 @@ export class UserController {
   @ApiOperation({ summary: '로그인한 유저가 blockId를 차단' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  blockUser(@Req() req, @Param('blockId') blockId: string): Promise<Block> {
+  blockUser(
+    @Req() req,
+    @Param('blockId') blockId: string,
+  ): Promise<SuccessOrFailDto> {
     if (!isUUID(blockId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
@@ -157,7 +155,10 @@ export class UserController {
   @ApiOperation({ summary: '로그인한 유저가 blockId를 차단 해제' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  unblockUser(@Req() req, @Param('blockId') blockId: string) {
+  unblockUser(
+    @Req() req,
+    @Param('blockId') blockId: string,
+  ): Promise<SuccessOrFailDto> {
     if (!isUUID(blockId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
@@ -182,7 +183,10 @@ export class UserController {
     type: 'string',
   })
   @ApiBearerAuth()
-  acceptChannelInvite(@Req() req, @Param('channelId') channelId: string) {
+  acceptChannelInvite(
+    @Req() req,
+    @Param('channelId') channelId: string,
+  ): Promise<SuccessOrFailDto> {
     if (!isUUID(channelId)) {
       throw new BadRequestException('uuid가 아님');
     }
