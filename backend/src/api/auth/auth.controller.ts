@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Post,
@@ -6,7 +7,6 @@ import {
   Request,
   Res,
   Req,
-  Body,
   UseInterceptors,
   Query,
   UploadedFile,
@@ -112,7 +112,6 @@ export class AuthController {
       'PNMP',
       user.twoFactorAuthSecret,
     );
-    // const otpAuthUrl = authenticator.keyuri(req.user.id, 'PNMP', 'EVCDKZCJIJCQGOIW');
     console.log(otpAuthUrl);
     return toDataURL(otpAuthUrl);
   }
@@ -120,11 +119,12 @@ export class AuthController {
   @Post('otp-login')
   @ApiConsumes('application/json')
   @ApiBody({ type: OtpDto })
-  async otpLogin(@Body() body) {
+  async otpLogin(@Req() req, @Body() body) {
     console.log(body.otp);
+    const user = await this.userRepository.findOneBy({ id: req.user.id });
     const isVerified = authenticator.verify({
       token: body.otp,
-      secret: 'EVCDKZCJIJCQGOIW',
+      secret: user.twoFactorAuthSecret,
     });
     console.log(isVerified);
   }

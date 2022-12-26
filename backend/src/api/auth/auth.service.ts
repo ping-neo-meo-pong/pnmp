@@ -1,9 +1,9 @@
+import { authenticator } from 'otplib';
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from 'src/core/user/user.repository';
 import { JwtService } from '@nestjs/jwt';
 import axios from 'axios';
-import { authenticator } from 'otplib';
 
 @Injectable()
 export class AuthService {
