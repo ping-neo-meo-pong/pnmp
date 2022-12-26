@@ -5,12 +5,12 @@ export class UpdateUserDto {
   @ApiProperty({ type: String, required: false })
   @IsOptional()
   @IsString()
-  readonly username: string;
+  readonly username?: string;
 
   @ApiProperty({ type: Boolean, required: false })
   @IsOptional()
   @IsBoolean()
-  readonly twoFactorAuth: boolean;
+  readonly twoFactorAuth?: boolean;
 
   @ApiProperty({ type: String, required: false })
   @IsOptional()

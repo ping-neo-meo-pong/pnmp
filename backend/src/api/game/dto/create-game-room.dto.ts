@@ -4,7 +4,7 @@ import { User } from 'src/core/user/user.entity';
 export class CreateGameRoomDto {
   @IsOptional()
   @IsString()
-  leftUserId: User;
+  leftUserId?: User;
 
   @IsString()
   readonly rightUserId: User;
