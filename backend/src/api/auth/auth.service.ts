@@ -53,6 +53,7 @@ export class AuthService {
         username: existUser.username,
         profileImage: existUser.profileImage,
         firstLogin: false,
+        twoFactorAuth: existUser.twoFactorAuth,
       };
     }
 

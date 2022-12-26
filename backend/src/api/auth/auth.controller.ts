@@ -11,6 +11,7 @@ import {
   Query,
   UploadedFile,
   Headers,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -68,7 +69,7 @@ export class AuthController {
   @ApiBody({ type: LoginReqDto })
   async login(@Req() req, @Res({ passthrough: true }) res) {
     const user = req.user;
-    if (user.firstLogin) {
+    if (user.firstLogin || user.twoFactorAuth) {
       return user;
     }
     const token = await this.authService.getToken(user);
@@ -119,13 +120,21 @@ export class AuthController {
   @Post('otp-login')
   @ApiConsumes('application/json')
   @ApiBody({ type: OtpDto })
-  async otpLogin(@Req() req, @Body() body) {
-    console.log(body.otp);
+  async otpLogin(@Req() req, @Body() body, @Res({ passthrough: true }) res) {
     const user = await this.userRepository.findOneBy({ id: req.user.id });
+
     const isVerified = authenticator.verify({
       token: body.otp,
       secret: user.twoFactorAuthSecret,
     });
-    console.log(isVerified);
+    if (!isVerified)
+      throw new UnauthorizedException();
+
+    const token = await this.authService.getToken(user);
+    res.cookie('jwt', token.accessToken, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+    return { ...user, ...token };
   }
 }
