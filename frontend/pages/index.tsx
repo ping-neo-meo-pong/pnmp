@@ -71,8 +71,12 @@ export default function Home() {
           //   username: session.user.name,
         })
         .then((res) => {
+          console.log(`index:`);
+          console.log(res.data);
           if (res.data.firstLogin) {
             router.push("/signup");
+          } else if (res.data.twoFactorAuth == true) {
+            router.push("/2fa");
           } else {
             socket.emit("authorize", res.data.accessToken);
             const loginUser = {
