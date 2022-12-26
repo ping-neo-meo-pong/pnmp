@@ -1,3 +1,4 @@
+import { authenticator } from 'otplib';
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from 'src/core/user/user.repository';
@@ -29,6 +30,7 @@ export class AuthService {
       username: username,
       email: email,
       profileImage: filename ? `http://localhost/server/${filename}` : null,
+      twoFactorAuthSecret: authenticator.generateSecret(),
     });
     const saveUser = await this.userRepository.save(newUser);
     return {
