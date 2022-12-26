@@ -15,6 +15,7 @@ import { WinLose } from 'src/enum/win-lose.enum';
 import { FriendStatus } from '../../enum/friend-status';
 import { Block } from '../../core/block/block.entity';
 import { ChannelRepository } from '../../core/channel/channel.repository';
+import { authenticator } from 'otplib';
 import { ChannelInfoDto } from '../channel/dto/channel-info.dto';
 import { Channel } from 'src/core/channel/channel.entity';
 import { UserChannelInfoDto } from './dto/user-channel-info.dto';
@@ -62,20 +63,19 @@ export class UserService {
     userId: string,
     updateUserData: UpdateUserDto,
   ): Promise<User> {
-    const trimUserName = updateUserData.username.trim();
-    const regex = /[^가-힣\w\s]/g;
-    if (trimUserName === '' || trimUserName.length > 10) {
-      throw new BadRequestException('잘못된 이름입니다.');
-    } else if (regex.test(trimUserName) == true) {
-      throw new BadRequestException(
-        '특수문자가 포함되있거나 잘못된 이름입니다.',
-      );
-    }
-    console.log(`regex test:`);
-    console.log(regex.test(trimUserName));
-
     const user = await this.findUserById(userId);
     if (updateUserData.username) {
+      const trimUserName = updateUserData.username.trim();
+      const regex = /[^가-힣\w\s]/g;
+      if (trimUserName === '' || trimUserName.length > 10) {
+        throw new BadRequestException('잘못된 이름입니다.');
+      } else if (regex.test(trimUserName) == true) {
+        throw new BadRequestException(
+          '특수문자가 포함되있거나 잘못된 이름입니다.',
+        );
+      }
+      console.log(`regex test:`);
+      console.log(regex.test(trimUserName));
       if (trimUserName === user.username) {
         throw new BadRequestException('같은 username으로 변경할 수 없습니다.');
       }
@@ -86,7 +86,21 @@ export class UserService {
         throw new BadRequestException('이미 존재하는 username');
       }
     }
-    await this.userRepository.update(userId, updateUserData);
+
+    if (updateUserData.twoFactorAuth) {
+      const isVerified = authenticator.verify({
+        token: updateUserData.otp,
+        secret: user.twoFactorAuthSecret,
+        // secret: 'EVCDKZCJIJCQGOIW',
+      });
+      if (!isVerified) {
+        throw new BadRequestException('invalid otp');
+      }
+    }
+
+    const { otp, ...realUserData } = updateUserData;
+
+    await this.userRepository.update(userId, realUserData);
     return user;
   }
 

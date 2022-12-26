@@ -1,3 +1,4 @@
+import { authenticator } from 'otplib';
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from 'src/core/user/user.repository';
@@ -29,6 +30,7 @@ export class AuthService {
       username: username,
       email: email,
       profileImage: filename ? `http://localhost/server/${filename}` : null,
+      twoFactorAuthSecret: authenticator.generateSecret(),
     });
     const saveUser = await this.userRepository.save(newUser);
     return {
@@ -51,15 +53,20 @@ export class AuthService {
         username: existUser.username,
         profileImage: existUser.profileImage,
         firstLogin: false,
+        twoFactorAuth: existUser.twoFactorAuth,
       };
     }
 
-    const fourtyTwo = await axios.get('https://api.intra.42.fr/v2/me', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    });
-    console.log(fourtyTwo);
+    try {
+      const fourtyTwo = await axios.get('https://api.intra.42.fr/v2/me', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      console.log(fourtyTwo);
+    } catch (e) {
+      return null;
+    }
     return { firstLogin: true };
   }
 

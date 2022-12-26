@@ -11,4 +11,14 @@ export class UpdateUserDto {
   @IsOptional()
   @IsBoolean()
   readonly twoFactorAuth: boolean;
+
+  @ApiProperty({ type: String, required: false })
+  @IsOptional()
+  @IsString()
+  readonly otp: string;
+
+  @ApiProperty({ type: String, required: false })
+  @IsOptional()
+  @IsString()
+  readonly profileImage: string;
 }

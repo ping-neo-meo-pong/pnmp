@@ -10,10 +10,11 @@ import {
   ListItemAvatar,
   ListItemButton,
   ListItemText,
+  Switch,
   TextField,
   Typography,
 } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useEffect, useState, forwardRef } from "react";
 import axios from "axios";
 import { getLoginUser } from "../lib/login";
 import { useRouter } from "next/router";
@@ -21,6 +22,9 @@ import { InviteModalWithUserName } from "./InviteModal";
 import EditIcon from "@mui/icons-material/Edit";
 import React from "react";
 import { regex } from "../lib/regex";
+
+import { useQRCode } from "next-qrcode";
+import Image from "next/image";
 
 export default function Profile({ userName }: { userName: string }) {
   const router = useRouter();
@@ -36,6 +40,11 @@ export default function Profile({ userName }: { userName: string }) {
   const [imageOpen, setImageOpen] = useState(false);
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
 
+  const [checked, setChecked] = useState(false);
+  const [twoFaDialogOpen, setTwoFaDialogOpen] = useState(false);
+  const [QRCode, setQRCode] = useState("");
+  const [inputCode, setInputCode] = useState("");
+
   console.log(me);
   useEffect(() => {
     if (!router.isReady) return;
@@ -50,6 +59,7 @@ export default function Profile({ userName }: { userName: string }) {
         setUserId(user.id);
         setUserStatus(user.status);
         setUserImage(user.profileImage);
+        setChecked(user.twoFactorAuth);
         console.log(`user:`);
         console.log(user);
         console.log(`${me.username} vs ${userName}`);
@@ -202,7 +212,80 @@ export default function Profile({ userName }: { userName: string }) {
           size="small"
         >
           {userStatus}
-        </Button>{" "}
+        </Button>
+        {me.id === userId && (
+          <Box
+            justifyContent="center"
+            sx={{ alignItems: "center", display: "flex", flexDirection: "row" }}
+          >
+            <Typography variant="h6">2FA</Typography>
+            <Switch
+              checked={checked}
+              onChange={async () => {
+                if (checked == false) {
+                  setTwoFaDialogOpen(true);
+                  await axios.get(`/server/api/auth/2fa-qrcode`).then((res) => {
+                    /////////////////   set qrcode   ///////////////
+                    setQRCode(res.data);
+                  });
+                } else {
+                  axios
+                    .patch(`/server/api/user`, {
+                      twoFactorAuth: false,
+                    })
+                    .then((res) => {
+                      setChecked(false);
+                    })
+                    .catch((e) => {
+                      console.log(e);
+                    });
+                }
+              }}
+              inputProps={{ "aria-label": "controlled" }}
+            />
+          </Box>
+        )}
+        <Dialog
+          open={twoFaDialogOpen}
+          onClose={() => {
+            setTwoFaDialogOpen(false);
+          }}
+        >
+          <DialogTitle>OTP</DialogTitle>
+          <Image src={QRCode} width={250} height={250} />
+          {/* //////////////// QRCODE //////////////// */}
+          <TextField
+            label="OTP code"
+            variant="outlined"
+            value={inputCode}
+            onChange={(e) => {
+              setInputCode(e.target.value);
+              console.log(inputCode);
+            }}
+          ></TextField>
+          <List sx={{ pt: 0 }}></List>
+
+          <Button
+            variant="outlined"
+            onClick={() => {
+              //////////////////////   2FA Code   //////////////////////
+              axios
+                .patch(`/server/api/user`, {
+                  twoFactorAuth: true,
+                  otp: inputCode,
+                })
+                .then((res) => {
+                  setChecked(true);
+                  setTwoFaDialogOpen(false);
+                })
+                .catch((e) => {
+                  setChecked(false);
+                });
+            }}
+          >
+            인증하기
+          </Button>
+        </Dialog>
         {inviteModal}{" "}
         {userStatus === "INGAME" && (
           <Button

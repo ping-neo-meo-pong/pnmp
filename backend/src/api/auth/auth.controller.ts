@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Get,
   Post,
@@ -9,13 +10,24 @@ import {
   UseInterceptors,
   Query,
   UploadedFile,
+  Headers,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { LoginReqDto } from 'src/api/user/dto/login-req.dto';
+import { OtpDto } from 'src/api/user/dto/otp.dto';
 import { UserRepository } from 'src/core/user/user.repository';
 import { UserStatus } from 'src/enum/user-status';
+import { authenticator } from 'otplib';
+import { toDataURL } from 'qrcode';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from 'src/config/multer.config';
 
@@ -28,8 +40,12 @@ export class AuthController {
   ) {}
 
   @Post('/signup')
+  @ApiOperation({
+    summary: 'username으로 signup',
+  })
   @UseInterceptors(FileInterceptor('profileImage', multerOptions))
   async signup(
+    @Headers('Authorization') accessToken,
     @Query() userInfo,
     @UploadedFile() file: Express.Multer.File | null | undefined,
     @Res({ passthrough: true }) res,
@@ -53,7 +69,7 @@ export class AuthController {
   @ApiBody({ type: LoginReqDto })
   async login(@Req() req, @Res({ passthrough: true }) res) {
     const user = req.user;
-    if (user.firstLogin) {
+    if (user.firstLogin || user.twoFactorAuth) {
       return user;
     }
     const token = await this.authService.getToken(user);
@@ -84,5 +100,45 @@ export class AuthController {
     }
     res.cookie('jwt', '', { httpOnly: true, maxAge: 0 });
     return { message: 'success' };
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('2fa-qrcode')
+  @ApiBearerAuth()
+  async get2faQrCode(@Req() req) {
+    const user = await this.userRepository.findOneBy({ id: req.user.id });
+    console.log(authenticator.generateSecret());
+    const otpAuthUrl = authenticator.keyuri(
+      req.user.id,
+      'PNMP',
+      user.twoFactorAuthSecret,
+    );
+    console.log(otpAuthUrl);
+    return toDataURL(otpAuthUrl);
+  }
+
+  @Post('otp-login')
+  @ApiConsumes('application/json')
+  @ApiBody({ type: OtpDto })
+  async otpLogin(
+    @Headers() oAuthToken,
+    @Query() query,
+    @Body() body,
+    @Res({ passthrough: true }) res,
+  ) {
+    const user = await this.userRepository.findOneBy({ email: query.email });
+
+    const isVerified = authenticator.verify({
+      token: body.otp,
+      secret: user.twoFactorAuthSecret,
+    });
+    if (!isVerified) throw new UnauthorizedException();
+
+    const token = await this.authService.getToken(user);
+    res.cookie('jwt', token.accessToken, {
+      httpOnly: true,
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+    return { ...user, ...token };
   }
 }
