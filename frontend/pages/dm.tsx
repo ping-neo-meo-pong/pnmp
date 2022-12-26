@@ -66,7 +66,7 @@ function GoToDmRoom({ dmRoom }: any) {
   console.log(dmRoom);
   return (
     <Link href={`/dm/${dmRoom.id}`} style={{ display: "block" }}>
-      DM with {dmRoom.otherUser}
+      DM with {dmRoom?.otherUser?.username ?? 'null'}
     </Link>
   );
 }

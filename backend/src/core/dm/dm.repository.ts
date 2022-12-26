@@ -49,4 +49,13 @@ export class DmRepository extends Repository<Dm> {
       },
     });
   }
+
+  async findDmByDmId(dmId: string) {
+    return await this.findOne({
+      relations: ['dmRoomId', 'sendUserId'],
+      where: {
+        id: dmId,
+      },
+    });
+  }
 }
