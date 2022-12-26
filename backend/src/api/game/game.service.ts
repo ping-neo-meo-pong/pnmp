@@ -1,13 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { GameRoomDto } from '../../core/game/dto/game-room.dto';
 import { GameRoomRepository } from '../../core/game/game-room.repository';
 import { GameHistoryRepository } from '../../core/game/game-history.repository';
-import { CreateGameRoomDto } from 'src/api/game/dto/create-game-room.dto';
-import { IsNull } from 'typeorm';
-import { DmRoom } from 'src/core/dm/dm-room.entity';
 import { UserRepository } from 'src/core/user/user.repository';
-import { SocketRepository } from 'src/core/socket/socket.repository';
 import { GameMode } from 'src/enum/game-mode.enum';
 import { GameQueueRepository } from 'src/core/game/game-queue.repository';
 import { GameHistory } from 'src/core/game/game-history.entity';
@@ -20,11 +16,8 @@ export class GameService {
     private gameHistoryRepository: GameHistoryRepository,
     @InjectRepository(UserRepository)
     private userRepository: UserRepository,
-    private socketRepository: SocketRepository,
     private gameQueueRepository: GameQueueRepository,
   ) {}
-
-  //   createGame() {}
 
   async getGames(): Promise<GameRoomDto[]> {
     const gameRooms = await this.gameRoomRepository.findAll();
@@ -48,18 +41,14 @@ export class GameService {
     for (const history of Historys) {
       console.log(history);
       result.push(history);
-      //   result.push({
-      //     id: history.id,
-      //     otherUser:
-      //       history.userId.id === userId
-      //         ? history.invitedUserId.username
-      //         : history.userId.username,
-      //   });
     }
     return result;
   }
 
-  async createGameRoom(userId: string, invitedUserId: string) {
+  async createGameRoom(
+    userId: string,
+    invitedUserId: string,
+  ): Promise<GameRoomDto> {
     const user = await this.userRepository.findOneBy({
       id: userId,
     });

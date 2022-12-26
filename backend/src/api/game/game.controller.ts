@@ -1,59 +1,42 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Body,
-  Request,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, UseGuards } from '@nestjs/common';
 import { GameService } from './game.service';
 import { GameRoomDto } from '../../core/game/dto/game-room.dto';
 import { AuthGuard } from '@nestjs/passport';
-import { ApiBearerAuth, ApiBody, ApiTags, ApiOperation } from '@nestjs/swagger';
-import { CreateGameRoomDto } from 'src/api/game/dto/create-game-room.dto';
-import { GameHistory } from 'src/core/game/game-history.entity';
-import { isUUID } from 'class-validator';
-import { BadRequestException } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 
 @Controller('game')
 @ApiTags('game')
 export class GameController {
   constructor(private readonly gameService: GameService) {}
 
-  @UseGuards(AuthGuard('jwt'))
   @Get()
+  @UseGuards(AuthGuard('jwt'))
   getGames(): Promise<GameRoomDto[]> {
     return this.gameService.getGames();
   }
 
-  // @UseGuards(AuthGuard('jwt'))
-  // @Get("/:roomId")
-  // getGameData(@Request() request, @Param('roomId') roomId: string) {
-  //   return this.gameService.gameData(roomId);
-  // }
+  //   @Post()
+  //   @ApiBody({ type: CreateGameRoomDto })
+  //   @ApiBearerAuth()
+  //   @UseGuards(AuthGuard('jwt'))
+  //   createGameRoom(
+  //     @Request() request,
+  //     @Body() gameRoomData,
+  //   ): Promise<GameRoomDto> {
+  //     const leftUserId = request.user.id;
+  //     const rightUserId = gameRoomData.invitedUserId;
+  //     if (!isUUID(leftUserId) || !isUUID(rightUserId)) {
+  //       throw new BadRequestException('id가 uuid가 아님');
+  //     }
+  //     return this.gameService.createGameRoom(leftUserId, rightUserId);
+  //   }
 
-  @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
-  @Post()
-  @ApiBody({ type: CreateGameRoomDto })
-  createGameRoom(
-    @Request() request,
-    @Body() gameRoomData: any,
-  ): Promise<GameRoomDto> {
-    const leftUserId = request.user.id;
-    const rightUserId = gameRoomData.invitedUserId;
-    if (!isUUID(leftUserId) || !isUUID(rightUserId)) {
-      throw new BadRequestException('id가 uuid가 아님');
-    }
-    return this.gameService.createGameRoom(leftUserId, rightUserId);
-  }
-
-  @Get('/history')
-  @ApiOperation({ summary: 'get dm과 같음' })
-  @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
-  getHistorys(@Request() request): Promise<GameHistory[]> {
-    const userId = request.user.id;
-    return this.gameService.getHistorys(userId);
-  }
+  //   @Get('/history')
+  //   @ApiOperation({ summary: 'get dm과 같음' })
+  //   @ApiBearerAuth()
+  //   @UseGuards(AuthGuard('jwt'))
+  //   getHistorys(@Request() request): Promise<GameHistory[]> {
+  //     const userId = request.user.id;
+  //     return this.gameService.getHistorys(userId);
+  //   }
 }
