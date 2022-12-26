@@ -4,7 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { ChannelRepository } from '../../core/channel/channel.repository';
 import { ChannelMemberRepository } from '../../core/channel/channel-member.repository';
 import { Channel } from '../../core/channel/channel.entity';
-import { IsNull } from 'typeorm';
+import { DataSource } from 'typeorm';
 import { User } from '../../core/user/user.entity';
 import { CreateChannelDto } from './dto/create-channel.dto';
 import { UserRepository } from '../../core/user/user.repository';
@@ -16,10 +16,12 @@ import { ChannelMessageRepository } from '../../core/channel/channel-message.rep
 import { ChannelInfoDto } from './dto/channel-info.dto';
 import { ChannelMessageDto } from './dto/channel-message.dto';
 import { ChannelMessage } from '../../core/channel/channel-message.entity';
+import { SuccessOrFailDto } from '../dto/success-or-fail.dto';
 
 @Injectable()
 export class ChannelService {
   constructor(
+    private dataSource: DataSource,
     @InjectRepository(ChannelRepository)
     private channelRepository: ChannelRepository,
     @InjectRepository(ChannelMemberRepository)
@@ -59,32 +61,52 @@ export class ChannelService {
   async makeChannel(
     userId: string,
     createChannelData: CreateChannelDto,
-  ): Promise<ChannelInfoDto> {
+  ): Promise<SuccessOrFailDto> {
+    const queryRunner = this.dataSource.createQueryRunner();
     const regex = /[^가-힣\w\s]/g;
     const trimName = createChannelData.channelName.trim();
     if (
-      trimName.length == 0 ||
-      regex.test(trimName) == true ||
+      trimName.length === 0 ||
+      regex.test(trimName) === true ||
       trimName.length > 10
     ) {
       throw new BadRequestException('잘못된 이름');
     }
-    const isExistChannel = await this.channelRepository.findOne({
-      where: {
-        channelName: createChannelData.channelName,
-        deletedAt: IsNull(),
-      },
-    });
+
+    const isExistChannel = await this.channelRepository.findChannelByName(
+      createChannelData.channelName,
+    );
     if (isExistChannel) {
       throw new BadRequestException('채널 이름 중복');
     }
     const user = await this.userRepository.findOneBy({ id: userId });
-    const channel = await this.channelRepository.makeChannel(createChannelData);
-    await this.channelMemberRepository.createChannelMember(user, channel);
-    return this.changeChannelInfo(channel);
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    let isSuccess = true;
+    try {
+      const channel = await this.channelRepository.makeChannel(
+        createChannelData,
+      );
+      await this.channelMemberRepository.createChannelMember(
+        user,
+        channel,
+        RoleInChannel.OWNER,
+      );
+      await queryRunner.commitTransaction();
+    } catch (e) {
+      await queryRunner.rollbackTransaction();
+      isSuccess = false;
+    } finally {
+      await queryRunner.release();
+      return { success: isSuccess };
+    }
   }
 
-  async deleteChannel(userId: string, channelId: string) {
+  async deleteChannel(
+    userId: string,
+    channelId: string,
+  ): Promise<SuccessOrFailDto> {
     const isExistChannel = await this.channelRepository.findOneBy({
       id: channelId,
     });
@@ -106,7 +128,7 @@ export class ChannelService {
     userId: string,
     channelId: string,
     channelPassword: ChannelPasswordDto,
-  ) {
+  ): Promise<SuccessOrFailDto> {
     const user = await this.userRepository.findOneBy({ id: userId });
     const channel = await this.channelRepository.findOneBy({ id: channelId });
     if (!channel) {
@@ -145,24 +167,24 @@ export class ChannelService {
       });
       return { success: true };
     }
-    const channelMember = this.channelMemberRepository.create({
-      userId: user,
-      channelId: channel,
-    });
-    await this.channelMemberRepository.save(channelMember);
+    await this.channelMemberRepository.createChannelMember(
+      user,
+      channel,
+      RoleInChannel.NORMAL,
+    );
     return { success: true };
   }
 
   async changeChannelOwner(channelId: string) {
     let ownerCandidates =
       await this.channelMemberRepository.getChannelAdministrators(channelId);
-    if (ownerCandidates.length == 0) {
+    if (ownerCandidates.length === 0) {
       ownerCandidates =
         await this.channelMemberRepository.getChannelMembersExcludeOwner(
           channelId,
         );
     }
-    if (ownerCandidates.length == 0) {
+    if (ownerCandidates.length === 0) {
       await this.channelRepository.update(channelId, {
         deletedAt: () => 'CURRENT_TIMESTAMP',
       });
@@ -174,8 +196,12 @@ export class ChannelService {
     return ownerCandidates[0].id;
   }
 
-  async getOutChannel(userId: string, channelId: string) {
-    // const user = await this.channelRepository.findOneBy({ id: channelId });
+  async getOutChannel(
+    userId: string,
+    channelId: string,
+  ): Promise<SuccessOrFailDto> {
+    const queryRunner = this.dataSource.createQueryRunner();
+
     const channel = await this.channelRepository.findOneBy({ id: channelId });
     if (!channel) {
       throw new BadRequestException('채널 정보가 잘못됨');
@@ -188,14 +214,26 @@ export class ChannelService {
     if (!joinChannels) {
       throw new BadRequestException('들어가지 않은 채널입니다.');
     }
-    await this.channelMemberRepository.update(joinChannels.id, {
-      leftAt: () => 'CURRENT_TIMESTAMP',
-      roleInChannel: RoleInChannel.NORMAL,
-    });
-    if (joinChannels.roleInChannel === RoleInChannel.OWNER) {
-      await this.changeChannelOwner(channelId);
+
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    let isSuccess = true;
+    try {
+      await this.channelMemberRepository.update(joinChannels.id, {
+        leftAt: () => 'CURRENT_TIMESTAMP',
+        roleInChannel: RoleInChannel.NORMAL,
+      });
+      if (joinChannels.roleInChannel === RoleInChannel.OWNER) {
+        await this.changeChannelOwner(channelId);
+      }
+      await queryRunner.commitTransaction();
+    } catch {
+      await queryRunner.rollbackTransaction();
+      isSuccess = false;
+    } finally {
+      await queryRunner.release();
+      return { success: isSuccess };
     }
-    return { success: true };
   }
 
   changeChannelMessageInfo(oldInfo: ChannelMessage) {
@@ -239,9 +277,7 @@ export class ChannelService {
   }
 
   async findParticipants(userId: string, channelId: string): Promise<User[]> {
-    const channel = await this.channelRepository.findOne({
-      where: { id: channelId, deletedAt: IsNull() },
-    });
+    const channel = await this.channelRepository.findChannelById(channelId);
     if (!channel) {
       throw new BadRequestException('유저 정보나 채널 정보가 잘못됨');
     }
@@ -274,7 +310,7 @@ export class ChannelService {
     userId: string,
     channelId: string,
     channelPassword: ChannelPasswordDto,
-  ) {
+  ): Promise<SuccessOrFailDto> {
     const isExistChannel = await this.channelRepository.findOneBy({
       id: channelId,
     });
@@ -354,7 +390,6 @@ export class ChannelService {
       );
     }
 
-    // channel admin
     if (
       !adminUserInChannel ||
       targetIdJoinInChannel.roleInChannel === RoleInChannel.OWNER ||
@@ -372,7 +407,7 @@ export class ChannelService {
     channelId: string,
     targetId: string,
     muteEndAt: Date,
-  ) {
+  ): Promise<SuccessOrFailDto> {
     const target = await this.restirctByChannelAdmin(
       userId,
       channelId,
@@ -389,7 +424,7 @@ export class ChannelService {
     channelId: string,
     targetId: string,
     banEndAt: Date,
-  ) {
+  ): Promise<SuccessOrFailDto> {
     const target = await this.restirctByChannelAdmin(
       userId,
       channelId,
@@ -402,29 +437,12 @@ export class ChannelService {
     return { success: true };
   }
 
-  //   async blockUserFromChannel(
-  //     userId: string,
-  //     channelId: string,
-  //     targetId: string,
-  //   ) {
-  //     const target = await this.restirctByChannelAdmin(
-  //       userId,
-  //       channelId,
-  //       targetId,
-  //     );
-  //     await this.channelMemberRepository.update(target.id, {
-  //       leftAt: () => 'CURRENT_TIMESTAMP',
-  //       roleInChannel: RoleInChannel.BLOCK,
-  //     });
-  //     return { success: true };
-  //   }
-
   async changeRoleInChannel(
     userId: string,
     channelId: string,
     targetId: string,
     changeRole: ChangeRoleInChannelDto,
-  ) {
+  ): Promise<SuccessOrFailDto> {
     const target = await this.restirctByWebSiteAdmin(
       userId,
       channelId,
@@ -437,7 +455,11 @@ export class ChannelService {
     return { success: true };
   }
 
-  async inviteUser(userId: string, channelId: string, targetId: string) {
+  async inviteUser(
+    userId: string,
+    channelId: string,
+    targetId: string,
+  ): Promise<SuccessOrFailDto> {
     const target = await this.userRepository.findOneBy({ id: targetId });
     const channel = await this.channelRepository.findOneBy({ id: channelId });
     const userInChannel =
@@ -469,12 +491,7 @@ export class ChannelService {
       });
       return { success: true };
     }
-    const channelMember = this.channelMemberRepository.create({
-      userId: target,
-      channelId: channel,
-      joinAt: null,
-    });
-    await this.channelMemberRepository.save(channelMember);
+    await this.channelMemberRepository.inviteChannelMember(target, channel);
     return { success: true };
   }
 }

@@ -40,4 +40,18 @@ export class BlockRepository extends Repository<Block> {
       },
     });
   }
+
+  async haveUserBlockOther(userId: string, otherId: string) {
+    return await this.findOne({
+      relations: ['userId', 'blockedUserId'],
+      where: {
+        userId: {
+          id: userId,
+        },
+        blockedUserId: {
+          id: otherId,
+        },
+      },
+    });
+  }
 }

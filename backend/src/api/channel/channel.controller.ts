@@ -21,6 +21,8 @@ import { isUUID } from 'class-validator';
 import { BadRequestException } from '@nestjs/common';
 import { ChannelInfoDto } from './dto/channel-info.dto';
 import { ChannelMessageDto } from './dto/channel-message.dto';
+import { User } from '../../core/user/user.entity';
+import { SuccessOrFailDto } from '../dto/success-or-fail.dto';
 
 @Controller('channel')
 @ApiTags('channel')
@@ -43,7 +45,7 @@ export class ChannelController {
   makeChannel(
     @Req() req,
     @Body() createChannelData: CreateChannelDto,
-  ): Promise<ChannelInfoDto> {
+  ): Promise<SuccessOrFailDto> {
     const userId = req.user.id;
     return this.channelService.makeChannel(userId, createChannelData);
   }
@@ -55,7 +57,7 @@ export class ChannelController {
   deleteChannel(
     @Req() req,
     @Param('channelId', ParseUUIDPipe) channelId: string,
-  ) {
+  ): Promise<SuccessOrFailDto> {
     if (!isUUID(channelId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
@@ -72,7 +74,7 @@ export class ChannelController {
     @Req() req,
     @Param('channelId', ParseUUIDPipe) channelId: string,
     @Body() channelPassword: ChannelPasswordDto,
-  ) {
+  ): Promise<SuccessOrFailDto> {
     if (!isUUID(channelId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
@@ -87,7 +89,7 @@ export class ChannelController {
   getOutChannel(
     @Req() req,
     @Param('channelId', ParseUUIDPipe) channelId: string,
-  ) {
+  ): Promise<SuccessOrFailDto> {
     if (!isUUID(channelId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
@@ -117,7 +119,7 @@ export class ChannelController {
   findParticipants(
     @Req() req,
     @Param('channelId', ParseUUIDPipe) channelId: string,
-  ) {
+  ): Promise<User[]> {
     if (!isUUID(channelId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
@@ -126,7 +128,7 @@ export class ChannelController {
   }
 
   @Patch(':channelId/password')
-  @ApiOperation({ summary: '채널 어드민 유저가 채널의 비밀번호는 변경/제거' })
+  @ApiOperation({ summary: '채널 어드민 유저가 채널의 비밀번호를 변경/제거' })
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
   @ApiBody({ type: ChannelPasswordDto })
@@ -134,7 +136,7 @@ export class ChannelController {
     @Req() req,
     @Param('channelId', ParseUUIDPipe) channelId: string,
     @Body() channelPassword: ChannelPasswordDto,
-  ) {
+  ): Promise<SuccessOrFailDto> {
     if (!isUUID(channelId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
@@ -158,7 +160,7 @@ export class ChannelController {
     @Param('channelId', ParseUUIDPipe) channelId: string,
     @Param('targetId', ParseUUIDPipe) targetId: string,
     @Body() restrictChannelDto: RestrictChannelDto,
-  ) {
+  ): Promise<SuccessOrFailDto> {
     if (!isUUID(channelId) || !isUUID(targetId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
@@ -183,7 +185,7 @@ export class ChannelController {
     @Param('channelId', ParseUUIDPipe) channelId: string,
     @Param('targetId', ParseUUIDPipe) targetId: string,
     @Body() restrictChannelDto: RestrictChannelDto,
-  ) {
+  ): Promise<SuccessOrFailDto> {
     if (!isUUID(channelId) || !isUUID(targetId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
@@ -206,7 +208,7 @@ export class ChannelController {
     @Param('channelId') channelId: string,
     @Param('targetId') targetId: string,
     @Body() changeRole: ChangeRoleInChannelDto,
-  ) {
+  ): Promise<SuccessOrFailDto> {
     if (!isUUID(channelId) || !isUUID(targetId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }

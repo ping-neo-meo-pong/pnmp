@@ -182,11 +182,21 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
     });
   }
 
-  async createChannelMember(user: User, channel: Channel) {
+  async createChannelMember(user: User, channel: Channel, role: RoleInChannel) {
     const channelMember = this.create({
       userId: user,
       channelId: channel,
-      roleInChannel: RoleInChannel.OWNER,
+      roleInChannel: role,
+    });
+    await this.save(channelMember);
+    return channelMember;
+  }
+
+  async inviteChannelMember(user: User, channel: Channel) {
+    const channelMember = this.create({
+      userId: user,
+      channelId: channel,
+      joinAt: null,
     });
     await this.save(channelMember);
     return channelMember;
