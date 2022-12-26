@@ -13,6 +13,8 @@ import { Server, Socket } from 'socket.io';
 import { DmRepository } from '../../core/dm/dm.repository';
 import { DmRoomRepository } from '../../core/dm/dm-room.repository';
 import { BlockRepository } from '../../core/block/block.repository';
+import { DirectMessageDto } from './dto/direct-message.dto';
+import { UserRepository } from '../../core/user/user.repository';
 
 @WebSocketGateway({ namespace: 'dm', transports: ['websocket'] })
 export class DmGateway
@@ -28,6 +30,8 @@ export class DmGateway
     private dmRoomRepository: DmRoomRepository,
     @InjectRepository(BlockRepository)
     private blockRepository: BlockRepository,
+    @InjectRepository(UserRepository)
+    private userRepository: UserRepository,
   ) {}
 
   afterInit() {
@@ -42,33 +46,9 @@ export class DmGateway
     console.log('dm disconnected');
   }
 
-  //   @SubscribeMessage('authorize')
-  //   async authorize(
-  //     @ConnectedSocket() socket: Socket,
-  //     @MessageBody() loginUser: any,
-  //   ) {
-  //     try {
-  //       const dmRooms = await this.dmRoomRepository.getDmRooms(loginUser.id);
-  //       for (const dmRoom of dmRooms) socket.join(dmRoom.id);
-  //     } catch (err) {
-  //       socket.disconnect();
-  //     }
-  //   }
-
-  //   @SubscribeMessage('dmRooms')
-  //   async joinDmRooms(@ConnectedSocket() socket, @MessageBody() dmRooms) {
-  //     try {
-  //       console.log(dmRooms);
-  //       for (const dmRoom of dmRooms) socket.join(dmRoom.id);
-  //     } catch (err) {
-  //       socket.disconnect();
-  //     }
-  //   }
-
   @SubscribeMessage('dmRoom')
   async joinDmRoom(@ConnectedSocket() socket, @MessageBody() dmRoomId) {
     try {
-      console.log(dmRoomId);
       socket.join(dmRoomId);
     } catch (err) {
       socket.disconnect();
@@ -78,21 +58,17 @@ export class DmGateway
   @SubscribeMessage('dm')
   async onDmMessage(
     @ConnectedSocket() socket: Socket,
-    @MessageBody() data: any,
+    @MessageBody() data: DirectMessageDto,
   ) {
+    const dmRoom = await this.dmRoomRepository.getDmRoomByRoomId(data.roomId);
+    const user = await this.userRepository.findUserById(data.userId);
     const newDm = this.dmRepository.create({
       message: data.msg,
-      dmRoomId: data.roomId,
-      sendUserId: data.userId,
+      dmRoomId: dmRoom,
+      sendUserId: user,
     });
     await this.dmRepository.save(newDm);
-    const newDmData = await this.dmRepository.findOne({
-      relations: ['dmRoomId', 'sendUserId'],
-      where: {
-        id: newDm.id,
-      },
-    });
-    const dmRoom = await this.dmRoomRepository.getDmRoomByRoomId(data.roomId);
+    const newDmData = await this.dmRepository.findDmByDmId(newDm.id);
     const userId =
       data.userId === dmRoom.userId.id
         ? dmRoom.invitedUserId.id
@@ -111,9 +87,4 @@ export class DmGateway
         .emit(`drawDm`, { ...newDmData, isSendUserBlocked: false });
     }
   }
-
-  //   @SubscribeMessage('id')
-  //   id_print(@MessageBody('id') data: number) {
-  //     console.log(data);
-  //   }
 }
