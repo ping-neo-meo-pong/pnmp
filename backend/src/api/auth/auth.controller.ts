@@ -30,6 +30,7 @@ import { authenticator } from 'otplib';
 import { toDataURL } from 'qrcode';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { multerOptions } from 'src/config/multer.config';
+import { SuccessOrFailDto } from '../dto/success-or-fail.dto';
 
 @Controller('auth')
 @ApiTags('auth')
@@ -39,7 +40,7 @@ export class AuthController {
     private userRepository: UserRepository,
   ) {}
 
-  @Post('/signup')
+  @Post('signup')
   @ApiOperation({
     summary: 'username으로 signup',
   })
@@ -50,7 +51,7 @@ export class AuthController {
     @UploadedFile() file: Express.Multer.File | null | undefined,
     @Res({ passthrough: true }) res,
   ) {
-    const user = this.authService.signUpUser(
+    const user = await this.authService.signUpUser(
       userInfo.username,
       userInfo.email,
       file?.filename ?? null,
@@ -63,17 +64,16 @@ export class AuthController {
     return { ...user, ...token };
   }
 
-  @UseGuards(AuthGuard('local'))
   @Post('login')
   @ApiConsumes('application/json')
   @ApiBody({ type: LoginReqDto })
+  @UseGuards(AuthGuard('local'))
   async login(@Req() req, @Res({ passthrough: true }) res) {
     const user = req.user;
     if (user.firstLogin || user.twoFactorAuth) {
       return user;
     }
     const token = await this.authService.getToken(user);
-    // res.setHeader('Authorization', 'Bearer ' + token.accessToken);
     res.cookie('jwt', token.accessToken, {
       httpOnly: true,
       maxAge: 24 * 60 * 60 * 1000, // 1 day
@@ -81,17 +81,20 @@ export class AuthController {
     return { ...user, ...token };
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Get('profile')
   @ApiBearerAuth()
+  @UseGuards(AuthGuard('jwt'))
   getProfile(@Request() req) {
     return req.user;
   }
 
-  @UseGuards(AuthGuard('jwt'))
   @Post('logout')
   @ApiBearerAuth()
-  async logout(@Request() req, @Res({ passthrough: true }) res) {
+  @UseGuards(AuthGuard('jwt'))
+  async logout(
+    @Request() req,
+    @Res({ passthrough: true }) res,
+  ): Promise<SuccessOrFailDto> {
     const user = await this.userRepository.findOneBy({ id: req.user.id });
     if (user && user.status != UserStatus.INGAME) {
       await this.userRepository.update(req.user.id, {
@@ -99,7 +102,7 @@ export class AuthController {
       });
     }
     res.cookie('jwt', '', { httpOnly: true, maxAge: 0 });
-    return { message: 'success' };
+    return { success: true };
   }
 
   @UseGuards(AuthGuard('jwt'))
