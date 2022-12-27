@@ -1,9 +1,9 @@
-import { authenticator } from 'otplib';
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserRepository } from 'src/core/user/user.repository';
 import { JwtService } from '@nestjs/jwt';
 import axios from 'axios';
+import { LoginUserInfoDto } from './dto/login-user-info.dto';
 
 @Injectable()
 export class AuthService {
@@ -13,11 +13,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signUpUser(
-    username: string,
-    email: string,
-    filename: string,
-  ): Promise<any> {
+  async signUpUser(username: string, email: string, filename: string) {
     console.log('signUpUser');
     const existUser = await this.userRepository.findOneBy({
       username: username,
@@ -26,13 +22,11 @@ export class AuthService {
       throw new BadRequestException('중복된 유저 네임');
     }
 
-    const newUser = this.userRepository.create({
-      username: username,
-      email: email,
-      profileImage: filename ? `http://localhost/server/${filename}` : null,
-      twoFactorAuthSecret: authenticator.generateSecret(),
-    });
-    const saveUser = await this.userRepository.save(newUser);
+    const saveUser = await this.userRepository.createUser(
+      username,
+      email,
+      filename,
+    );
     return {
       id: saveUser.id,
       username: saveUser.username,
@@ -41,7 +35,7 @@ export class AuthService {
     };
   }
 
-  async validateUser(email: string, accessToken: string): Promise<any> {
+  async validateUser(email: string, accessToken: string) {
     console.log('validateUser');
     const existUser = await this.userRepository.findOneBy({
       email: email,
@@ -70,11 +64,11 @@ export class AuthService {
     return { firstLogin: true };
   }
 
-  verifyToken(jwt: string): any {
+  verifyToken(jwt: string): LoginUserInfoDto {
     return this.jwtService.verify(jwt);
   }
 
-  async getToken(user: any) {
+  async getToken(user: LoginUserInfoDto) {
     const { firstLogin, ...payload } = user;
     return {
       accessToken: this.jwtService.sign(payload),

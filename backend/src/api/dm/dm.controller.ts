@@ -12,6 +12,7 @@ import { Dm } from '../../core/dm/dm.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { isUUID } from 'class-validator';
 import { BadRequestException } from '@nestjs/common';
+import { SuccessOrFailDto } from '../dto/success-or-fail.dto';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -53,14 +54,11 @@ export class DmController {
   createDmRoom(
     @Request() request,
     @Param('invitedUserId') invitedUserId: string,
-  ) {
+  ): Promise<SuccessOrFailDto> {
     if (!isUUID(invitedUserId)) {
       throw new BadRequestException('id가 uuid가 아님');
     }
     const userId = request.user.id;
     return this.dmService.createDmRoom(userId, invitedUserId);
   }
-
-  //   @Patch()
-  //   getOUtDm() {}
 }

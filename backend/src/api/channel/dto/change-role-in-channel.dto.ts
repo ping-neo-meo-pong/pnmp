@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsString } from 'class-validator';
+import { IsEnum } from 'class-validator';
 import { RoleInChannel } from '../../../enum/role-in-channel.enum';
 
 export class ChangeRoleInChannelDto {

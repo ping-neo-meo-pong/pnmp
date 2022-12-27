@@ -1,7 +1,8 @@
-import { Repository } from 'typeorm';
+import { Repository, In, Not } from 'typeorm';
 import { GameHistory } from './game-history.entity';
 import { CustomRepository } from '../../typeorm-ex.decorator';
 import { History } from './dto/game-history.dto';
+import { WinLose } from '../../enum/win-lose.enum';
 
 @CustomRepository(GameHistory)
 export class GameHistoryRepository extends Repository<GameHistory> {
@@ -15,6 +16,7 @@ export class GameHistoryRepository extends Repository<GameHistory> {
       gameRoomId: history.gameRoomId,
     } as any);
   }
+
   async getHistorys(userId: string): Promise<GameHistory[]> {
     const Historys = await this.find({
       relations: ['userId'],
@@ -22,7 +24,31 @@ export class GameHistoryRepository extends Repository<GameHistory> {
     });
     return Historys;
   }
-  // async uploadHistory(history: GameHistory) : Promise<History> {
-  //     return await this.update(history);
-  // }
+
+  async findGameHistorys(userId: string): Promise<GameHistory[]> {
+    return await this.find({
+      relations: ['userId', 'gameRoomId'],
+      where: { userId: { id: userId } },
+    });
+  }
+
+  async findWonGameHistorys(userId: string): Promise<GameHistory[]> {
+    return await this.find({
+      relations: ['userId', 'gameRoomId'],
+      where: { userId: { id: userId }, win: WinLose.WIN },
+    });
+  }
+
+  async findGameHistorysOfOther(
+    userId: string,
+    gameRooms: string[],
+  ): Promise<GameHistory[]> {
+    return await this.find({
+      relations: ['userId', 'gameRoomId'],
+      where: {
+        gameRoomId: { id: In(gameRooms) },
+        userId: { id: Not(userId) },
+      },
+    });
+  }
 }

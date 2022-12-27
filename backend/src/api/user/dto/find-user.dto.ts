@@ -5,5 +5,5 @@ export class FindUserDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
-  readonly username: string;
+  readonly username?: string;
 }

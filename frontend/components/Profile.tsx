@@ -88,7 +88,7 @@ export default function Profile({ userName }: { userName: string }) {
             // console.log(`history data`);
             // console.log(res.data);
             for (let i in historys) {
-              let time = `${historys[i].gameRoom.createdAt}`;
+              let time = `${historys[i].gameRoom.startAt}`;
               brr.push(
                 <Box>
                   <Grid container spacing={0}>
@@ -103,7 +103,7 @@ export default function Profile({ userName }: { userName: string }) {
                       {historys[i].user.win}
                     </Grid>
                     <Grid item xs={3}>
-                      {userName} {" VS"} {historys[i].other.profile.username}{" "}
+                      {userName} {" VS"} {historys[i].other.username}{" "}
                     </Grid>
                     <Grid item xs={4}></Grid>
                     <Grid item xs={12}>

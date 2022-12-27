@@ -178,7 +178,7 @@ function GoToDmRoom({ dmRoom }: any) {
 
   return (
     <div>
-      <button onClick={onClickDmRoom}>DM with {dmRoom.otherUser}</button>
+      <button onClick={onClickDmRoom}>DM with {dmRoom?.otherUser?.username ?? 'null'}</button>
     </div>
   );
 }

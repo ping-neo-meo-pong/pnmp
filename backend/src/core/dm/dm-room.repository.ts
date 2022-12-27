@@ -35,7 +35,7 @@ export class DmRoomRepository extends Repository<DmRoom> {
     });
   }
 
-  async findAndCountByParticipants(
+  async findByParticipants(
     userId: string,
     invitedUserId: string,
   ): Promise<DmRoom> {

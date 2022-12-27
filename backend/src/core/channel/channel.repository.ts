@@ -32,4 +32,19 @@ export class ChannelRepository extends Repository<Channel> {
     createChannelData.password = hashPassword;
     return await this.save(createChannelData.toChannelEntity());
   }
+
+  async findChannelByName(channelName: string) {
+    return await this.findOne({
+      where: {
+        channelName: channelName,
+        deletedAt: IsNull(),
+      },
+    });
+  }
+
+  async findChannelById(channelId: string) {
+    return await this.findOne({
+      where: { id: channelId, deletedAt: IsNull() },
+    });
+  }
 }
