@@ -36,8 +36,7 @@ export default function Profile({ userId }: { userId: string }) {
   const [isBlocked, setIsBlocked] = useState(false);
   const [userName, setUserName] = useState("");
   const [userStatus, setUserStatus] = useState("OFFLINE");
-  // const [userImage, setUserImage] = useState("");
-  const { userImage, setUserImage } = useContext(UserImageContext);
+  const [userImage, setUserImage] = useState("");
   const [imageOpen, setImageOpen] = useState(false);
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
 
@@ -45,6 +44,7 @@ export default function Profile({ userId }: { userId: string }) {
   const [twoFaDialogOpen, setTwoFaDialogOpen] = useState(false);
   const [QRCode, setQRCode] = useState("");
   const [inputCode, setInputCode] = useState("");
+  const [isExist, setIsExist] = useState(true);
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -64,6 +64,7 @@ export default function Profile({ userId }: { userId: string }) {
     axios // profile
       .get(`/server/api/user/${userId}`)
       .then(function (res) {
+        setIsExist(true);
 
         const user = res.data;
         setUserLadder(user.ladder);
@@ -108,6 +109,7 @@ export default function Profile({ userId }: { userId: string }) {
         setTestHistory(brr);
       })
       .catch((e) => {
+        setIsExist(false);
         console.error(e);
       });
     // if (user.ladder == 0) router.push("/clients");
@@ -138,18 +140,23 @@ export default function Profile({ userId }: { userId: string }) {
       });
   }
 
+  if (!isExist)
+    return <h1>User not exist</h1>;
+
   return (
     <Box>
       {/* <ListItemButton sx={{ justifyContent: "center" }}> */}
       <ImageDialog
         open={imageOpen}
         onClose={() => setImageOpen(false)}
+        onSave={setUserImage}
       />
       <Box display="flex" justifyContent="center" sx={{ py: 2 }}>
         <Button
-          onClick={() => {
-            setImageOpen(true);
-          }}
+          onClick={userId === me.id
+            ? () => setImageOpen(true)
+            : () => {}
+          }
         >
           <Avatar sx={{ width: 100, height: 100 }} src={userImage} />
         </Button>
@@ -172,6 +179,7 @@ export default function Profile({ userId }: { userId: string }) {
             setNameDialogOpen={setNameDialogOpen}
             nameDialogOpen={nameDialogOpen}
             accessToken={me.accessToken}
+            onChange={setUserName}
           />
         </Typography>
         <br />
@@ -319,9 +327,9 @@ export default function Profile({ userId }: { userId: string }) {
   );
 }
 
-function ImageDialog({ open, onClose }) {
+function ImageDialog({ open, onClose, onSave }) {
   const [image, setImage] = useState(null);
-  const { userImage, setUserImage } = useContext(UserImageContext);
+  const { setMyProfileImage } = useContext(LoginUserContext);
 
   function handleClose() {
     setImage(null);
@@ -349,7 +357,8 @@ function ImageDialog({ open, onClose }) {
       })
       .then((res) => {
         handleClose();
-        setUserImage(res.data.profileImage);
+        onSave(res.data.profileImage);
+        setMyProfileImage(res.data.profileImage);
       })
       .catch((e) => {
         console.log(e);
@@ -374,9 +383,14 @@ function SetNameDialog({
   setNameDialogOpen,
   nameDialogOpen,
   accessToken,
+  onChange,
 }: any) {
   const router = useRouter();
   const [setName, setSetName] = useState("");
+  const { setMyName } = useContext(LoginUserContext);
+
+  const me = getLoginUser();
+  console.log(me);
 
   return (
     <Dialog onClose={() => setNameDialogOpen(false)} open={nameDialogOpen}>
@@ -406,14 +420,14 @@ function SetNameDialog({
                 const loginUser = {
                   id: res.data.id,
                   username: setName.trim(),
-                  jwt: accessToken,
+                  jwt: me.jwt,
                 };
                 window.localStorage.setItem(
                   "loginUser",
                   JSON.stringify(loginUser)
                 );
-                router.push(`/profile/${setName}`);
-                setSetName(setName.trim());
+                onChange(setName.trim());
+                setMyName(setName.trim());
               })
               .catch((e) => {
                 console.error(e);

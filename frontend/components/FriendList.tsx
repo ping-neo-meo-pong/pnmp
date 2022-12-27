@@ -37,7 +37,7 @@ export default function FriendList({ friendships }: any) {
             }}
           >
             <ListItemAvatar>
-              <Avatar src={friend.profileImage}>P</Avatar>
+              <Avatar src={friend.profileImage} />
             </ListItemAvatar>
             <ListItemText primary={friend.username} />
           </ListItemButton>

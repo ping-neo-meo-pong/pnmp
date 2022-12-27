@@ -59,8 +59,11 @@ function Copyright(props: any) {
 
 export default function Home() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status: status} = useSession();
 
+  console.log(session);
+  console.log(status);
+  console.log("count");
   if (session) {
     if (isLoggedIn()) router.push("/clients");
     else {
@@ -87,7 +90,7 @@ export default function Home() {
             window.localStorage.setItem("loginUser", JSON.stringify(loginUser));
             router.push("/clients");
           }
-        });
+        })
     }
   }
   return (
