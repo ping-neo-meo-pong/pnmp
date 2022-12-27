@@ -59,16 +59,17 @@ function Copyright(props: any) {
 
 export default function Home() {
   const router = useRouter();
-  const { data: session } = useSession();
+  const { data: session, status: status } = useSession();
+  const { renderNeed, setRenderNeed } = useState<boolean>(false);
 
-  if (session) {
-    if (isLoggedIn()) router.push("/clients");
-    else {
+  if (status === "authenticated") {
+    if (isLoggedIn()) {
+      router.push("/clients");
+    } else {
       axios
         .post("/server/api/auth/login", {
           email: session.user.email,
           accessToken: session.accessToken,
-          //   username: session.user.name,
         })
         .then((res) => {
           console.log(`index:`);
