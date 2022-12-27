@@ -7,10 +7,12 @@ import Avatar from "@mui/material/Avatar";
 import { useRouter } from "next/router";
 import { useState, useEffect } from "react";
 import { getLoginUser } from "../lib/login";
+import { Badge, Tooltip } from "@mui/material";
 
 export default function FriendList({ friendships }: any) {
   const router = useRouter();
   const [loginUser, setLoginUser]: any = useState(null);
+  const [userStatus, setUserStatus] = useState("OFFLINE");
 
   useEffect(() => {
     setLoginUser(getLoginUser());
@@ -29,6 +31,9 @@ export default function FriendList({ friendships }: any) {
             ? friendship.userFriendId
             : friendship.userId;
 
+        console.log("friend:");
+        console.log(friend);
+
         return (
           <ListItemButton
             key={friendship.id}
@@ -37,7 +42,24 @@ export default function FriendList({ friendships }: any) {
             }}
           >
             <ListItemAvatar>
-              <Avatar src={friend.profileImage}>P</Avatar>
+              <Tooltip title={friend.status} placement="left">
+                <Badge
+                  color={
+                    friend.status === "ONLINE"
+                      ? "success"
+                      : friend.status === "INGAME"
+                      ? "secondary"
+                      : "error"
+                  }
+                  variant="dot"
+                  anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "right",
+                  }}
+                >
+                  <Avatar src={friend.profileImage}>P</Avatar>
+                </Badge>
+              </Tooltip>
             </ListItemAvatar>
             <ListItemText primary={friend.username} />
           </ListItemButton>
