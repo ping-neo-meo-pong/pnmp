@@ -33,7 +33,7 @@ export default function FriendList({ friendships }: any) {
           <ListItemButton
             key={friendship.id}
             onClick={() => {
-              router.push(`/profile/${friend.username}`);
+              router.push(`/profile/${friend.id}`);
             }}
           >
             <ListItemAvatar>

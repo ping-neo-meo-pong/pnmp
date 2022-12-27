@@ -23,7 +23,7 @@ export default function UserMenu() {
 
   const handleProfile = () => {
     setAnchorEl(null);
-    router.push(`/profile/${user.username}`);
+    router.push(`/profile/${user.id}`);
   };
 
   const handleLogout = async () => {

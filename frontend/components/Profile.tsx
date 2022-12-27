@@ -25,17 +25,16 @@ import React from "react";
 import { regex } from "../lib/regex";
 import { useQRCode } from "next-qrcode";
 import Image from "next/image";
-import { UserImageContext } from '../lib/contexts';
+import { LoginUserContext } from '../lib/contexts';
 
-export default function Profile({ userName }: { userName: string }) {
+export default function Profile({ userId }: { userId: string }) {
   const router = useRouter();
   const me = getLoginUser();
   //   const [user, setUser]: any = useState({});
   const [userLadder, setUserLadder]: any = useState(0);
   const [testHistory, setTestHistory]: any[] = useState([]);
-  const [inviteModal, setInviteModal] = useState(<></>);
   const [isBlocked, setIsBlocked] = useState(false);
-  const [userId, setUserId] = useState("");
+  const [userName, setUserName] = useState("");
   const [userStatus, setUserStatus] = useState("OFFLINE");
   // const [userImage, setUserImage] = useState("");
   const { userImage, setUserImage } = useContext(UserImageContext);
@@ -50,84 +49,69 @@ export default function Profile({ userName }: { userName: string }) {
   useEffect(() => {
     if (!router.isReady) return;
 
-    axios
-      .get(`/server/api/user?username=${userName}`)
+    axios // isBlock?
+      .get(`/server/api/user/block`)
+      .then((res) => {
+        console.log(res.data);
+        const blocks = res.data;
+        if (blocks.find((block: any) => block.blockedUserId.id === userId))
+          setIsBlocked(true);
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+
+    axios // profile
+      .get(`/server/api/user/${userId}`)
       .then(function (res) {
-        // setUser(...res.data);
-        // setUser(res.data[0]);
-        const user = res.data[0];
+
+        const user = res.data;
         setUserLadder(user.ladder);
-        setUserId(user.id);
         setUserStatus(user.status);
         setUserImage(user.profileImage);
         setChecked(user.twoFactorAuth);
-        console.log(`user:`);
-        console.log(user);
-        console.log(`${me.username} vs ${userName}`);
-        if (me.username != userName) {
-          setInviteModal(<InviteModalWithUserName userName={userName} />);
-        } else {
-          setInviteModal(<></>);
-        }
-        axios // isBlock?
-          .get(`/server/api/user/block`)
-          .then((res) => {
-            console.log(res.data);
-            const blocks = res.data;
-            if (blocks.find((block: any) => block.blockedUserId.id === user.id))
-              setIsBlocked(true);
-          })
-          .catch((e) => {
-            console.error(e);
-          });
+        setUserName(user.username);
 
-        axios // history
-          .get(`/server/api/user/${user.id}`)
-          .then(function (res) {
-            let brr: any = [];
-            const historys = res.data.matchHistory;
-            // console.log(`history data`);
-            // console.log(res.data);
-            for (let i in historys) {
-              let time = `${historys[i].gameRoom.startAt}`;
-              brr.push(
-                <Box>
-                  <Grid container spacing={0}>
-                    <Grid item xs={3}></Grid>
-                    <Grid
-                      item
-                      xs={2}
-                      sx={{
-                        color: historys[i].user.win == "WIN" ? "blue" : "red",
-                      }}
-                    >
-                      {historys[i].user.win}
-                    </Grid>
-                    <Grid item xs={3}>
-                      {userName} {" VS"} {historys[i].other.username}{" "}
-                    </Grid>
-                    <Grid item xs={4}></Grid>
-                    <Grid item xs={12}>
-                      {" score:"} {historys[i].user.score}
-                      {" Ladder:"} {historys[i].user.ladder}
-                      {" time:"} {time.slice(0, 10)}
-                    </Grid>
-                  </Grid>
-                  <br />
-                </Box>
-              );
-            }
-            setTestHistory(brr);
-          })
-          .catch((e) => {
-            console.error(e);
-          });
+        let brr: any = [];
+        const historys = user.matchHistory;
+        // console.log(`history data`);
+        // console.log(res.data);
+        for (let i in historys) {
+          let time = `${historys[i].gameRoom.startAt}`;
+          brr.push(
+            <Box>
+              <Grid container spacing={0}>
+                <Grid item xs={3}></Grid>
+                <Grid
+                  item
+                  xs={2}
+                  sx={{
+                    color: historys[i].user.win == "WIN" ? "blue" : "red",
+                  }}
+                >
+                  {historys[i].user.win}
+                </Grid>
+                <Grid item xs={3}>
+                  {userName} {" VS"} {historys[i].other.username}{" "}
+                </Grid>
+                <Grid item xs={4}></Grid>
+                <Grid item xs={12}>
+                  {" score:"} {historys[i].user.score}
+                  {" Ladder:"} {historys[i].user.ladder}
+                  {" time:"} {time.slice(0, 10)}
+                </Grid>
+              </Grid>
+              <br />
+            </Box>
+          );
+        }
+        setTestHistory(brr);
       })
       .catch((e) => {
         console.error(e);
       });
     // if (user.ladder == 0) router.push("/clients");
-  }, [router.isReady, userName]);
+  }, [router.isReady, userId]);
 
   if (!router.isReady) return <></>;
 
@@ -280,7 +264,10 @@ export default function Profile({ userName }: { userName: string }) {
             인증하기
           </Button>
         </Dialog>
-        {inviteModal}{" "}
+        {me.id !== userId && (
+          <InviteModalWithUserName userName={userName} />
+        )}
+        {" "}
         {userStatus === "INGAME" && (
           <Button
             color="success"

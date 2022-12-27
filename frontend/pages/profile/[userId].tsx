@@ -15,11 +15,11 @@ import Profile from "../../components/Profile";
 export default function ProfilePage() {
   useSocketAuthorization();
   const router = useRouter();
-  const name = `${router.query.user_name}`;
+  const userId = `${router.query.userId}`;
 
   return (
     <Layout>
-      <Profile userName={name} />
+      <Profile userId={userId} />
     </Layout>
   );
 }
