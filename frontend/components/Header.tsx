@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import Toolbar from "@mui/material/Toolbar";
 import Button from "@mui/material/Button";
 import SearchIcon from "@mui/icons-material/Search";
@@ -16,10 +16,11 @@ import Notifications from "@mui/icons-material/Notifications";
 import IconButton from "@mui/material/IconButton";
 import NotificationMenu from "./NotificationMenu";
 import axios from "axios";
+import { UserImageContext } from '../lib/contexts';
 
 export default function Header({ title }: any) {
   const [userName, setUserName] = useState<string>("");
-  const [userImage, setUserImage] = useState<string>("");
+  const { userImage, setUserImage } = useContext(UserImageContext);
   const router = useRouter();
 
   useEffect(() => {
