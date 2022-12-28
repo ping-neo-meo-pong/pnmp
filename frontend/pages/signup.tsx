@@ -65,11 +65,10 @@ export default function SignUp() {
       data: body,
     })
       .then((res) => {
-        console.log(res.data);
         const loginUser = {
           id: res.data.id,
           username: res.data.username.trim(),
-          jwt: res.data.jwt,
+          jwt: res.data.accessToken,
         };
         window.localStorage.setItem("loginUser", JSON.stringify(loginUser));
         router.replace("/clients");
