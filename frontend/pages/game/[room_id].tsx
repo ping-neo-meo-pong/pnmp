@@ -13,7 +13,7 @@ import {
   draw_ball,
   draw_countDown,
   draw_countDown2,
-} from "./sketch";
+} from "../../lib/sketch";
 import { getLoginUser } from "../../lib/login";
 import Layout from "../../components/Layout";
 
