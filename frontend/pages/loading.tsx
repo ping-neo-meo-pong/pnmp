@@ -33,8 +33,6 @@ export default function Loading() {
 
     const router = useRouter();
     const { data: session, status: status } = useSession();
-    if (status === "unauthenticated")
-        router.replace("/");
 
     if (status === "authenticated")
     {

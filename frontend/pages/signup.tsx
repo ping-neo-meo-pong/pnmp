@@ -11,7 +11,7 @@ import Avatar from "@mui/joy/Avatar";
 import { CssVarsProvider } from "@mui/joy/styles";
 import axios from "axios";
 import { regex } from "../lib/regex";
-import { useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
 function Copyright(props: any) {
@@ -31,13 +31,16 @@ function Copyright(props: any) {
 }
 
 export default function SignUp() {
-  const { data: session } = useSession();
+  const { data: session, status: status } = useSession({required: true,
+    onUnauthenticated() {
+      signOut({callbackUrl: "http://localhost"});
+    },});
   const router = useRouter();
   const [createObjectURL, setCreateObjectURL] = useState(null);
   const [image, setImage] = useState(null);
   const [userName, setUserName] = useState("");
   const [isClicked, setIsClicked] = useState(false);
-
+  console.log("sign up: " + status);
   const uploadToClient = (event) => {
     if (event.target.files && event.target.files[0]) {
       const img = event.target.files[0];
@@ -68,11 +71,10 @@ export default function SignUp() {
       data: body,
     })
       .then((res) => {
-        console.log(res.data);
         const loginUser = {
           id: res.data.id,
           username: res.data.username.trim(),
-          jwt: res.data.jwt,
+          jwt: res.data.accessToken,
         };
         window.localStorage.setItem("loginUser", JSON.stringify(loginUser));
         router.replace("/clients");

@@ -1,22 +1,9 @@
-import { useRouter } from "next/router";
-import { useEffect } from "react";
 import axios from "axios";
 import { signOut } from "next-auth/react";
 
 export function isLoggedIn(): boolean {
-  //   console.log(
-  //     `isLoggedIn(): localStorage.loginUser: ${window.localStorage.loginUser}`
-  //   );
   return !!window.localStorage.loginUser;
 }
-
-// export function useLoginGuard() {
-//   const router = useRouter();
-
-//   useEffect(() => {
-//     if (!isLoggedIn()) router.replace("/");
-//   }, []);
-// }
 
 export function logout() {
   axios
