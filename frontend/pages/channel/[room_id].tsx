@@ -1,5 +1,3 @@
-import { Socket, io } from "socket.io-client";
-// import { user_data, socket } from "../login";
 import axios from "axios";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -21,7 +19,7 @@ export default function Channel() {
   const router = useRouter();
 
   const roomId = `${router.query.room_id}`;
-  const [channel, setChannel] = useState(null);
+  const [channel, setChannel]: any = useState(null);
 
   const [msgList, setMsgList] = useState<any>([]);
   let loginUser: any = getLoginUser();
@@ -37,7 +35,7 @@ export default function Channel() {
         .then(function (res) {
           const chList = res.data.channels;
           for (const ch of chList) {
-            if (ch.id == roomId) {
+            if (ch.id === roomId) {
               setChannel(ch);
             }
           }
@@ -65,7 +63,7 @@ export default function Channel() {
                 console.log(
                   `${message.sendUserId.id} vs ${block.blockedUserId.id}`
                 );
-                if (message.sendUserId.id == block.blockedUserId.id) {
+                if (message.sendUserId.id === block.blockedUserId.id) {
                   console.log(`blocked!!`);
                   isSendUserBlocked = true;
                 }
@@ -87,7 +85,6 @@ export default function Channel() {
         })
         .catch((e) => {
           console.error(e);
-          // router.push("/login", );
         });
     }
     socket.on(`youBanned`, () => {
@@ -102,20 +99,18 @@ export default function Channel() {
   }, [router.isReady, router.query.room_id]);
 
   function onSubmitMessage(message: string) {
-    axios
-      .get(`/server/api/channel/${roomId}/me`)
-      .then((res) => {
-        if (!res.data.userMute) {
-          const msgData = {
-            roomId: router.query.room_id,
-            userId: loginUser.id,
-            username: loginUser.username,
-            msg: message,
-          };
-          console.log(msgData);
-          socket.emit(`channelMessage`, msgData);
-        }
-      });
+    axios.get(`/server/api/channel/${roomId}/me`).then((res) => {
+      if (!res.data.userMute) {
+        const msgData = {
+          roomId: router.query.room_id,
+          userId: loginUser.id,
+          username: loginUser.username,
+          msg: message,
+        };
+        console.log(msgData);
+        socket.emit(`channelMessage`, msgData);
+      }
+    });
   }
 
   const [open, setOpen] = useState<boolean>(false);
@@ -177,16 +172,6 @@ export default function Channel() {
       </Box>
     </Layout>
   );
-  /*
-      <h1>{roomName}</h1>
-      <form id="username" onSubmit={onSubmitMessage}>
-        <input type="text" id="message" name="message" />
-        <button type="submit">send_message</button>
-      </form>
-      {msgList.map((msg: any) => (
-        <ChannelMessage key={msg?.id} channelMessage={msg} />
-      ))}
-  */
 }
 
 function ChannelMessage({ channelMessage }: any) {
@@ -204,19 +189,9 @@ function ChannelMessage({ channelMessage }: any) {
 }
 
 function MessageList({ messages }: any) {
-  // const date = new Date(message?.createdAt);
   return (
     <List sx={{ flex: 1, overflowY: "scroll" }}>
-      {messages.map((message) => (
-        // <ListItem>
-        //   <ListItemText
-        //     primaryTypographyProps={{ variant: "h6" }}
-        //     primary={`${message?.sendUserId?.username}: ${message?.message}`}
-        //   ></ListItemText>
-        //   <ListItemText
-        //     secondary={new Date(message?.createdAt).toLocaleString()}
-        //   ></ListItemText>
-        // </ListItem>
+      {messages.map((message: any) => (
         <>
           <h2 style={{ display: "inline" }}>{message?.sendUserId?.username}</h2>
           <span> {new Date(message?.createdAt).toLocaleString()}</span>

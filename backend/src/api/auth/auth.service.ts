@@ -37,6 +37,9 @@ export class AuthService {
 
   async validateUser(email: string, accessToken: string) {
     console.log('validateUser');
+    if (!email) {
+      return null;
+    }
     const existUser = await this.userRepository.findOneBy({
       email: email,
     });

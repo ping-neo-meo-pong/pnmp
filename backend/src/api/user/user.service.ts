@@ -78,7 +78,7 @@ export class UserService {
       const regex = /[^가-힣\w\s]/g;
       if (trimUserName === '' || trimUserName.length > 10) {
         throw new BadRequestException('잘못된 이름입니다.');
-      } else if (regex.test(trimUserName) == true) {
+      } else if (regex.test(trimUserName) === true) {
         throw new BadRequestException(
           '특수문자가 포함되있거나 잘못된 이름입니다.',
         );

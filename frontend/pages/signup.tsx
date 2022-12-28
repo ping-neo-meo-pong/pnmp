@@ -11,7 +11,7 @@ import Avatar from "@mui/joy/Avatar";
 import { CssVarsProvider } from "@mui/joy/styles";
 import axios from "axios";
 import { regex } from "../lib/regex";
-import { signIn, useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
 function Copyright(props: any) {
@@ -31,24 +31,25 @@ function Copyright(props: any) {
 }
 
 export default function SignUp() {
-  const { data: session, status: status } = useSession({required: true,
+  const { data: session, status: status } = useSession({
+    required: true,
     onUnauthenticated() {
-      signOut({callbackUrl: "http://localhost"});
-    },});
+      signOut({ callbackUrl: "http://localhost" });
+    },
+  });
   const router = useRouter();
-  const [createObjectURL, setCreateObjectURL] = useState(null);
+  const [createObjectURL, setCreateObjectURL] = useState("");
   const [image, setImage] = useState(null);
   const [userName, setUserName] = useState("");
   const [isClicked, setIsClicked] = useState(false);
-  console.log("sign up: " + status);
-  const uploadToClient = (event) => {
+
+  const uploadToClient = (event: any) => {
     if (event.target.files && event.target.files[0]) {
       const img = event.target.files[0];
 
       setImage(img);
       setCreateObjectURL(URL.createObjectURL(img));
     }
-    console.log("I'm Here");
   };
 
   const handleSubmit = async () => {
@@ -60,13 +61,14 @@ export default function SignUp() {
       return;
     }
     const body = new FormData();
-    console.log(session);
-    body.append("profileImage", image);
+    if (image) {
+      body.append("profileImage", image);
+    }
     axios({
       headers: {
         "Content-Type": "multipart/form-data",
       },
-      url: `/server/api/auth/signup?username=${userName}&email=${session.user.email}`, // 파일 업로드 요청 URL
+      url: `/server/api/auth/signup?username=${userName}&email=${session?.user.email}`, // 파일 업로드 요청 URL
       method: "POST",
       data: body,
     })
@@ -87,7 +89,6 @@ export default function SignUp() {
 
   return (
     <CssVarsProvider>
-      {/* <FormControl onSubmit={handleSubmit}> */}
       <FormControl>
         <Sheet
           variant="outlined"
@@ -107,7 +108,7 @@ export default function SignUp() {
         >
           <Image src="/pu.svg" alt="home" width={220} height={180} />
           <Avatar
-            src={createObjectURL}
+            src={createObjectURL ?? undefined}
             size="lg"
             sx={{
               width: 180,

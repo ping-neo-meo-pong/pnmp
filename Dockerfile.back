@@ -2,4 +2,4 @@ FROM node:latest
 
 EXPOSE $BACKEND_PORT
 
-CMD ["sh", "/backend.sh"]
+ENTRYPOINT ["sh", "/backend.sh"]

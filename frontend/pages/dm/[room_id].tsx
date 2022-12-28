@@ -8,17 +8,11 @@ import { useSocketAuthorization } from "../../lib/socket";
 import { getLoginUser } from "../../lib/login";
 import Layout from "../../components/Layout";
 import {
-  Avatar,
   Box,
-  Grid,
   IconButton,
   InputAdornment,
   List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
   TextField,
-  Typography,
 } from "@mui/material";
 import { bodyHeight } from "../../components/constants";
 import SendIcon from "@mui/icons-material/Send";
@@ -65,8 +59,8 @@ export default function Dm() {
             dmSocket.off(`drawDm`);
           });
         })
-        .catch(() => {
-          // router.push("/login", );
+        .catch((e) => {
+          console.error(e);
         });
     }
   }, [router.isReady, router.query.room_id]);
@@ -116,19 +110,9 @@ export default function Dm() {
 }
 
 function MessageList({ messages }: any) {
-  // const date = new Date(message?.createdAt);
   return (
     <List sx={{ flex: 1, overflowY: "scroll" }}>
-      {messages.map((message) => (
-        // <ListItem>
-        //   <ListItemText
-        //     primaryTypographyProps={{ variant: "h6" }}
-        //     primary={`${message?.sendUserId?.username}: ${message?.message}`}
-        //   ></ListItemText>
-        //   <ListItemText
-        //     secondary={new Date(message?.createdAt).toLocaleString()}
-        //   ></ListItemText>
-        // </ListItem>
+      {messages.map((message: any) => (
         <>
           <h2 style={{ display: "inline" }}>{message?.sendUserId?.username}</h2>
           <span> {new Date(message?.createdAt).toLocaleString()}</span>

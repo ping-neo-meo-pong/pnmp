@@ -14,7 +14,7 @@ export default function PasswordDialog({ open, onClose, onSubmit }: any) {
     onClose();
   }
 
-  function submit(password) {
+  function submit(password: string) {
     onSubmit(password);
     setPassword("");
   }

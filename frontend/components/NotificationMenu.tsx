@@ -1,13 +1,6 @@
-import Button from "@mui/material/Button";
-import Paper from "@mui/material/Paper";
-import Popper from "@mui/material/Popper";
 import MenuItem from "@mui/material/MenuItem";
 import MenuList from "@mui/material/MenuList";
-import Stack from "@mui/material/Stack";
-import MenuIcon from "@mui/icons-material/Menu";
 import IconButton from "@mui/material/IconButton";
-import { useRouter } from "next/router";
-import { getLoginUser, logout } from "../lib/login";
 import Notifications from "@mui/icons-material/Notifications";
 import { socket } from "../lib/socket";
 import { useEffect, useState } from "react";
@@ -16,8 +9,6 @@ import { Menu } from "@mui/material";
 
 export default function NotificationMenu() {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const router = useRouter();
-  const user = getLoginUser();
   const open = Boolean(anchorEl);
 
   const handleToggle = (event: React.MouseEvent<HTMLElement>) => {
@@ -49,7 +40,7 @@ export default function NotificationMenu() {
   );
 }
 
-function GetRequestedFriend({ onClick }) {
+function GetRequestedFriend({ onClick }: any) {
   useEffect(() => getAndSetFriends(), []);
   const [friendships, setFriendships]: any[] = useState([]);
 
@@ -63,7 +54,9 @@ function GetRequestedFriend({ onClick }) {
           //   ...response.data.sendRequest,
         ]);
       })
-      .catch((error) => {});
+      .catch((e) => {
+        console.error(e);
+      });
   }
   return friendships.map((friendship: any) => (
     <MenuItem
@@ -85,7 +78,7 @@ function GetRequestedFriend({ onClick }) {
   ));
 }
 
-function GetInvitedChannel({ onClick }) {
+function GetInvitedChannel({ onClick }: any) {
   const [invitedChannel, setInvitedChannel]: any[] = useState([]);
   useEffect(() => {
     axios.get(`/server/api/user/channel`).then((res) => {
@@ -116,7 +109,7 @@ function GetInvitedChannel({ onClick }) {
   return <>{invitedChannel}</>;
 }
 
-function GetInvitedGame({ onClick }) {
+function GetInvitedGame({ onClick }: any) {
   const [invitedGameRoom, setInvitedGameRoom]: any[] = useState([]);
   useEffect(() => {
     let newGameRoomList: any[] = [];

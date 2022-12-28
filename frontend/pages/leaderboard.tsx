@@ -1,4 +1,4 @@
-import Router, { useRouter } from "next/router";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { socket, useSocketAuthorization } from "../lib/socket";
@@ -26,8 +26,8 @@ export default function LeaderBoard() {
           newUserList.push(<GoToUser key={User.id} User={User} />);
         setUserList(newUserList);
       })
-      .catch(() => {
-        // router.push("/login");
+      .catch((e) => {
+        console.error(e);
       });
 
     return () => {
