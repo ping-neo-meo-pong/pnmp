@@ -154,8 +154,8 @@ export class ChannelService {
     }
     if (channel.password) {
       const passwordCompare = await bcrypt.compare(
-        channel.password,
         channelPassword.password,
+        channel.password,
       );
       if (!passwordCompare) {
         throw new BadRequestException('비밀번호가 틀렸습니다');
@@ -316,6 +316,27 @@ export class ChannelService {
     }
   }
 
+  async findUserInChannl(userId: string, channelId: string) {
+    const channel = await this.channelRepository.findChannelById(channelId);
+    if (!channel) {
+      throw new BadRequestException('채널 정보가 잘못됨');
+    }
+    const channelUser =
+      await this.channelMemberRepository.findChannelJoinCurrently(
+        userId,
+        channelId,
+      );
+    if (!channelUser) {
+      throw new BadRequestException('해당 채널의 멤버가 아님');
+    }
+    const channelUserInfo = {
+      ...this.changeUserInfo(channelUser.userId),
+      userRoleInChannel: channelUser.roleInChannel,
+      userMute: channelUser.muteEndAt < new Date() ? false : true,
+    };
+    return channelUserInfo;
+  }
+
   async changePassword(
     userId: string,
     channelId: string,
@@ -375,7 +396,7 @@ export class ChannelService {
     return targetIdJoinInChannel;
   }
 
-  async restirctByWebSiteAdmin(
+  async restirctByChannelOwner(
     userId: string,
     channelId: string,
     targetId: string,
@@ -394,15 +415,11 @@ export class ChannelService {
         targetId,
         channelId,
       );
-    if (!isExistChannel || !targetIdJoinInChannel) {
-      throw new BadRequestException(
-        '채널에 대한 권한이 없거나 해당 유저를 차단할 수 없습니다.',
-      );
-    }
-
     if (
+      !isExistChannel ||
       !adminUserInChannel ||
-      targetIdJoinInChannel.roleInChannel === RoleInChannel.OWNER ||
+      !targetIdJoinInChannel ||
+      targetIdJoinInChannel?.roleInChannel === RoleInChannel.OWNER ||
       changeRole.roleInChannel === RoleInChannel.OWNER
     ) {
       throw new BadRequestException(
@@ -443,7 +460,9 @@ export class ChannelService {
     await this.channelMemberRepository.update(target.id, {
       banEndAt: banEndAt,
       leftAt: () => 'CURRENT_TIMESTAMP',
+      roleInChannel: RoleInChannel.NORMAL,
     });
+
     return { success: true };
   }
 
@@ -453,7 +472,7 @@ export class ChannelService {
     targetId: string,
     changeRole: ChangeRoleInChannelDto,
   ): Promise<SuccessOrFailDto> {
-    const target = await this.restirctByWebSiteAdmin(
+    const target = await this.restirctByChannelOwner(
       userId,
       channelId,
       targetId,
