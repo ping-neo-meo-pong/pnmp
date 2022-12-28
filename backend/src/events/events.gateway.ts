@@ -576,7 +576,10 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         data.userId,
         data.roomId,
       );
-    if (joinChannels === null) {
+    if (!joinChannels) {
+      throw new BadRequestException('채널 정보가 잘못됨');
+    }
+    if (joinChannels.muteEndAt > new Date()) {
       console.log(`you cant send message`);
       return;
     }
