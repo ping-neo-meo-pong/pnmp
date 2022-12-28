@@ -26,10 +26,9 @@ export default function UserMenu() {
     router.push(`/profile/${user.username}`);
   };
 
-  const handleLogout = async () => {
+  const handleLogout = () => {
     setAnchorEl(null);
-    await logout();
-    await signOut({callbackUrl: "http://localhost"});
+    logout();
   };
 
   const open = Boolean(anchorEl);

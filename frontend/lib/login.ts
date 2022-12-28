@@ -1,6 +1,7 @@
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import axios from "axios";
+import { signOut } from "next-auth/react";
 
 export function isLoggedIn(): boolean {
   //   console.log(
@@ -9,16 +10,16 @@ export function isLoggedIn(): boolean {
   return !!window.localStorage.loginUser;
 }
 
-export function useLoginGuard() {
-  const router = useRouter();
+// export function useLoginGuard() {
+//   const router = useRouter();
 
-  useEffect(() => {
-    if (!isLoggedIn()) router.replace("/");
-  }, []);
-}
+//   useEffect(() => {
+//     if (!isLoggedIn()) router.replace("/");
+//   }, []);
+// }
 
-export async function logout() {
-  await axios
+export function logout() {
+  axios
     .post("/server/api/auth/logout")
     .then(async (res) => {
       window.localStorage.removeItem("loginUser");
@@ -26,6 +27,7 @@ export async function logout() {
     .catch((e) => {
       console.error(e);
     });
+  signOut({callbackUrl: "https://localhost"});
 }
 
 export function getLoginUser() {
