@@ -130,7 +130,6 @@ export function InviteModal() {
           <Typography id="modal-modal-title" variant="h6" component="h2">
             Invite User!
           </Typography>
-
           <ToggleButtonGroup
             value={alignment}
             exclusive
@@ -143,7 +142,7 @@ export function InviteModal() {
             <ToggleButton value="HARD" aria-label="HARD">
               HARD <CallSplitIcon />
             </ToggleButton>
-          </ToggleButtonGroup>
+          </ToggleButtonGroup>{" "}
           {alignment}
           <br />
           <br />
@@ -255,7 +254,6 @@ export function InviteModalWithUserName({ userName }: any) {
           <Typography id="modal-modal-title" variant="h6" component="h2">
             Invite User!
           </Typography>
-
           <ToggleButtonGroup
             value={alignment}
             exclusive
@@ -268,7 +266,7 @@ export function InviteModalWithUserName({ userName }: any) {
             <ToggleButton value="HARD" aria-label="HARD">
               HARD <CallSplitIcon />
             </ToggleButton>
-          </ToggleButtonGroup>
+          </ToggleButtonGroup>{" "}
           {alignment}
           <br />
           <br />
@@ -367,9 +365,8 @@ export function MatchingModal() {
       >
         <Box sx={style}>
           <Typography id="modal-modal-title" variant="h6" component="h2">
-            Invite User!
+            Find User!
           </Typography>
-
           <ToggleButtonGroup
             value={alignment}
             exclusive
@@ -382,7 +379,7 @@ export function MatchingModal() {
             <ToggleButton value="HARD" aria-label="HARD">
               HARD <CallSplitIcon />
             </ToggleButton>
-          </ToggleButtonGroup>
+          </ToggleButtonGroup>{" "}
           {alignment}
           <br />
           <br />
