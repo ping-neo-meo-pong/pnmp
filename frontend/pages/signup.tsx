@@ -36,6 +36,7 @@ export default function SignUp() {
   const [createObjectURL, setCreateObjectURL] = useState(null);
   const [image, setImage] = useState(null);
   const [userName, setUserName] = useState("");
+  const [isClicked, setIsClicked] = useState(false);
 
   const uploadToClient = (event) => {
     if (event.target.files && event.target.files[0]) {
@@ -48,6 +49,7 @@ export default function SignUp() {
   };
 
   const handleSubmit = async () => {
+    setIsClicked(true);
     if (regex(userName, 10)) {
       close();
       alert("잘못된 이름입니다");
@@ -62,7 +64,9 @@ export default function SignUp() {
           return;
         }
       })
-      .catch((error) => {});
+      .catch((error) => {
+        setIsClicked(false);
+      });
     const body = new FormData();
     console.log(session);
     body.append("profileImage", image);
@@ -76,10 +80,11 @@ export default function SignUp() {
     })
       .then((res) => {
         console.log(res.data);
-        router.push("/clients");
+        router.replace("/clients");
       })
       .catch((e) => {
         console.log(e);
+        setIsClicked(false);
       });
   };
 
@@ -138,6 +143,7 @@ export default function SignUp() {
               handleSubmit();
             }}
             sx={{ width: 300 }}
+            disabled={isClicked}
           >
             Sign Up
           </Button>
