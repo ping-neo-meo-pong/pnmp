@@ -14,6 +14,8 @@ import {
   TextField,
   Typography,
   DialogActions,
+  Chip,
+  Badge,
 } from "@mui/material";
 import { useEffect, useState, forwardRef, useContext } from "react";
 import axios from "axios";
@@ -25,7 +27,7 @@ import React from "react";
 import { regex } from "../lib/regex";
 import { useQRCode } from "next-qrcode";
 import Image from "next/image";
-import { UserImageContext } from '../lib/contexts';
+import { UserImageContext } from "../lib/contexts";
 
 export default function Profile({ userName }: { userName: string }) {
   const router = useRouter();
@@ -89,28 +91,46 @@ export default function Profile({ userName }: { userName: string }) {
             // console.log(`history data`);
             // console.log(res.data);
             for (let i in historys) {
-              let time = `${historys[i].gameRoom.startAt}`;
+              let time = new Date(
+                historys[i].gameRoom.startAt
+              ).toLocaleString();
               brr.push(
                 <Box>
                   <Grid container spacing={0}>
-                    <Grid item xs={3}></Grid>
-                    <Grid
-                      item
-                      xs={2}
-                      sx={{
-                        color: historys[i].user.win == "WIN" ? "blue" : "red",
-                      }}
-                    >
-                      {historys[i].user.win}
-                    </Grid>
-                    <Grid item xs={3}>
-                      {userName} {" VS"} {historys[i].other.username}{" "}
-                    </Grid>
-                    <Grid item xs={4}></Grid>
                     <Grid item xs={12}>
+                      <Chip
+                        label={historys[i].user.win}
+                        size="small"
+                        color={
+                          historys[i].user.win === "WIN" ? "primary" : "error"
+                        }
+                        sx={{
+                          mx: "auto", // margin left & right
+                          my: 1, // margin top & botom
+                          borderRadius: "sm",
+                          boxShadow: "md",
+                          alignItems: "center",
+                        }}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      {userName} {" VS"} {historys[i].other.username}
+                    </Grid>
+                    <Grid item xs={12}>
+                      {historys[i].user.username}
+                      {" : "}
                       {" score:"} {historys[i].user.score}
                       {" Ladder:"} {historys[i].user.ladder}
-                      {" time:"} {time.slice(0, 10)}
+                    </Grid>
+                    <Grid item xs={12}>
+                      {historys[i].other.username}
+                      {" : "}
+                      {" score:"} {historys[i].other.score}
+                      {" Ladder:"} {historys[i].other.ladder}
+                    </Grid>
+                    <Grid item xs={12}>
+                      {" time:"}{" "}
+                      {new Date(historys[i].gameRoom.startAt).toLocaleString()}
                     </Grid>
                   </Grid>
                   <br />
@@ -157,17 +177,32 @@ export default function Profile({ userName }: { userName: string }) {
   return (
     <Box>
       {/* <ListItemButton sx={{ justifyContent: "center" }}> */}
-      <ImageDialog
-        open={imageOpen}
-        onClose={() => setImageOpen(false)}
-      />
+      <ImageDialog open={imageOpen} onClose={() => setImageOpen(false)} />
       <Box display="flex" justifyContent="center" sx={{ py: 2 }}>
         <Button
           onClick={() => {
             setImageOpen(true);
           }}
         >
-          <Avatar sx={{ width: 100, height: 100 }} src={userImage} />
+          <Badge
+            badgeContent={
+              <EditIcon
+                sx={{
+                  py: 0.5,
+                  px: 0.5,
+                  margin: 0,
+                  border: 1,
+                  borderRadius: 50,
+                }}
+              />
+            }
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "right",
+            }}
+          >
+            <Avatar sx={{ width: 100, height: 100 }} src={userImage} />
+          </Badge>
         </Button>
       </Box>
       <Box textAlign={"center"}>
@@ -360,13 +395,29 @@ function ImageDialog({ open, onClose }) {
         method: "PATCH",
         data: body,
       })
-      .then((res) => {
-        handleClose();
-        setUserImage(res.data.profileImage);
+        .then((res) => {
+          handleClose();
+          setUserImage(res.data.profileImage);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    } else {
+      axios({
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        url: `/server/api/user/profile-image`, // 파일 업로드 요청 URL
+        method: "PATCH",
+        data: null,
       })
-      .catch((e) => {
-        console.log(e);
-      });
+        .then((res) => {
+          handleClose();
+          setUserImage(res.data.profileImage);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
     }
   }
 

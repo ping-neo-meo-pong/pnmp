@@ -437,7 +437,9 @@ export class UserService {
         },
       }),
     );
-    const gameHistories = Array.from(gameHistory.values());
+    const gameHistories = Array.from(gameHistory.values()).sort(
+      (x, y) => y.gameRoom.startAt - x.gameRoom.startAt,
+    );
 
     if (loginId === userId) {
       return {

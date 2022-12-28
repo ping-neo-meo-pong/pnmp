@@ -7,6 +7,9 @@ import { UserRepository } from 'src/core/user/user.repository';
 import { GameMode } from 'src/enum/game-mode.enum';
 import { GameQueueRepository } from 'src/core/game/game-queue.repository';
 import { GameHistory } from 'src/core/game/game-history.entity';
+import { GameRoomInfoDto } from 'src/api/game/dto/game-room-info.dto';
+import { User } from '../../core/user/user.entity';
+import { UserInfoDto } from '../user/dto/user-info.dto';
 
 @Injectable()
 export class GameService {
@@ -19,7 +22,28 @@ export class GameService {
     private gameQueueRepository: GameQueueRepository,
   ) {}
 
-  async getGames(): Promise<GameRoomDto[]> {
+  changeUserInfo(oldInfo: User) {
+    const newInfo: UserInfoDto = new UserInfoDto();
+    newInfo.id = oldInfo.id;
+    newInfo.username = oldInfo.username;
+    newInfo.profileImage = oldInfo.profileImage;
+    newInfo.status = oldInfo.status;
+    newInfo.ladder = oldInfo.ladder;
+    return newInfo;
+  }
+
+  changeGameInfo(oldInfo: GameRoomDto): GameRoomInfoDto {
+    const newInfo: GameRoomInfoDto = new GameRoomInfoDto();
+    newInfo.id = oldInfo.id;
+    newInfo.leftUser = this.changeUserInfo(oldInfo.leftUser);
+    newInfo.rightUser = this.changeUserInfo(oldInfo.rightUser);
+    newInfo.gameMode = oldInfo.gameMode;
+    newInfo.startAt = oldInfo.startAt;
+    console.log(newInfo);
+    return newInfo;
+  }
+
+  async getGames() {
     const gameRooms = await this.gameRoomRepository.findAll();
     console.log('getGames');
     console.log(gameRooms);
@@ -30,10 +54,11 @@ export class GameService {
     const ttt = [];
     for (const i in gameRooms) {
       console.count(`hi`);
-      if (gameRooms[i]) ttt.push(gameRooms[i].gameRoomDto);
+      if (gameRooms[i]) ttt.push(this.changeGameInfo(gameRooms[i].gameRoomDto));
     }
     return ttt;
   }
+
   async getHistorys(userId: string): Promise<GameHistory[]> {
     const Historys = await this.gameHistoryRepository.getHistorys(userId);
     const result = [];
