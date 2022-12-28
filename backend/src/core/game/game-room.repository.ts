@@ -11,7 +11,6 @@ import { CustomRepository } from 'src/typeorm-ex.decorator';
 @CustomRepository(GameRoom)
 export class GameRoomRepository extends Repository<GameRoom> {
   private gameRooms: any = {};
-  // private nextRoomId = 0;
 
   async createGameRoom(gameRoomData: CreateGameRoomDto): Promise<GameRoom> {
     const gameRoom = this.create(gameRoomData);
@@ -19,11 +18,11 @@ export class GameRoomRepository extends Repository<GameRoom> {
     return gameRoom;
   }
 
-  async getGameRooms(userToken): Promise<GameRoom[]> {
-    const gameRooms = await this.find({
+  async getGameRooms(): Promise<GameRoom[]> {
+    const gameRoom = await this.find({
       relations: ['leftUserId', 'rightUserId'],
     });
-    return gameRooms;
+    return gameRoom;
   }
 
   async getGameRoomOne(userId): Promise<GameRoom> {
@@ -47,19 +46,17 @@ export class GameRoomRepository extends Repository<GameRoom> {
     const gameRoom = await this.createGameRoom({
       leftUserId: leftUser,
       rightUserId: rightUser,
+      gameMode: gameMode,
     });
-    this.gameRooms[gameRoom.id] = initRoom(
-      leftUser,
-      rightUser,
-      gameMode,
-      gameRoom.id,
-    );
+    this.gameRooms[gameRoom.id] = initRoom(gameRoom);
     return this.gameRooms[gameRoom.id];
   }
 
-  eraseGameRoom(roomId: string) {
+  async eraseGameRoom(roomId: string) {
+    await this.update(roomId, {
+      endAt: () => 'CURRENT_TIMESTAMP',
+    });
     delete this.gameRooms[roomId];
-    // this.gameRooms.erase(roomId);
     console.log(this.gameRooms);
   }
 
@@ -80,42 +77,17 @@ export class GameRoomRepository extends Repository<GameRoom> {
   async findAll(): Promise<Game[]> {
     return this.gameRooms;
   }
-
-  // async getGameRooms(userToken): Promise<Game[]> {
-  //   const gameRooms = await this.find({
-  //     relations: ['leftUserId', 'rightUserId'],
-  //   });
-  //   return gameRooms;
-  // }
-
-  // async getGameRoomOne(userId): Promise<Game> {
-  //   console.log(userId);
-  //   const gameRoom_left = await this.findOneBy({
-  //     leftUserId: { id: userId },
-  //   });
-  //   if (gameRoom_left) return gameRoom_left;
-
-  //   const gameRoom_right = await this.findOneBy({
-  //     rightUserId: { id: userId },
-  //   });
-  //   return gameRoom_right;
-  // }
 }
 
-function initRoom(
-  leftUser: User,
-  rightUser: User,
-  mode: GameMode,
-  roomId: string,
-) {
+function initRoom(gameRoom: GameRoom) {
   const _W = 500;
   const _H = 400;
   let ball_v_x = 5;
   let ball_v_y = 6;
   let plus_speed = 1;
-  if (mode == GameMode.HARD) ball_v_x = 9;
-  if (mode == GameMode.HARD) ball_v_y = 11;
-  if (mode == GameMode.HARD) plus_speed = 2;
+  if (gameRoom.gameMode == GameMode.HARD) ball_v_x = 9;
+  if (gameRoom.gameMode == GameMode.HARD) ball_v_y = 11;
+  if (gameRoom.gameMode == GameMode.HARD) plus_speed = 2;
 
   return {
     gameLoop: null,
@@ -123,12 +95,12 @@ function initRoom(
     p1EndTimer: null,
     p2EndTimer: null,
     gameRoomDto: {
-      id: roomId,
-      leftUser: leftUser,
-      rightUser: rightUser,
-      startAt: new Date(),
-      endAt: new Date(),
-      gameMode: mode,
+      id: gameRoom.id,
+      leftUser: gameRoom.leftUserId,
+      rightUser: gameRoom.rightUserId,
+      startAt: gameRoom.startAt,
+      endAt: gameRoom.endAt,
+      gameMode: gameRoom.gameMode,
       gameData: {
         W: _W,
         H: _H,
