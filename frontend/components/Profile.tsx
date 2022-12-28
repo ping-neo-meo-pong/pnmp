@@ -25,7 +25,7 @@ import React from "react";
 import { regex } from "../lib/regex";
 import { useQRCode } from "next-qrcode";
 import Image from "next/image";
-import { UserImageContext } from '../lib/contexts';
+import { UserImageContext } from "../lib/contexts";
 
 export default function Profile({ userName }: { userName: string }) {
   const router = useRouter();
@@ -89,7 +89,9 @@ export default function Profile({ userName }: { userName: string }) {
             // console.log(`history data`);
             // console.log(res.data);
             for (let i in historys) {
-              let time = `${historys[i].gameRoom.startAt}`;
+              let time = new Date(
+                historys[i].gameRoom.startAt
+              ).toLocaleString();
               brr.push(
                 <Box>
                   <Grid container spacing={0}>
@@ -110,7 +112,7 @@ export default function Profile({ userName }: { userName: string }) {
                     <Grid item xs={12}>
                       {" score:"} {historys[i].user.score}
                       {" Ladder:"} {historys[i].user.ladder}
-                      {" time:"} {time.slice(0, 10)}
+                      {" time:"} {time}
                     </Grid>
                   </Grid>
                   <br />
@@ -157,10 +159,7 @@ export default function Profile({ userName }: { userName: string }) {
   return (
     <Box>
       {/* <ListItemButton sx={{ justifyContent: "center" }}> */}
-      <ImageDialog
-        open={imageOpen}
-        onClose={() => setImageOpen(false)}
-      />
+      <ImageDialog open={imageOpen} onClose={() => setImageOpen(false)} />
       <Box display="flex" justifyContent="center" sx={{ py: 2 }}>
         <Button
           onClick={() => {
@@ -360,13 +359,13 @@ function ImageDialog({ open, onClose }) {
         method: "PATCH",
         data: body,
       })
-      .then((res) => {
-        handleClose();
-        setUserImage(res.data.profileImage);
-      })
-      .catch((e) => {
-        console.log(e);
-      });
+        .then((res) => {
+          handleClose();
+          setUserImage(res.data.profileImage);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
     }
   }
 
