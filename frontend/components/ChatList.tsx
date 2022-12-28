@@ -30,7 +30,7 @@ export default function ChatList({ chats }: any) {
             onClick={() => router.push(`/dm/${chat.id}`)}
           >
             <ListItemAvatar>
-              <Avatar src={otherUser.profileImage}>P</Avatar>
+              <Avatar src={otherUser.profileImage} />
             </ListItemAvatar>
             <ListItemText primary={otherUser.username} />
           </ListItemButton>

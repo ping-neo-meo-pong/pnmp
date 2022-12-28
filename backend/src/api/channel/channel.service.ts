@@ -69,7 +69,7 @@ export class ChannelService {
     if (
       trimName.length === 0 ||
       regex.test(trimName) === true ||
-      trimName.length > 10
+      trimName.length > 20
     ) {
       throw new BadRequestException('잘못된 이름');
     }

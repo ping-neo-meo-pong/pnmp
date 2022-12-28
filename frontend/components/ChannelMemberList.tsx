@@ -280,7 +280,7 @@ export default function ChannelMemberList({
           >
             <ListItemText
               onClick={() => {
-                router.push(`/profile/${member.username}`);
+                router.push(`/profile/${member.id}`);
               }}
               primary={member.username}
             />

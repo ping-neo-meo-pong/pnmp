@@ -69,7 +69,7 @@ function GoToUser({ User }: any) {
   let result: JSX.Element[] = [];
 
   function onClickUser() {
-    router.push(`/profile/${User.username}`);
+    router.push(`/profile/${User.id}`);
   }
 
   return (

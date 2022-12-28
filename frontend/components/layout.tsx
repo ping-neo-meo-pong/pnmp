@@ -3,17 +3,23 @@ import Container from "@mui/material/Container";
 import Header from "./Header";
 import Body from "./Body";
 import { useState } from 'react';
-import { UserImageContext } from '../lib/contexts';
+import { LoginUserContext } from '../lib/contexts';
 
 export default function Layout({ children }: any) {
-  const [ userImage, setUserImage ] = useState(null);
+  const [ myProfileImage, setMyProfileImage ] = useState(null);
+  const [ myName, setMyName ] = useState(null);
 
   return (
-    <UserImageContext.Provider value={{ userImage, setUserImage }}>
+    <LoginUserContext.Provider value={{
+      myProfileImage,
+      setMyProfileImage,
+      myName,
+      setMyName,
+    }}>
       <Container maxWidth="xl">
         <Header title="PNMP" />
         <Body>{children}</Body>
       </Container>
-    </UserImageContext.Provider>
+    </LoginUserContext.Provider>
   );
 }

@@ -23,13 +23,13 @@ export default function UserMenu() {
 
   const handleProfile = () => {
     setAnchorEl(null);
-    router.push(`/profile/${user.username}`);
+    router.push(`/profile/${user.id}`);
   };
 
   const handleLogout = async () => {
     setAnchorEl(null);
     await logout();
-    await signOut();
+    await signOut({callbackUrl:"http://localhost/"});
   };
 
   const open = Boolean(anchorEl);
