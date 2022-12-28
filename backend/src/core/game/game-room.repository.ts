@@ -82,11 +82,11 @@ export class GameRoomRepository extends Repository<GameRoom> {
 function initRoom(gameRoom: GameRoom) {
   const _W = 500;
   const _H = 400;
-  let ball_v_x = 5;
-  let ball_v_y = 6;
+  let ball_v_x = 3;
+  let ball_v_y = 4;
   let plus_speed = 1;
-  if (gameRoom.gameMode == GameMode.HARD) ball_v_x = 9;
-  if (gameRoom.gameMode == GameMode.HARD) ball_v_y = 11;
+  if (gameRoom.gameMode == GameMode.HARD) ball_v_x = 6;
+  if (gameRoom.gameMode == GameMode.HARD) ball_v_y = 7;
   if (gameRoom.gameMode == GameMode.HARD) plus_speed = 2;
 
   return {
@@ -110,8 +110,8 @@ function initRoom(gameRoom: GameRoom) {
         ball: {
           x: _W / 2,
           y: _H / 2,
-          v_x: 6,
-          v_y: 7,
+          v_x: ball_v_x,
+          v_y: ball_v_y,
           plus_speed: plus_speed,
         },
         p1: {

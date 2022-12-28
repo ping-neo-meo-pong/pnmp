@@ -10,11 +10,11 @@ socket.on("disconnect", () => {
 });
 
 export function useSocketAuthorization() {
-  const {status: status} = useSession();
+  const { status: status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (status == "authenticated" && isLoggedIn()) {
+    if (status === "authenticated" && isLoggedIn()) {
       console.log(localStorage.loginUser);
       console.log(`jwt: ${localStorage.loginUser.jwt}`);
       socket.emit("authorize", getLoginUser().jwt);

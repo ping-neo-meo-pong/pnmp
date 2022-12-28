@@ -1,4 +1,3 @@
-// import { GameQue } from "./dto/game-queue.dto";
 import { GameRoomRepository } from './game-room.repository';
 import { UserRepository } from '../user/user.repository';
 import { Game } from './dto/game-room.dto';
@@ -26,13 +25,9 @@ export class GameQueueRepository {
     console.log(this.gameQue);
   }
 
-  // async matchingQue(userId: string, i: number): Promise<GameRoom> {
-  //   return this.checkQue(userId, i);
-  // }
-
   cencelQue(userId: string): boolean {
     for (let i = 0; this.gameQue[i]; i++) {
-      if (userId == this.gameQue[i].userId) {
+      if (userId === this.gameQue[i].userId) {
         clearTimeout(this.getQueLoop(i));
         this.gameQue.splice(i, 1);
         this.idx = this.gameQue.length;
@@ -56,7 +51,6 @@ export class GameQueueRepository {
   }
 
   setWait(idx: number, _wait: number) {
-    console.log(idx);
     this.gameQue[idx].wait = _wait;
   }
   getWait(idx: number): number {
@@ -73,7 +67,7 @@ export class GameQueueRepository {
 
   findIdxByUserId(userId: string): number {
     for (let i = 0; this.gameQue[i]; i++) {
-      if (userId == this.gameQue[i].userId) {
+      if (userId === this.gameQue[i].userId) {
         return i;
       }
     }
@@ -85,16 +79,16 @@ export class GameQueueRepository {
     let myLevel = -1;
     let myidx = 0;
     for (let i = 0; this.gameQue[i]; i++) {
-      if (myId == this.gameQue[i].userId) {
+      if (myId === this.gameQue[i].userId) {
         myLevel = this.gameQue[i].ladder / 10;
         myidx = i;
       }
     }
     for (let idx = 0; this.gameQue[idx]; idx++) {
-      if (myId == this.gameQue[idx].userId || this.gameQue[idx].ladder == -1)
+      if (myId === this.gameQue[idx].userId || this.gameQue[idx].ladder === -1)
         continue;
       if (
-        this.gameQue[myidx].mode == this.gameQue[idx].mode &&
+        this.gameQue[myidx].mode === this.gameQue[idx].mode &&
         _wait > Math.abs(myLevel - this.gameQue[idx].ladder / 10) - 1 &&
         this.gameQue[idx].wait >
           Math.abs(myLevel - this.gameQue[idx].ladder / 10) - 1

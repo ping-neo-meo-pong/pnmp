@@ -1,30 +1,12 @@
-import Head from "next/head";
-// import styles from '../styles/Home.module.css'
 import { useRouter } from "next/dist/client/router";
-import { useState, useEffect, useLayoutEffect } from "react";
-// import Link from "next/link";
-import { isLoggedIn, logout } from "../lib/login";
-
-import CssBaseline from "@mui/material/CssBaseline";
-import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
-import Link from "@mui/material/Link";
-import Grid from "@mui/material/Grid";
-import Box from "@mui/material/Box";
-import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import Typography from "@mui/joy/Typography";
-import Container from "@mui/material/Container";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-
-import axios from "axios";
-import { useSession, signIn, signOut } from "next-auth/react";
+import { logout } from "../lib/login";
+import { useSession, signIn } from "next-auth/react";
 import * as React from "react";
 import { CssVarsProvider } from "@mui/joy/styles";
 import Button from "@mui/joy/Button";
 import Sheet from "@mui/joy/Sheet";
 import Image from "next/image";
-import { socket } from "../lib/socket";
+import { Typography, Link } from "@mui/material";
 
 function Copyright(props: any) {
   return (
@@ -49,8 +31,7 @@ export default function Home() {
 
   const router = useRouter();
   const { data: session, status: status } = useSession();
-  if (status === "authenticated")
-    logout();
+  if (status === "authenticated") logout();
 
   return (
     <>
@@ -74,17 +55,9 @@ export default function Home() {
             <Image src="/pu.svg" alt="home" width={220} height={180} />
           </div>
           <Button
-            loading={status==="loading"}
+            loading={status === "loading"}
             onClick={() => {
-              signIn("github", { callbackUrl: "http://localhost/loading"});
-            }}
-          >
-            Sign with GitHub
-          </Button>
-          <Button
-            loading={status==="loading"}
-            onClick={() => {
-              signIn("42-school", { callbackUrl: "http://localhost/loading"});
+              signIn("42-school", { callbackUrl: "http://localhost/loading" });
             }}
           >
             Sign with 42school

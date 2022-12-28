@@ -12,12 +12,6 @@ import { ValidationPipe } from '@nestjs/common';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  //   cors 및 cookie 설정
-  //   app.enableCors({
-  //     origin: ['http://localhost'],
-  //     credentials: true,
-  //   });
-
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true, // 아무 decorator가 없는 속성 개체를 거른다

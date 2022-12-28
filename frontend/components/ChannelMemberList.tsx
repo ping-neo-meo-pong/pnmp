@@ -8,22 +8,18 @@ import ExitToAppIcon from "@mui/icons-material/ExitToApp";
 import IconButton from "@mui/material/IconButton";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
-import AddIcon from "@mui/icons-material/Add";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import Box from "@mui/material/Box";
 import FormControl from "@mui/material/FormControl";
-import InputLabel from "@mui/material/InputLabel";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { getLoginUser } from "../lib/login";
-import { FiberNew } from "@mui/icons-material";
-import { Router, useRouter } from "next/router";
-import { Avatar, ListItemAvatar } from "@mui/material";
+import { useRouter } from "next/router";
 import { socket } from "../lib/socket";
 
 function ChangeRoleDialog({ open, onClose, onSelect }: any) {
@@ -85,19 +81,10 @@ function RoleButton({
   );
 }
 
-function SetTimeDialog({ title, open, onClose, onSelect }) {
-  /*
-  const choices = [
-    {
-      setTime: () => {
-        const date = new Date;
-        return date.setDate(
-      }
-  ];
-  */
+function SetTimeDialog({ title, open, onClose, onSelect }: any) {
   const [time, setTime] = useState(1);
 
-  const handleChange = (event: SelectChangeEvent) => {
+  const handleChange = (event: any) => {
     setTime(event.target.value);
   };
 
@@ -124,15 +111,18 @@ function SetTimeDialog({ title, open, onClose, onSelect }) {
   );
 }
 
-function MuteButton({ initialIsMuted, channelId, targetId }: any) {
+function MuteButton({
+  initialIsMuted,
+  channelId,
+  targetId,
+}: {
+  initialIsMuted: boolean;
+  channelId: string;
+  targetId: string;
+}) {
   const [isMuted, setIsMuted] = useState(initialIsMuted);
   const [open, setOpen] = useState(false);
 
-  //   if (isIf == 1 || isIf == 2) {
-  //     return (
-  //       <IconButton>{isMuted ? <VolumeOffIcon /> : <VolumeUpIcon />}</IconButton>
-  //     );
-  //   } else {
   return (
     <>
       <IconButton
@@ -188,7 +178,7 @@ function MuteButton({ initialIsMuted, channelId, targetId }: any) {
   );
 }
 
-function BanButton({ channelId, targetId, onBan }) {
+function BanButton({ channelId, targetId, onBan }: any) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -221,7 +211,7 @@ function BanButton({ channelId, targetId, onBan }) {
   );
 }
 
-function OutButton({ channelId }) {
+function OutButton({ channelId }: { channelId: string }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
@@ -290,9 +280,9 @@ export default function ChannelMemberList({
               channelId={channelId}
               targetId={member.id}
             />
-            {myRole == "NORMAL" ||
-            me.id == member.id ||
-            member.userRoleInChannel == "OWNER" ? (
+            {myRole === "NORMAL" ||
+            me.id === member.id ||
+            member.userRoleInChannel === "OWNER" ? (
               <IconButton>
                 <VolumeOffIcon />
               </IconButton>
@@ -303,9 +293,9 @@ export default function ChannelMemberList({
                 targetId={member.id}
               />
             )}
-            {me.id == member.id ? (
+            {me.id === member.id ? (
               <OutButton channelId={channelId} />
-            ) : myRole == "NORMAL" || member.userRoleInChannel == "OWNER" ? (
+            ) : myRole === "NORMAL" || member.userRoleInChannel === "OWNER" ? (
               <IconButton
                 onClick={() => {
                   socket.emit("leaveRoom", channelId);
@@ -328,9 +318,6 @@ export default function ChannelMemberList({
                 }}
               />
             )}
-            {/* <IconButton color="primary">
-              <ExitToAppIcon></ExitToAppIcon>
-            </IconButton> */}
           </ListItem>
         ))}
       </List>

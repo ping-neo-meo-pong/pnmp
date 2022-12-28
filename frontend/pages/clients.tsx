@@ -1,16 +1,9 @@
-import Router, { useRouter } from "next/router";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { socket, useSocketAuthorization } from "../lib/socket";
 import { logout, getLoginUser } from "../lib/login";
 import Layout from "../components/Layout";
-import { useSession, signIn, signOut } from "next-auth/react";
-import { Button } from "@mui/material";
-import {
-  InviteModal,
-  InviteModalWithUserName,
-  MatchingModal,
-} from "../components/InviteModal";
 
 export default function Client() {
   console.log("This is clients");
@@ -64,8 +57,8 @@ export default function Client() {
           newDmRoomList.push(<GoToDmRoom key={dmRoom.id} dmRoom={dmRoom} />);
         setDmRoomList(newDmRoomList);
       })
-      .catch(() => {
-        // router.push("/login");
+      .catch((e) => {
+        console.error(e);
       });
   }
   function getGameRooms() {
@@ -81,7 +74,8 @@ export default function Client() {
           );
         setGameRoomList(newGameRoomList);
       })
-      .catch(() => {
+      .catch((e) => {
+        console.error(e);
       });
     socket.emit("giveMeInvited");
     socket.on(`invitedQue`, (ques) => {
@@ -172,9 +166,6 @@ function GoToDmRoom({ dmRoom }: any) {
   function onClickDmRoom() {
     router.push(`/dm/${dmRoom.id}`);
   }
-  // function onClickGameRoom() {
-  //   router.push(`/game/${dmRoom.id}`);
-  // }
 
   return (
     <div>

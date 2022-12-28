@@ -47,7 +47,7 @@ export class AuthController {
   @UseInterceptors(FileInterceptor('profileImage', multerOptions))
   async signup(
     @Headers('Authorization') accessToken,
-    @Query() userInfo,
+    @Query() userInfo: { username: string; email: string },
     @UploadedFile() file: Express.Multer.File | null | undefined,
     @Res({ passthrough: true }) res,
   ) {
@@ -124,7 +124,6 @@ export class AuthController {
   @ApiConsumes('application/json')
   @ApiBody({ type: OtpDto })
   async otpLogin(
-    @Headers() oAuthToken,
     @Query() query,
     @Body() body,
     @Res({ passthrough: true }) res,
