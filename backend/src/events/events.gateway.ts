@@ -329,6 +329,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     //   if user===L ? R
     if (room.gameRoomDto.leftUser.id === client.user.id) {
       room.gameRoomDto.gameData.p1.in = false;
+      clearInterval(room.p1EndTimer);
       clearInterval(room.startTimer);
       clearInterval(room.gameLoop);
       let countDown = 60;
@@ -345,6 +346,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }, 1000);
     } else if (room.gameRoomDto.rightUser.id === client.user.id) {
       room.gameRoomDto.gameData.p2.in = false;
+      clearInterval(room.p2EndTimer);
       clearInterval(room.startTimer);
       clearInterval(room.gameLoop);
       let countDown = 60;
@@ -455,7 +457,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     let leftWin: WinLose, rightWin: WinLose;
     let leftLadder = room.leftUser.ladder;
     let rightLadder = room.rightUser.ladder;
-    if (room.gameData.p1.score === endScore) {
+    if (room.gameData.p1.score === endScore || room.gameData.p2.score === -1) {
       leftWin = WinLose.WIN;
       leftLadder = room.leftUser.ladder + 1;
       rightWin = WinLose.LOSE;
