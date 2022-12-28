@@ -37,7 +37,7 @@ export function InviteModal() {
   const timerRef = useRef<number>();
 
   const handleClose = () => {
-    if (finding == true) {
+    if (finding === true) {
       console.log(`cencel matching`);
       socket.emit(`cencelMatching`);
       setFinding(false);
@@ -66,15 +66,13 @@ export function InviteModal() {
     console.log(finding);
     event.preventDefault(); // ?
     setFinding((prevfinding) => !prevfinding);
-    if (finding == false) {
+    if (finding === false) {
       if (event.currentTarget.userName.value) {
         socket.emit(`gameToFriend`, {
           invitedUserName: event.currentTarget.userName.value,
-          // invitedUserName: "jw",
           mode: alignment,
         });
         socket.off(`gameToFriend`);
-        // router.push(`/matching`);
       } else {
         alert(`please input name`);
       }
@@ -157,7 +155,7 @@ export function InviteModal() {
           <Button
             type="submit"
             onClick={() => {
-              if (finding == true) {
+              if (finding === true) {
                 console.log(`cencel matching`);
                 socket.emit(`cencelMatching`);
               }
@@ -183,7 +181,7 @@ export function InviteModalWithUserName({ userName }: any) {
   const timerRef = useRef<number>();
 
   const handleClose = () => {
-    if (finding == true) {
+    if (finding === true) {
       console.log(`cencel matching`);
       socket.emit(`cencelMatching`);
       setFinding(false);
@@ -202,7 +200,7 @@ export function InviteModalWithUserName({ userName }: any) {
     console.log(`cookie: ${document.cookie}`);
     console.log(userName);
     setFinding((prevfinding) => !prevfinding);
-    if (finding == false) {
+    if (finding === false) {
       if (userName) {
         socket.emit(`gameToFriend`, {
           invitedUserName: userName,
@@ -273,7 +271,7 @@ export function InviteModalWithUserName({ userName }: any) {
           <Button
             onClick={() => {
               onClickGameInvite();
-              if (finding == true) {
+              if (finding === true) {
                 console.log(`cencel matching`);
                 socket.emit(`cencelMatching`);
               }
@@ -304,7 +302,7 @@ export function MatchingModal() {
   });
 
   const handleClose = () => {
-    if (finding == true) {
+    if (finding === true) {
       console.log(`cencel matching`);
       socket.emit(`cencelMatching`);
       setFinding(false);
@@ -322,7 +320,7 @@ export function MatchingModal() {
   function onClickMatching() {
     console.log(`cookie: ${document.cookie}`);
     setFinding((prevfinding) => !prevfinding);
-    if (finding == false) {
+    if (finding === false) {
       socket.emit("gameMatching", alignment);
     }
   }
@@ -386,7 +384,7 @@ export function MatchingModal() {
           <Button
             onClick={() => {
               onClickMatching();
-              if (finding == true) {
+              if (finding === true) {
                 console.log(`cencel matching`);
                 socket.emit(`cencelMatching`);
               }

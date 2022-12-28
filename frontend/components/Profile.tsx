@@ -7,9 +7,6 @@ import {
   Grid,
   IconButton,
   List,
-  ListItemAvatar,
-  ListItemButton,
-  ListItemText,
   Switch,
   TextField,
   Typography,
@@ -17,7 +14,7 @@ import {
   Chip,
   Badge,
 } from "@mui/material";
-import { useEffect, useState, forwardRef, useContext } from "react";
+import { useEffect, useState, useContext } from "react";
 import axios from "axios";
 import { getLoginUser } from "../lib/login";
 import { useRouter } from "next/router";
@@ -25,14 +22,12 @@ import { InviteModalWithUserName } from "./InviteModal";
 import EditIcon from "@mui/icons-material/Edit";
 import React from "react";
 import { regex } from "../lib/regex";
-import { useQRCode } from "next-qrcode";
 import Image from "next/image";
 import { LoginUserContext } from "../lib/contexts";
 
 export default function Profile({ userId }: { userId: string }) {
   const router = useRouter();
   const me = getLoginUser();
-  //   const [user, setUser]: any = useState({});
   const [userLadder, setUserLadder]: any = useState(0);
   const [testHistory, setTestHistory]: any[] = useState([]);
   const [isBlocked, setIsBlocked] = useState(false);
@@ -41,7 +36,6 @@ export default function Profile({ userId }: { userId: string }) {
   const [userImage, setUserImage] = useState("");
   const [imageOpen, setImageOpen] = useState(false);
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
-
   const [checked, setChecked] = useState(false);
   const [twoFaDialogOpen, setTwoFaDialogOpen] = useState(false);
   const [QRCode, setQRCode] = useState("");
@@ -77,8 +71,6 @@ export default function Profile({ userId }: { userId: string }) {
 
         let brr: any = [];
         const historys = user.matchHistory;
-        // console.log(`history data`);
-        // console.log(res.data);
         for (let i in historys) {
           brr.push(
             <Box>
@@ -128,7 +120,6 @@ export default function Profile({ userId }: { userId: string }) {
         setIsExist(false);
         console.error(e);
       });
-    // if (user.ladder == 0) router.push("/clients");
   }, [router.isReady, userId]);
 
   if (!router.isReady) return <></>;
@@ -238,7 +229,7 @@ export default function Profile({ userId }: { userId: string }) {
             <Switch
               checked={checked}
               onChange={async () => {
-                if (checked == false) {
+                if (checked === false) {
                   setTwoFaDialogOpen(true);
                   await axios.get(`/server/api/auth/2fa-qrcode`).then((res) => {
                     /////////////////   set qrcode   ///////////////
@@ -268,7 +259,7 @@ export default function Profile({ userId }: { userId: string }) {
           }}
         >
           <DialogTitle>OTP</DialogTitle>
-          <Image src={QRCode} width={250} height={250} />
+          <Image src={QRCode} width={250} height={250} alt="QR Code" />
           {/* //////////////// QRCODE //////////////// */}
           <TextField
             label="OTP code"
@@ -354,16 +345,16 @@ export default function Profile({ userId }: { userId: string }) {
   );
 }
 
-function ImageDialog({ open, onClose, onSave }) {
+function ImageDialog({ open, onClose, onSave }: any) {
   const [image, setImage] = useState(null);
-  const { setMyProfileImage } = useContext(LoginUserContext);
+  const { setMyProfileImage } = useContext<any>(LoginUserContext);
 
   function handleClose() {
     setImage(null);
     onClose();
   }
 
-  function handleImageSelect(event) {
+  function handleImageSelect(event: any) {
     if (event.target.files && event.target.files[0]) {
       const img = event.target.files[0];
       setImage(img);
@@ -431,7 +422,7 @@ function SetNameDialog({
 }: any) {
   const router = useRouter();
   const [setName, setSetName] = useState("");
-  const { setMyName } = useContext(LoginUserContext);
+  const { setMyName } = useContext<any>(LoginUserContext);
 
   const me = getLoginUser();
   console.log(me);

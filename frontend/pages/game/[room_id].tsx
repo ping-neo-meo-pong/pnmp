@@ -78,7 +78,6 @@ export default function GameRoom() {
       data.p2.countDown = count;
     });
     socket.on(`game[${roomId}]`, (_data) => {
-      // console.log(`game[${roomId}]`);
       data.p1.countDown = -1;
       data.p2.countDown = -1;
       data = {
@@ -133,7 +132,7 @@ export default function GameRoom() {
     draw_p1_bar(p5, data);
     draw_p2_bar(p5, data);
 
-    if (data.leftUser == userId || data.rightUser == userId) {
+    if (data.leftUser===userId || data.rightUser===userId) {
       let send = {
         roomId: roomId,
         m_y: p5.mouseY,

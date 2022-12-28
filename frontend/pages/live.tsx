@@ -1,4 +1,4 @@
-import Router, { useRouter } from "next/router";
+import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { socket, useSocketAuthorization } from "../lib/socket";
@@ -25,8 +25,8 @@ export default function Live() {
           );
         setGameRoomList(newGameRoomList);
       })
-      .catch(() => {
-        // router.push("/login");
+      .catch((e) => {
+        console.error(e);
       });
     socket.emit("giveMeInvited");
     socket.on(`invitedQue`, (ques) => {
@@ -72,9 +72,6 @@ function GoToGameRoom({ gameRoom }: any) {
 
   function onClickGameRoom() {
     console.log(`come in room~`);
-    console.log(gameRoom.leftUser.id);
-    console.log(gameRoom.rightUser.id);
-
     router.push(`/game/${gameRoom.id}`);
   }
 

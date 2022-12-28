@@ -1,3 +1,0 @@
-#!/bin/sh
-
-vim $(find backend/src -name '*.ts') $(find frontend/pages -name '*.tsx') $(find frontend/lib -name '*.ts') $(find frontend/components -name '*.tsx')

@@ -1,6 +1,4 @@
 import Box from "@mui/material/Box";
-import InputBase from "@mui/material/InputBase";
-import TextField from "@mui/material/TextField";
 import Fab from "@mui/material/Fab";
 import AddIcon from "@mui/icons-material/Add";
 import { useState, useEffect } from "react";
@@ -14,7 +12,7 @@ export default function ChannelPanel() {
   const [joinDialogOpen, setJoinDialogOpen] = useState<boolean>(false);
   const [createDialogOpen, setCreateDialogOpen] = useState<boolean>(false);
   const [passwordDialogOpen, setPasswordDialogOpen] = useState<boolean>(false);
-  const [selectedChannel, setSelectedChannel] = useState(null);
+  const [selectedChannel, setSelectedChannel]: any = useState(null);
   const [channels, setChannels] = useState([]);
 
   useEffect(() => getAndSetChannels(), []);

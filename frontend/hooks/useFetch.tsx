@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import axios, { AxiosResponse } from 'axios';
+import { useEffect, useState } from "react";
+import axios, { AxiosResponse } from "axios";
 
 export default function useFetch(url: string) {
   const [responseJSON, setResponseJSON] = useState<any>(null);

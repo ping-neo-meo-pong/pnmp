@@ -9,8 +9,6 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { getLoginUser } from "../lib/login";
 import ChannelMemberList from "./ChannelMemberList";
-import { Avatar, IconButton, ListItemAvatar } from "@mui/material";
-import Add from "@mui/icons-material/Add";
 import InviteMemberDialog from "./InviteMemberDialog";
 
 export default function ChannelInfoDialog({ channel, open, onClose }: any) {

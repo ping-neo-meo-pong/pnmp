@@ -5,4 +5,4 @@ export class OtpDto {
   @ApiProperty()
   @IsString()
   readonly otp: string;
-};
+}
