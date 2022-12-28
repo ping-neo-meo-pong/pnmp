@@ -479,7 +479,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     clearInterval(room.gameLoop);
     // game history
     // erase gameRoom
-    this.gameRoomRepository.eraseGameRoom(roomId);
+    await this.gameRoomRepository.eraseGameRoom(roomId);
     setTimeout(() => {
       this.server.in(roomId).emit(`getOut!`);
       this.server.socketsLeave(roomId);
