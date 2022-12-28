@@ -644,7 +644,14 @@ function check_wall(dto: GameRoomDto, endScore: number): number {
         dto.gameData.ball.v_x = temp;
       }, 1000);
     } else {
-      dto.gameData.ball.v_x *= -1;
+      const temp_x = dto.gameData.ball.v_x * -1;
+      const temp_y = dto.gameData.ball.v_y * -1;
+      dto.gameData.ball.v_x = 0;
+      dto.gameData.ball.v_y = 0;
+      setTimeout(() => {
+        dto.gameData.ball.v_x = temp_x;
+        dto.gameData.ball.v_y = temp_y;
+      }, 1000);
     }
   } else if (dto.gameData.ball.x + dto.gameData.ball.v_x < 0) {
     // left
@@ -661,7 +668,14 @@ function check_wall(dto: GameRoomDto, endScore: number): number {
         dto.gameData.ball.v_x = temp;
       }, 1000);
     } else {
-      dto.gameData.ball.v_x *= -1;
+      const temp_x = dto.gameData.ball.v_x * -1;
+      const temp_y = dto.gameData.ball.v_y * -1;
+      dto.gameData.ball.v_x = 0;
+      dto.gameData.ball.v_y = 0;
+      setTimeout(() => {
+        dto.gameData.ball.v_x = temp_x;
+        dto.gameData.ball.v_y = temp_y;
+      }, 1000);
     }
   }
   if (
