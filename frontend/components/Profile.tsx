@@ -366,6 +366,22 @@ function ImageDialog({ open, onClose }) {
         .catch((e) => {
           console.log(e);
         });
+    } else {
+      axios({
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        url: `/server/api/user/profile-image`, // 파일 업로드 요청 URL
+        method: "PATCH",
+        data: null,
+      })
+        .then((res) => {
+          handleClose();
+          setUserImage(res.data.profileImage);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
     }
   }
 
