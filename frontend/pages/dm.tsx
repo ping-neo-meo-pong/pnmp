@@ -25,7 +25,7 @@ export default function Dm() {
         dmSocket.emit("dmRooms", newDmRoomList);
       })
       .catch(() => {
-        router.replace("/");
+        // router.replace("/");
       });
   }
 
@@ -41,8 +41,8 @@ export default function Dm() {
         });
       })
       .catch((error) => {
-        router.replace("/");
         alert(error.response.data.message);
+        router.replace("/loading");
       });
   }
 

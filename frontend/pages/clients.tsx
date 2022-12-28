@@ -13,6 +13,7 @@ import {
 } from "../components/InviteModal";
 
 export default function Client() {
+  console.log("This is clients");
   useSocketAuthorization();
   const router = useRouter();
   let myName: any;
@@ -81,7 +82,7 @@ export default function Client() {
         setGameRoomList(newGameRoomList);
       })
       .catch(() => {
-        router.replace("/");
+        // router.replace("/");
       });
     socket.emit("giveMeInvited");
     socket.on(`invitedQue`, (ques) => {
