@@ -11,7 +11,7 @@ import Avatar from "@mui/joy/Avatar";
 import { CssVarsProvider } from "@mui/joy/styles";
 import axios from "axios";
 import { regex } from "../lib/regex";
-import { useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
 function Copyright(props: any) {
@@ -31,12 +31,16 @@ function Copyright(props: any) {
 }
 
 export default function SignUp() {
-  const { data: session } = useSession();
+  const { data: session, status: status } = useSession({required: true,
+    onUnauthenticated() {
+      signOut({callbackUrl: "http://localhost"});
+    },});
   const router = useRouter();
   const [createObjectURL, setCreateObjectURL] = useState(null);
   const [image, setImage] = useState(null);
   const [userName, setUserName] = useState("");
-
+  const [isClicked, setIsClicked] = useState(false);
+  console.log("sign up: " + status);
   const uploadToClient = (event) => {
     if (event.target.files && event.target.files[0]) {
       const img = event.target.files[0];
@@ -48,8 +52,10 @@ export default function SignUp() {
   };
 
   const handleSubmit = async () => {
+    setIsClicked(true);
     if (regex(userName, 10)) {
       close();
+      setIsClicked(false);
       alert("잘못된 이름입니다");
       return;
     }
@@ -74,6 +80,7 @@ export default function SignUp() {
         router.replace("/clients");
       })
       .catch((e) => {
+        setIsClicked(false);
         alert(e.response.data.message);
       });
   };
@@ -133,6 +140,7 @@ export default function SignUp() {
               handleSubmit();
             }}
             sx={{ width: 300 }}
+            disabled={isClicked}
           >
             Sign Up
           </Button>

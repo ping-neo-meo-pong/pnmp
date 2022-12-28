@@ -1,7 +1,7 @@
 import Head from "next/head";
 // import styles from '../styles/Home.module.css'
 import { useRouter } from "next/dist/client/router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect } from "react";
 // import Link from "next/link";
 import { isLoggedIn, logout } from "../lib/login";
 
@@ -17,16 +17,6 @@ import Typography from "@mui/joy/Typography";
 import Container from "@mui/material/Container";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-// export default function Home() {
-//   const router = useRouter();
-
-//   useEffect(() => {
-//     router.push(isLoggedIn() ? "/clients" : "/login");
-//   });
-
-//   return <></>;
-// }
-
 import axios from "axios";
 import { useSession, signIn, signOut } from "next-auth/react";
 import * as React from "react";
@@ -34,10 +24,7 @@ import { CssVarsProvider } from "@mui/joy/styles";
 import Button from "@mui/joy/Button";
 import Sheet from "@mui/joy/Sheet";
 import Image from "next/image";
-import Login from "../components/LoginWithAuth";
-import { SendTimeExtension, SendTimeExtensionSharp } from "@mui/icons-material";
-import { socket, useSocketAuthorization } from "../lib/socket";
-import { userAgent } from "next/server";
+import { socket } from "../lib/socket";
 
 function Copyright(props: any) {
   return (
@@ -58,41 +45,13 @@ function Copyright(props: any) {
 }
 
 export default function Home() {
-  const router = useRouter();
-  const { data: session, status: status} = useSession();
+  console.log("This is Index");
 
-  console.log(session);
-  console.log(status);
-  console.log("count");
-  if (session) {
-    if (isLoggedIn()) router.push("/clients");
-    else {
-      axios
-        .post("/server/api/auth/login", {
-          email: session.user.email,
-          accessToken: session.accessToken,
-          //   username: session.user.name,
-        })
-        .then((res) => {
-          console.log(`index:`);
-          console.log(res.data);
-          if (res.data.firstLogin) {
-            router.push("/signup");
-          } else if (res.data.twoFactorAuth == true) {
-            router.push("/2fa");
-          } else {
-            socket.emit("authorize", res.data.accessToken);
-            const loginUser = {
-              id: res.data.id,
-              username: res.data.username,
-              jwt: res.data.accessToken,
-            };
-            window.localStorage.setItem("loginUser", JSON.stringify(loginUser));
-            router.push("/clients");
-          }
-        })
-    }
-  }
+  const router = useRouter();
+  const { data: session, status: status } = useSession();
+  if (status === "authenticated")
+    logout();
+
   return (
     <>
       <CssVarsProvider>
@@ -115,15 +74,17 @@ export default function Home() {
             <Image src="/pu.svg" alt="home" width={220} height={180} />
           </div>
           <Button
+            loading={status==="loading"}
             onClick={() => {
-              signIn("github");
+              signIn("github", { callbackUrl: "http://localhost/loading"});
             }}
           >
             Sign with GitHub
           </Button>
           <Button
+            loading={status==="loading"}
             onClick={() => {
-              signIn("42-school");
+              signIn("42-school", { callbackUrl: "http://localhost/loading"});
             }}
           >
             Sign with 42school

@@ -13,6 +13,7 @@ import {
 } from "../components/InviteModal";
 
 export default function Client() {
+  console.log("This is clients");
   useSocketAuthorization();
   const router = useRouter();
   let myName: any;
