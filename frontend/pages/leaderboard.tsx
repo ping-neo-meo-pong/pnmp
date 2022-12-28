@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { socket, useSocketAuthorization } from "../lib/socket";
 import Layout from "../components/Layout";
-import { Button, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 
 export default function LeaderBoard() {
   useSocketAuthorization();
@@ -37,7 +37,20 @@ export default function LeaderBoard() {
 
   return (
     <Layout>
-      <Typography> LeaderBoard </Typography>
+		<Box sx={{
+            width: 300,
+            mx: "auto", // margin left & right
+            my: 4, // margin top & botom
+            py: 3, // padding top & bottom
+            px: 2, // padding left & right
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+            borderRadius: "sm",
+            boxShadow: "md",
+			alignItems: "center"
+          }} >
+      <Typography variant="h3"> LeaderBoard </Typography>
       <Button
         onClick={() => {
           getUsers;
@@ -46,6 +59,7 @@ export default function LeaderBoard() {
         reset
       </Button>
       {UserList}
+	  </Box>
     </Layout>
   );
 }
@@ -55,7 +69,7 @@ function GoToUser({ User }: any) {
   let result: JSX.Element[] = [];
 
   function onClickUser() {
-    router.push(`/profile/${User.username}`);
+    router.push(`/profile/${User.id}`);
   }
 
   return (

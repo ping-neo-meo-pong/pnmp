@@ -52,21 +52,10 @@ export default function SignUp() {
     setIsClicked(true);
     if (regex(userName, 10)) {
       close();
+      setIsClicked(false);
       alert("잘못된 이름입니다");
       return;
     }
-    axios
-      .get(`/server/api/user/search/${userName}`)
-      .then((response) => {
-        if (response.data.isExistUser) {
-          close();
-          alert("중복된 이름입니다");
-          return;
-        }
-      })
-      .catch((error) => {
-        setIsClicked(false);
-      });
     const body = new FormData();
     console.log(session);
     body.append("profileImage", image);
@@ -80,11 +69,17 @@ export default function SignUp() {
     })
       .then((res) => {
         console.log(res.data);
+        const loginUser = {
+          id: res.data.id,
+          username: res.data.username.trim(),
+          jwt: res.data.jwt,
+        };
+        window.localStorage.setItem("loginUser", JSON.stringify(loginUser));
         router.replace("/clients");
       })
       .catch((e) => {
-        console.log(e);
         setIsClicked(false);
+        alert(e.response.data.message);
       });
   };
 

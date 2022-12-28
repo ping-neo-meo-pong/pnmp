@@ -82,7 +82,6 @@ export default function Client() {
         setGameRoomList(newGameRoomList);
       })
       .catch(() => {
-        // router.replace("/");
       });
     socket.emit("giveMeInvited");
     socket.on(`invitedQue`, (ques) => {

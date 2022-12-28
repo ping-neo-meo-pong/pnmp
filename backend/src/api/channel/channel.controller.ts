@@ -127,6 +127,21 @@ export class ChannelController {
     return this.channelService.findParticipants(userId, channelId);
   }
 
+  @Get(':channelId/me')
+  @ApiOperation({ summary: '특정 채널에 참여한 나의 정보' })
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  findUserInChannl(
+    @Req() req,
+    @Param('channelId', ParseUUIDPipe) channelId: string,
+  ) {
+    if (!isUUID(channelId)) {
+      throw new BadRequestException('id가 uuid가 아님');
+    }
+    const userId = req.user.id;
+    return this.channelService.findUserInChannl(userId, channelId);
+  }
+
   @Patch(':channelId/password')
   @ApiOperation({ summary: '채널 어드민 유저가 채널의 비밀번호를 변경/제거' })
   @UseGuards(AuthGuard('jwt'))

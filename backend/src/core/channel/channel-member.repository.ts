@@ -111,6 +111,30 @@ export class ChannelMemberRepository extends Repository<ChannelMember> {
     });
   }
 
+  async findChannelJoinAsOwner(userId: string, channelId: string) {
+    return await this.findOne({
+      relations: ['userId', 'channelId'],
+      where: [
+        {
+          userId: { id: userId },
+          joinAt: Not(IsNull()),
+          leftAt: IsNull(),
+          banEndAt: IsNull(),
+          roleInChannel: RoleInChannel.OWNER,
+          channelId: { id: channelId, deletedAt: IsNull() },
+        },
+        {
+          userId: { id: userId },
+          joinAt: Not(IsNull()),
+          leftAt: IsNull(),
+          banEndAt: LessThan(new Date()),
+          roleInChannel: RoleInChannel.OWNER,
+          channelId: { id: channelId, deletedAt: IsNull() },
+        },
+      ],
+    });
+  }
+
   async findChannelHaveJoinOrInvite(userId: string, channelId: string) {
     return await this.findOne({
       relations: ['userId', 'channelId'],

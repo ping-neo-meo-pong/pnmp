@@ -102,14 +102,20 @@ export default function Channel() {
   }, [router.isReady, router.query.room_id]);
 
   function onSubmitMessage(message: string) {
-    const msgData = {
-      roomId: router.query.room_id,
-      userId: loginUser.id,
-      username: loginUser.username,
-      msg: message,
-    };
-    console.log(msgData);
-    socket.emit(`channelMessage`, msgData);
+    axios
+      .get(`/server/api/channel/${roomId}/me`)
+      .then((res) => {
+        if (!res.data.userMute) {
+          const msgData = {
+            roomId: router.query.room_id,
+            userId: loginUser.id,
+            username: loginUser.username,
+            msg: message,
+          };
+          console.log(msgData);
+          socket.emit(`channelMessage`, msgData);
+        }
+      });
   }
 
   const [open, setOpen] = useState<boolean>(false);

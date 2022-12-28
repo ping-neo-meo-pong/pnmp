@@ -14,6 +14,8 @@ import {
   TextField,
   Typography,
   DialogActions,
+  Chip,
+  Badge,
 } from "@mui/material";
 import { useEffect, useState, forwardRef, useContext } from "react";
 import axios from "axios";
@@ -25,20 +27,18 @@ import React from "react";
 import { regex } from "../lib/regex";
 import { useQRCode } from "next-qrcode";
 import Image from "next/image";
-import { UserImageContext } from '../lib/contexts';
+import { LoginUserContext } from "../lib/contexts";
 
-export default function Profile({ userName }: { userName: string }) {
+export default function Profile({ userId }: { userId: string }) {
   const router = useRouter();
   const me = getLoginUser();
   //   const [user, setUser]: any = useState({});
   const [userLadder, setUserLadder]: any = useState(0);
   const [testHistory, setTestHistory]: any[] = useState([]);
-  const [inviteModal, setInviteModal] = useState(<></>);
   const [isBlocked, setIsBlocked] = useState(false);
-  const [userId, setUserId] = useState("");
+  const [userName, setUserName] = useState("");
   const [userStatus, setUserStatus] = useState("OFFLINE");
-  // const [userImage, setUserImage] = useState("");
-  const { userImage, setUserImage } = useContext(UserImageContext);
+  const [userImage, setUserImage] = useState("");
   const [imageOpen, setImageOpen] = useState(false);
   const [nameDialogOpen, setNameDialogOpen] = useState(false);
 
@@ -46,88 +46,90 @@ export default function Profile({ userName }: { userName: string }) {
   const [twoFaDialogOpen, setTwoFaDialogOpen] = useState(false);
   const [QRCode, setQRCode] = useState("");
   const [inputCode, setInputCode] = useState("");
+  const [isExist, setIsExist] = useState(true);
 
   useEffect(() => {
     if (!router.isReady) return;
 
-    axios
-      .get(`/server/api/user?username=${userName}`)
-      .then(function (res) {
-        // setUser(...res.data);
-        // setUser(res.data[0]);
-        const user = res.data[0];
-        setUserLadder(user.ladder);
-        setUserId(user.id);
-        setUserStatus(user.status);
-        setUserImage(user.profileImage);
-        setChecked(user.twoFactorAuth);
-        console.log(`user:`);
-        console.log(user);
-        console.log(`${me.username} vs ${userName}`);
-        if (me.username != userName) {
-          setInviteModal(<InviteModalWithUserName userName={userName} />);
-        } else {
-          setInviteModal(<></>);
-        }
-        axios // isBlock?
-          .get(`/server/api/user/block`)
-          .then((res) => {
-            console.log(res.data);
-            const blocks = res.data;
-            if (blocks.find((block: any) => block.blockedUserId.id === user.id))
-              setIsBlocked(true);
-          })
-          .catch((e) => {
-            console.error(e);
-          });
-
-        axios // history
-          .get(`/server/api/user/${user.id}`)
-          .then(function (res) {
-            let brr: any = [];
-            const historys = res.data.matchHistory;
-            // console.log(`history data`);
-            // console.log(res.data);
-            for (let i in historys) {
-              let time = `${historys[i].gameRoom.startAt}`;
-              brr.push(
-                <Box>
-                  <Grid container spacing={0}>
-                    <Grid item xs={3}></Grid>
-                    <Grid
-                      item
-                      xs={2}
-                      sx={{
-                        color: historys[i].user.win == "WIN" ? "blue" : "red",
-                      }}
-                    >
-                      {historys[i].user.win}
-                    </Grid>
-                    <Grid item xs={3}>
-                      {userName} {" VS"} {historys[i].other.username}{" "}
-                    </Grid>
-                    <Grid item xs={4}></Grid>
-                    <Grid item xs={12}>
-                      {" score:"} {historys[i].user.score}
-                      {" Ladder:"} {historys[i].user.ladder}
-                      {" time:"} {time.slice(0, 10)}
-                    </Grid>
-                  </Grid>
-                  <br />
-                </Box>
-              );
-            }
-            setTestHistory(brr);
-          })
-          .catch((e) => {
-            console.error(e);
-          });
+    axios // isBlock?
+      .get(`/server/api/user/block`)
+      .then((res) => {
+        console.log(res.data);
+        const blocks = res.data;
+        if (blocks.find((block: any) => block.blockedUserId.id === userId))
+          setIsBlocked(true);
       })
       .catch((e) => {
         console.error(e);
       });
+
+    axios // profile
+      .get(`/server/api/user/${userId}`)
+      .then(function (res) {
+        setIsExist(true);
+
+        const user = res.data;
+        setUserLadder(user.ladder);
+        setUserStatus(user.status);
+        setUserImage(user.profileImage);
+        setChecked(user.twoFactorAuth);
+        setUserName(user.username);
+
+        let brr: any = [];
+        const historys = user.matchHistory;
+        // console.log(`history data`);
+        // console.log(res.data);
+        for (let i in historys) {
+          brr.push(
+            <Box>
+              <Grid container spacing={0}>
+                <Grid item xs={12}>
+                  <Chip
+                    label={historys[i].user.win}
+                    size="small"
+                    color={historys[i].user.win === "WIN" ? "primary" : "error"}
+                    sx={{
+                      mx: "auto", // margin left & right
+                      my: 1, // margin top & botom
+                      borderRadius: "sm",
+                      boxShadow: "md",
+                      alignItems: "center",
+                    }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  {historys[i].user.username} {" VS"}{" "}
+                  {historys[i].other.username}
+                </Grid>
+                <Grid item xs={12}>
+                  {historys[i].user.username}
+                  {" : "}
+                  {" score:"} {historys[i].user.score}
+                  {" Ladder:"} {historys[i].user.ladder}
+                </Grid>
+                <Grid item xs={12}>
+                  {historys[i].other.username}
+                  {" : "}
+                  {" score:"} {historys[i].other.score}
+                  {" Ladder:"} {historys[i].other.ladder}
+                </Grid>
+                <Grid item xs={12}>
+                  {" time:"}{" "}
+                  {new Date(historys[i].gameRoom.startAt).toLocaleString()}
+                </Grid>
+              </Grid>
+              <br />
+            </Box>
+          );
+        }
+        setTestHistory(brr);
+      })
+      .catch((e) => {
+        setIsExist(false);
+        console.error(e);
+      });
     // if (user.ladder == 0) router.push("/clients");
-  }, [router.isReady, userName]);
+  }, [router.isReady, userId]);
 
   if (!router.isReady) return <></>;
 
@@ -154,20 +156,40 @@ export default function Profile({ userName }: { userName: string }) {
       });
   }
 
+  if (!isExist) return <h1>User not exist</h1>;
+
   return (
     <Box>
-      {/* <ListItemButton sx={{ justifyContent: "center" }}> */}
       <ImageDialog
         open={imageOpen}
         onClose={() => setImageOpen(false)}
+        onSave={setUserImage}
       />
       <Box display="flex" justifyContent="center" sx={{ py: 2 }}>
         <Button
-          onClick={() => {
-            setImageOpen(true);
-          }}
+          onClick={userId === me.id ? () => setImageOpen(true) : () => {}}
         >
-          <Avatar sx={{ width: 100, height: 100 }} src={userImage} />
+          <Badge
+            badgeContent={
+              me.id === userId && (
+                <EditIcon
+                  sx={{
+                    py: 0.5,
+                    px: 0.5,
+                    margin: 0,
+                    border: 1,
+                    borderRadius: 50,
+                  }}
+                />
+              )
+            }
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "right",
+            }}
+          >
+            <Avatar sx={{ width: 100, height: 100 }} src={userImage} />
+          </Badge>
         </Button>
       </Box>
       <Box textAlign={"center"}>
@@ -188,6 +210,7 @@ export default function Profile({ userName }: { userName: string }) {
             setNameDialogOpen={setNameDialogOpen}
             nameDialogOpen={nameDialogOpen}
             accessToken={me.accessToken}
+            onChange={setUserName}
           />
         </Typography>
         <br />
@@ -203,10 +226,9 @@ export default function Profile({ userName }: { userName: string }) {
               : "inherit"
           }
           variant="outlined"
-          size="small"
         >
           {userStatus}
-        </Button>
+        </Button>{" "}
         {me.id === userId && (
           <Box
             justifyContent="center"
@@ -280,7 +302,7 @@ export default function Profile({ userName }: { userName: string }) {
             인증하기
           </Button>
         </Dialog>
-        {inviteModal}{" "}
+        {me.id !== userId && <InviteModalWithUserName userName={userName} />}{" "}
         {userStatus === "INGAME" && (
           <Button
             color="success"
@@ -332,9 +354,9 @@ export default function Profile({ userName }: { userName: string }) {
   );
 }
 
-function ImageDialog({ open, onClose }) {
+function ImageDialog({ open, onClose, onSave }) {
   const [image, setImage] = useState(null);
-  const { userImage, setUserImage } = useContext(UserImageContext);
+  const { setMyProfileImage } = useContext(LoginUserContext);
 
   function handleClose() {
     setImage(null);
@@ -360,13 +382,31 @@ function ImageDialog({ open, onClose }) {
         method: "PATCH",
         data: body,
       })
-      .then((res) => {
-        handleClose();
-        setUserImage(res.data.profileImage);
+        .then((res) => {
+          handleClose();
+          onSave(res.data.profileImage);
+          setMyProfileImage(res.data.profileImage);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    } else {
+      axios({
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+        url: `/server/api/user/profile-image`, // 파일 업로드 요청 URL
+        method: "PATCH",
+        data: null,
       })
-      .catch((e) => {
-        console.log(e);
-      });
+        .then((res) => {
+          handleClose();
+          onSave(res.data.profileImage);
+          setMyProfileImage(res.data.profileImage);
+        })
+        .catch((e) => {
+          console.log(e);
+        });
     }
   }
 
@@ -387,9 +427,14 @@ function SetNameDialog({
   setNameDialogOpen,
   nameDialogOpen,
   accessToken,
+  onChange,
 }: any) {
   const router = useRouter();
   const [setName, setSetName] = useState("");
+  const { setMyName } = useContext(LoginUserContext);
+
+  const me = getLoginUser();
+  console.log(me);
 
   return (
     <Dialog onClose={() => setNameDialogOpen(false)} open={nameDialogOpen}>
@@ -419,14 +464,14 @@ function SetNameDialog({
                 const loginUser = {
                   id: res.data.id,
                   username: setName.trim(),
-                  jwt: accessToken,
+                  jwt: me.jwt,
                 };
                 window.localStorage.setItem(
                   "loginUser",
                   JSON.stringify(loginUser)
                 );
-                router.push(`/profile/${setName}`);
-                setSetName(setName.trim());
+                onChange(setName.trim());
+                setMyName(setName.trim());
               })
               .catch((e) => {
                 console.error(e);

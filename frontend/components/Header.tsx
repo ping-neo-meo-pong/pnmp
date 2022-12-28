@@ -16,22 +16,26 @@ import Notifications from "@mui/icons-material/Notifications";
 import IconButton from "@mui/material/IconButton";
 import NotificationMenu from "./NotificationMenu";
 import axios from "axios";
-import { UserImageContext } from '../lib/contexts';
+import { LoginUserContext } from '../lib/contexts';
 
 export default function Header({ title }: any) {
-  const [userName, setUserName] = useState<string>("");
-  const { userImage, setUserImage } = useContext(UserImageContext);
+  const {
+    myProfileImage,
+    setMyProfileImage,
+    myName,
+    setMyName,
+  } = useContext(LoginUserContext);
   const router = useRouter();
 
   useEffect(() => {
     const me = getLoginUser();
-    setUserName(me.username);
+    setMyName(me.username);
     axios
       .get(`/server/api/user/${me.id}`)
       .then((res) => {
         console.log("res.data");
         console.log(res.data);
-        setUserImage(res.data.profileImage);
+        setMyProfileImage(res.data.profileImage);
       })
       .catch((e) => {
         console.error(e);
@@ -78,7 +82,7 @@ export default function Header({ title }: any) {
         </Grid>
         <Grid item xs={12} md={3}>
           <Stack direction="row" spacing={2} alignItems="center">
-            <Avatar src={userImage}>P</Avatar>
+            <Avatar src={myProfileImage} />
             <Typography
               component="h2"
               variant="h6"
@@ -86,7 +90,7 @@ export default function Header({ title }: any) {
               noWrap
               sx={{ flex: 1 }}
             >
-              {userName}
+              {myName}
             </Typography>
             <UserMenu />
           </Stack>
