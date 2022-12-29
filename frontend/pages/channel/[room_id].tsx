@@ -1,6 +1,6 @@
 import axios from "axios";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useSocketAuthorization } from "../../lib/socket";
 import { getLoginUser } from "../../lib/login";
 import Layout from "../../components/Layout";
@@ -191,8 +191,14 @@ function ChannelMessage({ channelMessage }: any) {
 }
 
 function MessageList({ messages }: any) {
+  const messageListRef = useRef(null);
+
+  useEffect(() => {
+    messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+  }, [messages])
+
   return (
-    <List sx={{ flex: 1, overflowY: "scroll" }}>
+    <List sx={{ flex: 1, overflowY: "scroll" }} ref={messageListRef}>
       {messages.map((message: any) => (
         <>
           <h2 style={{ display: "inline" }}>{message?.sendUserId?.username}</h2>
