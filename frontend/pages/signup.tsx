@@ -34,7 +34,7 @@ export default function SignUp() {
   const { data: session, status: status } = useSession({
     required: true,
     onUnauthenticated() {
-      signOut({ callbackUrl: "/" });
+      router.replace("/");
     },
   });
   const router = useRouter();

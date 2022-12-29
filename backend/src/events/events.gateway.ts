@@ -58,7 +58,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private channelMemberRepository: ChannelMemberRepository,
     private channelRepository: ChannelRepository,
     private blockRepository: BlockRepository,
-  ) {}
+  ) { }
 
   async handleConnection() {
     console.log('connected');
@@ -496,6 +496,12 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
+  @SubscribeMessage('giveMeGameUser')
+  async giveMeGameUser(@ConnectedSocket() client: UserSocket, @MessageBody() roomId: string) {
+    const room = await this.gameRoomRepository.findById(roomId);
+    client.emit("gameUser", { leftUserName: room.gameRoomDto.leftUser.username, rightUserName: room.gameRoomDto.rightUser.username });
+  }
+
   @SubscribeMessage('cencelMatching')
   async cencelMatcing(@ConnectedSocket() client: UserSocket) {
     if (this.gameQueueRepository.cencelQue(client.user.id) === false) {
@@ -551,7 +557,7 @@ export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
         id: newChannelMessage.id,
       },
     });
-    this.server.in(data.roomId).emit(`drawChannelMessage`, {
+    this.server.in(data.roomId).emit(`drawChannelMessage_${data.roomId}`, {
       ...newChannelMessageData, // 일단 block유저 찾지않음
     });
   }
@@ -659,9 +665,9 @@ function check_bar(dto: GameRoomDto) {
     if (dto.gameData.ball.v_x < 0) dto.gameData.ball.v_x *= -1;
   } else if (
     dto.gameData.ball.x + dto.gameData.ball.v_x >
-      dto.gameData.W - (dto.gameData.bar_d + 40) &&
+    dto.gameData.W - (dto.gameData.bar_d + 40) &&
     dto.gameData.ball.x + dto.gameData.ball.v_x <
-      dto.gameData.W - (dto.gameData.bar_d + 20) &&
+    dto.gameData.W - (dto.gameData.bar_d + 20) &&
     Math.abs(
       dto.gameData.ball.y + dto.gameData.ball.v_y - dto.gameData.p2.mouse_y,
     ) < 40

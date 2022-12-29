@@ -103,7 +103,8 @@ export default function ChannelInfoDialog({ channel, open, onClose }: any) {
       <DialogContent>
         {me && (
           <ChannelMemberList
-            initialMembers={members}
+            setMembers={setMembers}
+            members={members}
             myRole={me.userRoleInChannel}
             channelId={channel.id}
           />

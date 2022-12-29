@@ -69,7 +69,7 @@ function RoleButton({
 
   return (
     <>
-      <Button onClick={myRole === "NORMAL" ? () => {} : () => setOpen(true)}>
+      <Button onClick={myRole === "NORMAL" ? () => { } : () => setOpen(true)}>
         {role}
       </Button>
       <ChangeRoleDialog
@@ -129,22 +129,22 @@ function MuteButton({
         onClick={
           isMuted
             ? () => {
-                const dt = new Date();
-                axios
-                  .patch(`/server/api/channel/${channelId}/mute/${targetId}`, {
-                    limitedTime: dt.toJSON(),
-                  })
-                  .then((res) => {
-                    console.log(res.data);
-                    setIsMuted(false);
-                  })
-                  .catch((e) => {
-                    console.error(e);
-                  });
-              }
+              const dt = new Date();
+              axios
+                .patch(`/server/api/channel/${channelId}/mute/${targetId}`, {
+                  limitedTime: dt.toJSON(),
+                })
+                .then((res) => {
+                  console.log(res.data);
+                  setIsMuted(false);
+                })
+                .catch((e) => {
+                  console.error(e);
+                });
+            }
             : () => {
-                setOpen(true);
-              }
+              setOpen(true);
+            }
         }
       >
         {isMuted ? (
@@ -250,15 +250,17 @@ function OutButton({ channelId }: { channelId: string }) {
 }
 
 export default function ChannelMemberList({
-  initialMembers,
+  setMembers,
+  members,
   myRole,
   channelId,
 }: any) {
-  const [members, setMembers] = useState(initialMembers);
+  // const [members, setMembers] = useState(initialMembers);
   const me = getLoginUser();
   const router = useRouter();
 
   useEffect(() => console.count("ChannelMemberList mounted"), []);
+  // useEffect(() => { setMembers(initialMembers) }, [initialMembers]);
 
   return (
     <>
@@ -281,10 +283,12 @@ export default function ChannelMemberList({
               targetId={member.id}
             />
             {myRole === "NORMAL" ||
-            me.id === member.id ||
-            member.userRoleInChannel === "OWNER" ? (
-              <IconButton>
+              me.id === member.id ||
+              member.userRoleInChannel === "OWNER" ? (
+              member.userMute === true ? <IconButton>
                 <VolumeOffIcon />
+              </IconButton> : <IconButton>
+                <VolumeUpIcon />
               </IconButton>
             ) : (
               <MuteButton

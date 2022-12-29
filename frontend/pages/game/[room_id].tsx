@@ -1,7 +1,7 @@
 import { socket, useSocketAuthorization } from "../../lib/socket";
 import axios from "axios";
 import { Router, useRouter } from "next/router";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import p5Types from "p5";
 import {
@@ -23,8 +23,8 @@ const Sketch = dynamic(() => import("react-p5").then((mod) => mod.default), {
 });
 
 let data = {
-  leftUser: "",
-  rightUser: "",
+  leftUser: {},
+  rightUser: {},
   is_player: -1,
   roomId: 0,
   H: 400,
@@ -50,15 +50,19 @@ let data = {
   },
 };
 
-let gameRoomId;
 let bar_loop: NodeJS.Timer;
 
 export default function GameRoom() {
   useSocketAuthorization();
   const router = useRouter();
   const userId = getLoginUser().id;
+
+  const [leftUserName, setLeftUserName] = useState();
+  const [rightUserName, setRightUserName] = useState();
+
   useEffect(() => {
     if (!router.isReady) return;
+    const roomId = router.query.room_id;
     function routeChangeHandler() {
       socket.emit(`roomOut`, roomId);
     }
@@ -82,10 +86,16 @@ export default function GameRoom() {
       data.p2.countDown = -1;
       data = {
         ..._data.gameData,
-        leftUser: _data.leftUser.id,
-        rightUser: _data.rightUser.id,
+        leftUser: _data.leftUser,
+        rightUser: _data.rightUser,
       };
     });
+
+    socket.emit("giveMeGameUser", roomId);
+    socket.on("gameUser", (data)=>{
+      setLeftUserName(data.leftUserName);
+      setRightUserName(data.rightUserName);
+    })
 
     socket.on("getOut!", async () => {
       dataInit();
@@ -132,7 +142,7 @@ export default function GameRoom() {
     draw_p1_bar(p5, data);
     draw_p2_bar(p5, data);
 
-    if (data.leftUser===userId || data.rightUser===userId) {
+    if (data.leftUser.id === userId || data.rightUser.id === userId) {
       let send = {
         roomId: roomId,
         m_y: p5.mouseY,
@@ -144,6 +154,7 @@ export default function GameRoom() {
   };
   return (
     <Layout>
+      <h2>{leftUserName} VS {rightUserName}</h2>
       <Sketch setup={setup} draw={draw} />
     </Layout>
   );
@@ -151,8 +162,8 @@ export default function GameRoom() {
 
 function dataInit() {
   data = {
-    leftUser: "",
-    rightUser: "",
+    leftUser: {},
+    rightUser: {},
     is_player: -1,
     roomId: 0,
     H: 400,

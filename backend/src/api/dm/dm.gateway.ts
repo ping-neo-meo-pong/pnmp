@@ -80,11 +80,11 @@ export class DmGateway
     if (isBlockUser) {
       this.server
         .in(data.roomId)
-        .emit(`drawDm`, { ...newDmData, isSendUserBlocked: true });
+        .emit(`drawDm_${data.roomId}`, { ...newDmData, isSendUserBlocked: true });
     } else {
       this.server
         .in(data.roomId)
-        .emit(`drawDm`, { ...newDmData, isSendUserBlocked: false });
+        .emit(`drawDm_${data.roomId}`, { ...newDmData, isSendUserBlocked: false });
     }
   }
 }

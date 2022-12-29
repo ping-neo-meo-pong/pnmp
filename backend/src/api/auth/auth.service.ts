@@ -22,6 +22,16 @@ export class AuthService {
       throw new BadRequestException('중복된 유저 네임');
     }
 
+    const regex = /[^가-힣\w\s]/g;
+    const trimName = username.trim();
+    if (
+      trimName.length === 0 ||
+      regex.test(trimName) === true ||
+      trimName.length > 10
+    ) {
+      throw new BadRequestException('잘못된 이름');
+    }
+
     const saveUser = await this.userRepository.createUser(
       username,
       email,

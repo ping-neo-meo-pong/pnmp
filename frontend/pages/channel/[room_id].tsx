@@ -51,7 +51,7 @@ export default function Channel() {
           setMsgList(messageList);
 
           socket.emit("channelRoom", roomId);
-          socket.on(`drawChannelMessage`, (message) => {
+          socket.on(`drawChannelMessage_${roomId}`, (message) => {
             console.log(`draw cm`);
             console.log(message);
             let blockUsers: any[] = [];
@@ -80,7 +80,7 @@ export default function Channel() {
           });
 
           router.events.on("routeChangeStart", () => {
-            socket.off(`drawChannelMessage`);
+            socket.off(`drawChannelMessage_${roomId}`);
           });
         })
         .catch((e) => {
@@ -159,8 +159,10 @@ export default function Channel() {
               <InputAdornment position="end">
                 <IconButton
                   onClick={() => {
-                    setMsgToSend("");
-                    onSubmitMessage(msgToSend);
+                    if (msgToSend !== "") {
+                      setMsgToSend("");
+                      onSubmitMessage(msgToSend);
+                    }
                   }}
                 >
                   <SendIcon />

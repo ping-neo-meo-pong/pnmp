@@ -14,7 +14,12 @@ export default function Loading() {
   console.log("This is Loading");
 
   const router = useRouter();
-  const { data: session, status: status } = useSession();
+  const { data: session, status: status } = useSession({
+    required: true,
+    onUnauthenticated() {
+      router.replace("/");
+    },
+  });
 
   if (status === "authenticated") {
     axios

@@ -14,7 +14,7 @@ export function useSocketAuthorization() {
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "authenticated" && isLoggedIn()) {
+    if (isLoggedIn()) {
       console.log(localStorage.loginUser);
       console.log(`jwt: ${localStorage.loginUser.jwt}`);
       socket.emit("authorize", getLoginUser().jwt);

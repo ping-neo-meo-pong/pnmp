@@ -16,6 +16,7 @@ services:
       - data:/var/lib/postgresql/data
     networks:
       - ping-pong
+    init: true
     tty: true
 
   nginx:
@@ -31,6 +32,7 @@ services:
       - ping-pong
     environment:
       TZ: Asia/Seoul
+    init: true
     tty: true
 
   backend:
@@ -48,6 +50,9 @@ services:
       - .env
     environment:
       TZ: Asia/Seoul
+    volumes:
+      - upload:/backend/upload
+    init: true
     tty: true
 
   frontend:
@@ -64,8 +69,8 @@ services:
     env_file:
       - .env
     environment:
-      # WDS_SOCKET_PORT: 0
       TZ: Asia/Seoul
+    init: true
     tty: true
 
   pgadmin:
@@ -82,6 +87,7 @@ services:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
       TZ: Asia/Seoul
+    init: true
 
 networks:
   ping-pong:
@@ -89,4 +95,5 @@ networks:
 
 volumes:
   data: {}
+  upload: {}
   admin: {}

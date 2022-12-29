@@ -24,7 +24,7 @@ export default function CreateChannelDialog({ open, onClose, onSubmit }: any) {
   }
 
   function submit() {
-    if (regex(name, 10)) {
+    if (regex(name, 20)) {
       close();
       alert("잘못된 이름입니다");
       return;

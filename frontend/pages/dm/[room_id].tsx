@@ -41,7 +41,7 @@ export default function Dm() {
           setMsgList(dmList);
 
           dmSocket.emit("dmRoom", roomId);
-          dmSocket.on(`drawDm`, (message) => {
+          dmSocket.on(`drawDm_${roomId}`, (message) => {
             console.log(message);
             if (
               !(
@@ -56,7 +56,7 @@ export default function Dm() {
           });
 
           router.events.on("routeChangeStart", () => {
-            dmSocket.off(`drawDm`);
+            dmSocket.off(`drawDm_${roomId}`);
           });
         })
         .catch((e) => {
@@ -94,8 +94,10 @@ export default function Dm() {
               <InputAdornment position="end">
                 <IconButton
                   onClick={() => {
-                    setMsgToSend("");
-                    onSubmitMessage(msgToSend);
+                    if (msgToSend !== "") {
+                      setMsgToSend("");
+                      onSubmitMessage(msgToSend);
+                    }
                   }}
                 >
                   <SendIcon />
