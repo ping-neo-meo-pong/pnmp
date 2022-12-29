@@ -80,8 +80,8 @@ export class GameRoomRepository extends Repository<GameRoom> {
 }
 
 function initRoom(gameRoom: GameRoom) {
-  const _W = 500;
-  const _H = 400;
+  const _W = 640;
+  const _H = 450;
   let ball_v_x = 3;
   let ball_v_y = 4;
   let plus_speed = 1;
