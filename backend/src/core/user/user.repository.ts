@@ -27,7 +27,7 @@ export class UserRepository extends Repository<User> {
     const newUser = this.create({
       username: username,
       email: email,
-      profileImage: filename ? `http://localhost/server/${filename}` : null,
+      profileImage: filename ? `/server/${filename}` : null,
       twoFactorAuthSecret: authenticator.generateSecret(),
     });
     return await this.save(newUser);

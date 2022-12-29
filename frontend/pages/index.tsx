@@ -17,7 +17,7 @@ function Copyright(props: any) {
       {...props}
     >
       {"Copyright © "}
-      <Link color="inherit" href="https://localhost">
+      <Link color="inherit" href="/">
         ping-neo-meo-pong
       </Link>{" "}
       {new Date().getFullYear()}
@@ -57,7 +57,7 @@ export default function Home() {
           <Button
             loading={status === "loading"}
             onClick={() => {
-              signIn("42-school", { callbackUrl: "http://localhost/loading" });
+              signIn("42-school", { callbackUrl: "/loading" });
             }}
           >
             Sign with 42school

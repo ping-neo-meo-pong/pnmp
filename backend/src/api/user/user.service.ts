@@ -118,7 +118,7 @@ export class UserService {
     filename: string,
   ): Promise<UserInfoDto> {
     await this.userRepository.update(userId, {
-      profileImage: filename ? `http://localhost/server/${filename}` : null,
+      profileImage: filename ? `/server/${filename}` : null,
     });
     return this.changeUserInfo(await this.userRepository.findUserById(userId));
   }

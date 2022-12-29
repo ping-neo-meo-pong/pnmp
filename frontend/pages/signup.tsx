@@ -23,7 +23,7 @@ function Copyright(props: any) {
       {...props}
     >
       {"Copyright © "}
-      <Link href="https://localhost">ping-neo-meo-pong</Link>{" "}
+      <Link href="/">ping-neo-meo-pong</Link>{" "}
       {new Date().getFullYear()}
       {"."}
     </Typography>
@@ -34,7 +34,7 @@ export default function SignUp() {
   const { data: session, status: status } = useSession({
     required: true,
     onUnauthenticated() {
-      signOut({ callbackUrl: "http://localhost" });
+      signOut({ callbackUrl: "/" });
     },
   });
   const router = useRouter();

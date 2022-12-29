@@ -14,7 +14,7 @@ export function logout() {
     .catch((e) => {
       console.error(e);
     });
-  signOut({callbackUrl: "https://localhost"});
+  signOut({callbackUrl: "/"});
 }
 
 export function getLoginUser() {
