@@ -2,9 +2,12 @@
 
 ## 🏠 홈페이지 🔗 [https://jwoo.42jip.net](https://jwoo.42jip.net/)
 
-![스크린샷 2023-01-13 오후 11 16 50](https://user-images.githubusercontent.com/74581396/212340776-abd8cdf2-3cbd-4029-85c0-3f2b451afff0.png)
+<p align='center'>
+  <img src='https://user-images.githubusercontent.com/74581396/212355160-b05994f1-4c1d-4812-8b86-e8ddd33876bc.png'>
+</p>
 
-<br>
+![스크린샷 2023-01-13 오후 11 56 12](https://user-images.githubusercontent.com/74581396/212356255-17232d2f-b8db-4a6e-9743-1fc94562f5a7.png)
+![스크린샷 2023-01-13 오후 11 56 21](https://user-images.githubusercontent.com/74581396/212356079-c6ba10c0-d827-45bb-a2c2-09f4fefbb1dd.png)
 
 ## 🏓 프로젝트 소개
 
