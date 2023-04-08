@@ -1,7 +1,5 @@
 # pnmp
 
-## 🏠 홈페이지 🔗 [https://jwoo.42jip.net](https://jwoo.42jip.net/)
-
 <p align='center'>
   <img src='https://user-images.githubusercontent.com/74581396/212355160-b05994f1-4c1d-4812-8b86-e8ddd33876bc.png'>
 </p>
@@ -57,8 +55,8 @@ https://user-images.githubusercontent.com/74581396/216987903-dea4d281-614c-4afd-
 ### DB 스키마
 ![transcendence-ERD](https://user-images.githubusercontent.com/74581396/212341558-0a33c04e-a893-4cb0-a0e9-59d33b6292ba.png)
 
-### API 명세
-[https://jwoo.42jip.net/server/swagger](https://jwoo.42jip.net/server/swagger)
+### API 설계
+[API 엔드 포인트 설계](https://dev-jwoo.notion.site/API-df34f1366f6c48ebae9f513b9d9fae92)
 
 <br><br>
 
